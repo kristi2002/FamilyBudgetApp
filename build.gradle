@@ -1,0 +1,67 @@
+plugins {
+    // Apply the Java plugin
+    id 'java'
+    // Application plugin to run the app
+    id 'application'
+    // OpenJFX plugin for JavaFX support
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+}
+
+group = 'it.unicam.cs.mpgc'
+version = '1.0.0'
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // --- JPA / Hibernate ---
+    implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+    implementation 'org.hibernate.orm:hibernate-core:6.3.0.Final'
+
+    // --- H2 Database ---
+    runtimeOnly 'com.h2database:h2:2.2.224'
+
+    // --- Logging (SLF4J + Simple) ---
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+    runtimeOnly   'org.slf4j:slf4j-simple:2.0.7'
+
+    // --- JavaFX modules ---
+    // Adjust version to match your JavaFX SDK
+    def javafxVersion = '22.0.2'
+    implementation "org.openjfx:javafx-controls:$javafxVersion"
+    implementation "org.openjfx:javafx-fxml:$javafxVersion"
+
+    // --- JUnit for tests (optional) ---
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+}
+
+javafx {
+    // Specify which JavaFX modules your app uses
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+application {
+    // Replace with your main class
+    mainClass = 'it.unicam.cs.mpgc.jbudget120002.view.MainApp'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+sourceSets {
+    main {
+        resources {
+            // ensure Gradle treats this as a resource directory
+            srcDir 'src/main/resources'
+        }
+    }
+}
+
+tasks.withType(Copy) {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+

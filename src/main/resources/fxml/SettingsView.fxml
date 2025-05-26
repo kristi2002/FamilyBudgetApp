@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.SettingsController">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    
+    <GridPane hgap="10" vgap="10">
+        <Label text="Currency:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <ComboBox fx:id="cbCurrency" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        
+        <Label text="Locale:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <ComboBox fx:id="cbLocale" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        
+        <Label text="Theme:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <ComboBox fx:id="cbTheme" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+        
+        <Label text="Database Path:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <TextField fx:id="tfDatabasePath" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        
+        <CheckBox fx:id="cbAutoBackup" text="Auto Backup" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <TextField fx:id="tfBackupPath" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+    </GridPane>
+    
+    <Button fx:id="btnSave" text="Save Settings"/>
+</VBox>

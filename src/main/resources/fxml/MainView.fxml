@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane fx:id="rootPane"
+            fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.MainController"
+            xmlns:fx="http://javafx.com/fxml">
+    <left>
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+            <VBox spacing="10">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+                <Button text="Transactions" onAction="#showTransactions" maxWidth="Infinity"/>
+                <Button text="Budgets" onAction="#showBudgets" maxWidth="Infinity"/>
+                <Button text="Deadlines" onAction="#showDeadlines" maxWidth="Infinity"/>
+                <Button text="Statistics" onAction="#showStatistics" maxWidth="Infinity"/>
+                <Button text="Tags" onAction="#showTags" maxWidth="Infinity"/>
+                <Button text="Scheduled" onAction="#showScheduled" maxWidth="Infinity"/>
+                <Button text="Settings" onAction="#showSettings" maxWidth="Infinity"/>
+            </VBox>
+        </ScrollPane>
+    </left>
+    <center>
+        <!-- dynamic content goes here -->
+    </center>
+</BorderPane>
