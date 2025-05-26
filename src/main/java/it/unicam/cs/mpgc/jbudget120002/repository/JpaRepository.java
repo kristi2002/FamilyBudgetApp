@@ -10,11 +10,9 @@ public abstract class JpaRepository<T, ID> implements Repository<T, ID> {
     protected final EntityManager em;
     private final Class<T> entityClass;
 
-    protected JpaRepository(Class<T> entityClass) {
+    protected JpaRepository(Class<T> entityClass, EntityManager entityManager) {
         this.entityClass = entityClass;
-        this.em = Persistence
-                .createEntityManagerFactory("jbudgetPU")
-                .createEntityManager();
+        this.em = entityManager;
     }
 
     @Override

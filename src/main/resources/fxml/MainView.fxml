@@ -5,24 +5,42 @@
 
 <BorderPane fx:id="rootPane"
             fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.MainController"
-            xmlns:fx="http://javafx.com/fxml">
-    <left>
-        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
-            <VBox spacing="10">
-                <padding>
-                    <Insets top="10" right="10" bottom="10" left="10"/>
-                </padding>
-                <Button text="Transactions" onAction="#showTransactions" maxWidth="Infinity"/>
-                <Button text="Budgets" onAction="#showBudgets" maxWidth="Infinity"/>
-                <Button text="Deadlines" onAction="#showDeadlines" maxWidth="Infinity"/>
-                <Button text="Statistics" onAction="#showStatistics" maxWidth="Infinity"/>
-                <Button text="Tags" onAction="#showTags" maxWidth="Infinity"/>
-                <Button text="Scheduled" onAction="#showScheduled" maxWidth="Infinity"/>
-                <Button text="Settings" onAction="#showSettings" maxWidth="Infinity"/>
-            </VBox>
-        </ScrollPane>
-    </left>
+            xmlns:fx="http://javafx.com/fxml"
+            xmlns="http://javafx.com/javafx/16">
     <center>
-        <!-- dynamic content goes here -->
+        <TabPane fx:id="tabPane">
+            <tabs>
+                <Tab fx:id="transactionsTab" text="Transactions" closable="false">
+                    <content>
+                        <fx:include fx:id="transactionsView" source="TransactionsView.fxml" />
+                    </content>
+                </Tab>
+                <Tab fx:id="statisticsTab" text="Statistics" closable="false">
+                    <content>
+                        <fx:include fx:id="statisticsView" source="StatisticsView.fxml" />
+                    </content>
+                </Tab>
+                <Tab fx:id="scheduledTab" text="Scheduled" closable="false">
+                    <content>
+                        <fx:include fx:id="scheduledView" source="ScheduledView.fxml" />
+                    </content>
+                </Tab>
+                <Tab fx:id="budgetsTab" text="Budgets" closable="false">
+                    <content>
+                        <fx:include fx:id="budgetsView" source="BudgetsView.fxml" />
+                    </content>
+                </Tab>
+                <Tab fx:id="tagsTab" text="Tags" closable="false">
+                    <content>
+                        <fx:include fx:id="tagsView" source="TagsView.fxml" />
+                    </content>
+                </Tab>
+                <Tab fx:id="settingsTab" text="Settings" closable="false">
+                    <content>
+                        <fx:include fx:id="settingsView" source="SettingsView.fxml" />
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
     </center>
 </BorderPane>

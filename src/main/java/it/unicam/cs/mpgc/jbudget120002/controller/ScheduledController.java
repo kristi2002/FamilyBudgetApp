@@ -4,6 +4,9 @@ import it.unicam.cs.mpgc.jbudget120002.model.ScheduledTransaction;
 import it.unicam.cs.mpgc.jbudget120002.model.Tag;
 import it.unicam.cs.mpgc.jbudget120002.service.ScheduledTransactionService;
 import it.unicam.cs.mpgc.jbudget120002.service.TagService;
+import it.unicam.cs.mpgc.jbudget120002.service.UserSettingsService;
+import it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils;
+import it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -38,22 +41,46 @@ public class ScheduledController extends BaseController {
 
     private ScheduledTransactionService scheduledService;
     private TagService tagService;
+    private UserSettingsService settingsService;
     private ObservableList<ScheduledTransaction> transactions;
     private Set<Tag> selectedTags;
+    private String currentCurrency;
 
     @Override
     protected void initializeServices() {
         scheduledService = serviceFactory.getScheduledTransactionService();
         tagService = serviceFactory.getTagService();
+        settingsService = serviceFactory.getUserSettingsService();
         transactions = FXCollections.observableArrayList();
         selectedTags = new HashSet<>();
+        
+        // Load currency setting
+        settingsService.findFirst().ifPresent(settings -> 
+            currentCurrency = settings.getCurrency()
+        );
+        if (currentCurrency == null) currentCurrency = "EUR";
     }
 
     @Override
     protected void setupUI() {
-        // Initialize date pickers
+        // Initialize date pickers with custom format
         dpStartDate.setValue(LocalDate.now());
         dpEndDate.setValue(LocalDate.now().plusMonths(1));
+
+        javafx.util.StringConverter<LocalDate> dateConverter = new javafx.util.StringConverter<LocalDate>() {
+            @Override
+            public String toString(LocalDate date) {
+                return DateTimeUtils.formatDate(date);
+            }
+
+            @Override
+            public LocalDate fromString(String string) {
+                return DateTimeUtils.parseDate(string);
+            }
+        };
+
+        dpStartDate.setConverter(dateConverter);
+        dpEndDate.setConverter(dateConverter);
 
         // Setup recurrence patterns
         cbPattern.setItems(FXCollections.observableArrayList(
@@ -61,17 +88,59 @@ public class ScheduledController extends BaseController {
 
         // Setup table columns
         colStartDate.setCellValueFactory(new PropertyValueFactory<>("startDate"));
+        colStartDate.setCellFactory(column -> new TableCell<ScheduledTransaction, LocalDate>() {
+            @Override
+            protected void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                if (empty || date == null) {
+                    setText(null);
+                } else {
+                    setText(DateTimeUtils.formatDate(date));
+                }
+            }
+        });
+
         colEndDate.setCellValueFactory(new PropertyValueFactory<>("endDate"));
+        colEndDate.setCellFactory(column -> new TableCell<ScheduledTransaction, LocalDate>() {
+            @Override
+            protected void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                if (empty || date == null) {
+                    setText(null);
+                } else {
+                    setText(DateTimeUtils.formatDate(date));
+                }
+            }
+        });
+
         colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
+        
+        // Setup amount column with currency formatting
         colAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        colAmount.setCellFactory(column -> new TableCell<ScheduledTransaction, BigDecimal>() {
+            @Override
+            protected void updateItem(BigDecimal amount, boolean empty) {
+                super.updateItem(amount, empty);
+                if (empty || amount == null) {
+                    setText(null);
+                } else {
+                    setText(CurrencyUtils.formatAmount(amount, currentCurrency));
+                }
+            }
+        });
+
         colTags.setCellValueFactory(cellData -> {
             String tags = cellData.getValue().getTags().stream()
                 .map(Tag::getName)
                 .collect(Collectors.joining(", "));
             return new SimpleStringProperty(tags);
         });
+
         colPattern.setCellValueFactory(cellData -> 
             new SimpleStringProperty(cellData.getValue().getRecurrencePattern().toString()));
+
+        // Setup amount field prompt text with currency symbol
+        tfAmount.setPromptText("Amount (" + CurrencyUtils.getSymbol(currentCurrency) + ")");
 
         // Setup tags combobox
         cbTags.setItems(FXCollections.observableArrayList(tagService.findRootTags()));

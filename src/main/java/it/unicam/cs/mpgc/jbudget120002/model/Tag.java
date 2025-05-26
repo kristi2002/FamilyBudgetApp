@@ -1,44 +1,71 @@
 package it.unicam.cs.mpgc.jbudget120002.model;
 
 import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "tags")
 public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
     private Tag parent;
 
-    @OneToMany(mappedBy = "parent")
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Tag> children = new HashSet<>();
 
     @ManyToMany(mappedBy = "tags")
     private Set<Transaction> transactions = new HashSet<>();
+
+    @Column(name = "full_path", nullable = true)
+    private String fullPath;
+
+    @PrePersist
+    @PreUpdate
+    private void ensureFullPath() {
+        updateFullPath();
+    }
 
     public Tag() {
         // Default constructor for JPA
     }
 
     public Tag(String name) {
-        this.name = name;
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tag name cannot be empty");
+        }
+        this.name = name.trim();
+        updateFullPath();
     }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
     public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tag name cannot be empty");
+        }
+        this.name = name.trim();
+        updateFullPath();
+    }
 
     public Tag getParent() { return parent; }
     public void setParent(Tag parent) {
+        if (this.equals(parent)) {
+            throw new IllegalArgumentException("A tag cannot be its own parent");
+        }
+        if (parent != null && isAncestor(parent)) {
+            throw new IllegalArgumentException("Creating a cycle in tag hierarchy is not allowed");
+        }
+        
         if (this.parent != null) {
             this.parent.children.remove(this);
         }
@@ -46,23 +73,35 @@ public class Tag {
         if (parent != null) {
             parent.children.add(this);
         }
+        updateFullPath();
     }
 
-    public Set<Tag> getChildren() { return children; }
-
-    public Set<Transaction> getTransactions() { return transactions; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Tag)) return false;
-        Tag tag = (Tag) o;
-        return id != null && id.equals(tag.id);
+    public Set<Tag> getChildren() { 
+        return Collections.unmodifiableSet(children);
     }
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    public Set<Transaction> getTransactions() { 
+        return Collections.unmodifiableSet(transactions);
+    }
+
+    public String getFullPath() {
+        return fullPath;
+    }
+
+    private void updateFullPath() {
+        StringBuilder path = new StringBuilder();
+        if (parent != null) {
+            path.append(parent.getFullPath()).append("/");
+        }
+        path.append(name != null ? name : "");
+        this.fullPath = path.toString();
+        
+        // Update children's paths
+        if (children != null) {  // Check for null during initialization
+            for (Tag child : children) {
+                child.updateFullPath();
+            }
+        }
     }
 
     public boolean isRoot() {
@@ -83,8 +122,56 @@ public class Tag {
         return level;
     }
 
+    public List<Tag> getAncestors() {
+        List<Tag> ancestors = new ArrayList<>();
+        Tag current = parent;
+        while (current != null) {
+            ancestors.add(current);
+            current = current.getParent();
+        }
+        return ancestors;
+    }
+
+    public boolean isAncestor(Tag potentialAncestor) {
+        return getAncestors().contains(potentialAncestor);
+    }
+
+    public boolean isDescendant(Tag potentialDescendant) {
+        return potentialDescendant != null && potentialDescendant.isAncestor(this);
+    }
+
+    public Set<Tag> getAllDescendants() {
+        Set<Tag> descendants = new HashSet<>();
+        for (Tag child : children) {
+            descendants.add(child);
+            descendants.addAll(child.getAllDescendants());
+        }
+        return descendants;
+    }
+
+    public Set<Transaction> getAllTransactions() {
+        Set<Transaction> allTransactions = new HashSet<>(transactions);
+        for (Tag child : children) {
+            allTransactions.addAll(child.getAllTransactions());
+        }
+        return allTransactions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Tag)) return false;
+        Tag tag = (Tag) o;
+        return id != null && id.equals(tag.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
     @Override
     public String toString() {
-        return name;
+        return fullPath;
     }
 }

@@ -1,195 +1,166 @@
 package it.unicam.cs.mpgc.jbudget120002.controller;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import java.util.logging.Level;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 
 public class MainController extends BaseController {
     private static final Logger LOGGER = Logger.getLogger(MainController.class.getName());
 
-    @FXML
-    private BorderPane rootPane;
+    @FXML private BorderPane rootPane;
+    @FXML private TabPane tabPane;
+    
+    // Tab references
+    @FXML private Tab transactionsTab;
+    @FXML private Tab statisticsTab;
+    @FXML private Tab scheduledTab;
+    @FXML private Tab budgetsTab;
+    @FXML private Tab tagsTab;
+    @FXML private Tab settingsTab;
 
-    private Node transactionsView;
-    private Node budgetsView;
-    private Node deadlinesView;
-    private Node statisticsView;
-    private Node tagsView;
-    private Node scheduledView;
-    private Node settingsView;
-
-    private TransactionsController transactionsController;
-    private BudgetsController budgetsController;
-    private DeadlinesController deadlinesController;
-    private StatisticsController statisticsController;
-    private TagsController tagsController;
-    private ScheduledController scheduledController;
-    private SettingsController settingsController;
+    // View references - using Node to accept any layout type
+    @FXML private Node transactionsView;
+    @FXML private Node statisticsView;
+    @FXML private Node scheduledView;
+    @FXML private Node budgetsView;
+    @FXML private Node tagsView;
+    @FXML private Node settingsView;
+    
+    // Controller references - these will be automatically injected by FXMLLoader
+    @FXML private TransactionsController transactionsViewController;
+    @FXML private StatisticsController statisticsViewController;
+    @FXML private ScheduledController scheduledViewController;
+    @FXML private BudgetsController budgetsViewController;
+    @FXML private TagsController tagsViewController;
+    @FXML private SettingsController settingsViewController;
 
     @Override
     protected void initializeServices() {
-        // No services needed in main controller
+        LOGGER.info("Initializing MainController services");
+        // Set this controller as parent for all child controllers
+        if (transactionsViewController != null) {
+            LOGGER.info("Setting parent for TransactionsController");
+            transactionsViewController.setParentController(this);
+        } else {
+            LOGGER.warning("TransactionsController is null");
+        }
+        if (scheduledViewController != null) {
+            LOGGER.info("Setting parent for ScheduledController");
+            scheduledViewController.setParentController(this);
+        } else {
+            LOGGER.warning("ScheduledController is null");
+        }
+        if (budgetsViewController != null) {
+            LOGGER.info("Setting parent for BudgetsController");
+            budgetsViewController.setParentController(this);
+        } else {
+            LOGGER.warning("BudgetsController is null");
+        }
+        if (tagsViewController != null) {
+            LOGGER.info("Setting parent for TagsController");
+            tagsViewController.setParentController(this);
+        } else {
+            LOGGER.warning("TagsController is null");
+        }
+        if (settingsViewController != null) {
+            LOGGER.info("Setting parent for SettingsController");
+            settingsViewController.setParentController(this);
+        } else {
+            LOGGER.warning("SettingsController is null");
+        }
     }
 
     @Override
     protected void setupUI() {
-        try {
-            loadViews();
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Failed to load application views", e);
-            showError("Error", "Failed to load application views: " + e.getMessage());
+        LOGGER.info("Setting up MainController UI");
+        // Setup tab selection handlers
+        if (tabPane != null) {
+            tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+                if (newTab == transactionsTab) {
+                    onTransactionsTabSelected();
+                } else if (newTab == statisticsTab) {
+                    onStatisticsTabSelected();
+                } else if (newTab == scheduledTab) {
+                    onScheduledTabSelected();
+                } else if (newTab == budgetsTab) {
+                    onBudgetsTabSelected();
+                } else if (newTab == tagsTab) {
+                    onTagsTabSelected();
+                } else if (newTab == settingsTab) {
+                    onSettingsTabSelected();
+                }
+            });
+        } else {
+            LOGGER.warning("TabPane is null");
         }
     }
 
     @Override
     protected void loadData() {
-        showTransactions(); // Show transactions view by default
-    }
-
-    private void loadViews() throws IOException {
-        // Load all views
-        try {
-            FXMLLoader transactionsLoader = new FXMLLoader(getClass().getResource("/fxml/TransactionsView.fxml"));
-            transactionsView = transactionsLoader.load();
-            transactionsController = transactionsLoader.getController();
-            LOGGER.info("Successfully loaded TransactionsView");
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to load transactions view", e);
-            showError("Error", "Failed to load transactions view: " + e.getMessage());
-        }
-
-        try {
-            FXMLLoader budgetsLoader = new FXMLLoader(getClass().getResource("/fxml/BudgetsView.fxml"));
-            budgetsView = budgetsLoader.load();
-            budgetsController = budgetsLoader.getController();
-            LOGGER.info("Successfully loaded BudgetsView");
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to load budgets view", e);
-            showError("Error", "Failed to load budgets view: " + e.getMessage());
-        }
-
-        try {
-            FXMLLoader deadlinesLoader = new FXMLLoader(getClass().getResource("/fxml/DeadlinesView.fxml"));
-            deadlinesView = deadlinesLoader.load();
-            deadlinesController = deadlinesLoader.getController();
-            LOGGER.info("Successfully loaded DeadlinesView");
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to load deadlines view", e);
-            showError("Error", "Failed to load deadlines view: " + e.getMessage());
-        }
-
-        try {
-            FXMLLoader statisticsLoader = new FXMLLoader(getClass().getResource("/fxml/StatisticsView.fxml"));
-            statisticsView = statisticsLoader.load();
-            statisticsController = statisticsLoader.getController();
-            LOGGER.info("Successfully loaded StatisticsView");
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to load statistics view", e);
-            showError("Error", "Failed to load statistics view: " + e.getMessage());
-        }
-
-        try {
-            FXMLLoader tagsLoader = new FXMLLoader(getClass().getResource("/fxml/TagsView.fxml"));
-            tagsView = tagsLoader.load();
-            tagsController = tagsLoader.getController();
-            LOGGER.info("Successfully loaded TagsView");
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to load tags view", e);
-            showError("Error", "Failed to load tags view: " + e.getMessage());
-        }
-
-        try {
-            FXMLLoader scheduledLoader = new FXMLLoader(getClass().getResource("/fxml/ScheduledView.fxml"));
-            scheduledView = scheduledLoader.load();
-            scheduledController = scheduledLoader.getController();
-            LOGGER.info("Successfully loaded ScheduledView");
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to load scheduled view", e);
-            showError("Error", "Failed to load scheduled view: " + e.getMessage());
-        }
-
-        try {
-            FXMLLoader settingsLoader = new FXMLLoader(getClass().getResource("/fxml/SettingsView.fxml"));
-            settingsView = settingsLoader.load();
-            settingsController = settingsLoader.getController();
-            LOGGER.info("Successfully loaded SettingsView");
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to load settings view", e);
-            showError("Error", "Failed to load settings view: " + e.getMessage());
+        LOGGER.info("Loading MainController data");
+        // Show transactions view by default
+        if (transactionsTab != null && tabPane != null) {
+            tabPane.getSelectionModel().select(transactionsTab);
+        } else {
+            LOGGER.warning("TransactionsTab or TabPane is null");
         }
     }
 
-    @FXML
-    public void showTransactions() {
-        if (transactionsView != null) {
-            rootPane.setCenter(transactionsView);
-            transactionsController.refreshData();
+    private void onTransactionsTabSelected() {
+        if (transactionsViewController != null) {
+            transactionsViewController.refreshData();
         }
     }
 
-    @FXML
-    public void showBudgets() {
-        if (budgetsView != null) {
-            rootPane.setCenter(budgetsView);
-            budgetsController.refreshData();
+    private void onStatisticsTabSelected() {
+        if (statisticsViewController != null) {
+            statisticsViewController.refreshData();
         }
     }
 
-    @FXML
-    public void showDeadlines() {
-        if (deadlinesView != null) {
-            rootPane.setCenter(deadlinesView);
-            deadlinesController.refreshData();
+    private void onScheduledTabSelected() {
+        if (scheduledViewController != null) {
+            scheduledViewController.refreshData();
         }
     }
 
-    @FXML
-    public void showStatistics() {
-        if (statisticsView != null) {
-            rootPane.setCenter(statisticsView);
-            statisticsController.refreshData();
+    private void onBudgetsTabSelected() {
+        if (budgetsViewController != null) {
+            budgetsViewController.refreshData();
         }
     }
 
-    @FXML
-    public void showTags() {
-        if (tagsView != null) {
-            rootPane.setCenter(tagsView);
-            tagsController.refreshData();
+    private void onTagsTabSelected() {
+        if (tagsViewController != null) {
+            tagsViewController.refreshData();
         }
     }
 
-    @FXML
-    public void showScheduled() {
-        if (scheduledView != null) {
-            rootPane.setCenter(scheduledView);
-            scheduledController.refreshData();
+    private void onSettingsTabSelected() {
+        if (settingsViewController != null) {
+            settingsViewController.refreshData();
         }
     }
 
-    @FXML
-    public void showSettings() {
-        if (settingsView != null) {
-            rootPane.setCenter(settingsView);
-            settingsController.refreshData();
-        }
+    public void refreshAllViews() {
+        LOGGER.info("Refreshing all views");
+        if (transactionsViewController != null) transactionsViewController.refreshData();
+        if (scheduledViewController != null) scheduledViewController.refreshData();
+        if (budgetsViewController != null) budgetsViewController.refreshData();
+        if (tagsViewController != null) tagsViewController.refreshData();
     }
 
     @Override
     public void cleanup() {
+        LOGGER.info("Cleaning up MainController");
         super.cleanup();
-        if (transactionsController != null) transactionsController.cleanup();
-        if (budgetsController != null) budgetsController.cleanup();
-        if (deadlinesController != null) deadlinesController.cleanup();
-        if (statisticsController != null) statisticsController.cleanup();
-        if (tagsController != null) tagsController.cleanup();
-        if (scheduledController != null) scheduledController.cleanup();
-        if (settingsController != null) settingsController.cleanup();
+        if (transactionsViewController != null) transactionsViewController.cleanup();
+        if (scheduledViewController != null) scheduledViewController.cleanup();
+        if (budgetsViewController != null) budgetsViewController.cleanup();
+        if (tagsViewController != null) tagsViewController.cleanup();
+        if (settingsViewController != null) settingsViewController.cleanup();
     }
 }

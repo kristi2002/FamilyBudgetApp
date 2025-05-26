@@ -21,6 +21,8 @@ public interface TagService {
     Set<Tag> getAllDescendants(Long tagId);
     
     List<Tag> searchTags(String query);
-
+    
     List<Tag> findAll();
+    
+    List<Tag> findTagAndDescendants(Tag parent);
 }

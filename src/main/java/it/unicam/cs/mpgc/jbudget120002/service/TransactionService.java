@@ -1,13 +1,9 @@
 package it.unicam.cs.mpgc.jbudget120002.service;
 
 import it.unicam.cs.mpgc.jbudget120002.model.*;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public interface TransactionService {
     Transaction createTransaction(LocalDate date, String description, BigDecimal amount, 
@@ -37,4 +33,19 @@ public interface TransactionService {
     BigDecimal calculateIncomeForPeriod(LocalDate startDate, LocalDate endDate);
 
     BigDecimal calculateExpensesForPeriod(LocalDate startDate, LocalDate endDate);
+
+    List<Transaction> findByTag(Tag tag, boolean includeChildren);
+
+    List<Transaction> findByTags(Collection<Tag> tags, boolean matchAll);
+
+    Map<Tag, BigDecimal> calculateTagTotals(LocalDate startDate, LocalDate endDate, boolean includeChildren);
+
+    Map<Tag, TransactionStatistics> calculateTagStatistics(LocalDate startDate, LocalDate endDate, boolean includeChildren);
+
+    /**
+     * Find all transactions between two dates (inclusive)
+     */
+    List<Transaction> findTransactionsBetweenDates(LocalDate startDate, LocalDate endDate);
+
+    BigDecimal calculateAmountForTagInPeriod(Tag tag, LocalDate startDate, LocalDate endDate);
 }

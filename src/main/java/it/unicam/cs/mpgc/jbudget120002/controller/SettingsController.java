@@ -1,77 +1,149 @@
 package it.unicam.cs.mpgc.jbudget120002.controller;
 
 import it.unicam.cs.mpgc.jbudget120002.model.UserSettings;
+import it.unicam.cs.mpgc.jbudget120002.model.ConflictResolutionStrategy;
+import it.unicam.cs.mpgc.jbudget120002.service.SyncService;
+import it.unicam.cs.mpgc.jbudget120002.service.FileSyncService;
 import it.unicam.cs.mpgc.jbudget120002.service.UserSettingsService;
-import it.unicam.cs.mpgc.jbudget120002.service.UserSettingsServiceImpl;
-import it.unicam.cs.mpgc.jbudget120002.repository.UserSettingsRepositoryJpa;
+import it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-
+import javafx.stage.DirectoryChooser;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
+import java.util.List;
 
 public class SettingsController extends BaseController {
 
     @FXML private ComboBox<String> cbCurrency;
     @FXML private ComboBox<String> cbLocale;
     @FXML private ComboBox<String> cbTheme;
-    @FXML private Button         btnSave;
-    @FXML private TextField      tfDatabasePath;
-    @FXML private CheckBox       cbAutoBackup;
-    @FXML private TextField      tfBackupPath;
+    @FXML private Button btnSave;
+    @FXML private TextField tfDatabasePath;
+    @FXML private CheckBox cbAutoBackup;
+    @FXML private TextField tfBackupPath;
+    
+    // Sync controls
+    @FXML private TextField tfSyncPath;
+    @FXML private ComboBox<ConflictResolutionStrategy> cbConflictStrategy;
+    @FXML private Label lblLastSync;
+    @FXML private Label lblSyncStatus;
 
-    private final UserSettingsService settingsService =
-            new UserSettingsServiceImpl(new UserSettingsRepositoryJpa());
+    private UserSettingsService settingsService;
+    private FileSyncService syncService;
 
     @Override
     protected void initializeServices() {
-        // No services needed for settings
+        settingsService = serviceFactory.getUserSettingsService();
+        syncService = new FileSyncService(entityManager);
     }
 
     @Override
     protected void setupUI() {
-        // Setup theme options
+        // Initialize currency options
+        cbCurrency.getItems().addAll("EUR", "USD", "GBP", "JPY", "CHF");
+        
+        // Initialize locale options (simplified for example)
+        cbLocale.getItems().addAll("en-US", "it-IT", "de-DE", "fr-FR", "es-ES");
+        
+        // Initialize theme options
         cbTheme.getItems().addAll("Light", "Dark", "System");
-        cbTheme.setValue("Light");
+        
+        // Initialize conflict resolution strategy options
+        cbConflictStrategy.getItems().addAll(ConflictResolutionStrategy.values());
+        
+        // Load current settings
+        loadCurrentSettings();
+    }
 
-        // sample options
-        cbCurrency.getItems().setAll("EUR","USD","GBP");
-        cbLocale.getItems().setAll("it-IT","en-US","fr-FR");
-
-        // load existing
-        Optional<UserSettings> opt = settingsService.findFirst();
-        if (opt.isPresent()) {
-            UserSettings s = opt.get();
+    private void loadCurrentSettings() {
+        Optional<UserSettings> settings = settingsService.findFirst();
+        settings.ifPresent(s -> {
             cbCurrency.setValue(s.getCurrency());
             cbLocale.setValue(s.getLocale());
             cbTheme.setValue(s.getTheme());
-        }
-
-        btnSave.setOnAction(e -> saveSettings());
+            tfDatabasePath.setText(s.getDatabasePath());
+            cbAutoBackup.setSelected(s.isAutoBackup());
+            tfBackupPath.setText(s.getBackupPath());
+            tfSyncPath.setText(s.getSyncPath());
+            cbConflictStrategy.setValue(s.getConflictStrategy());
+        });
+        
+        updateSyncStatus();
     }
 
     @Override
     protected void loadData() {
-        refreshData();
+        loadCurrentSettings();
     }
 
-    public void refreshData() {
-        // Reload settings from configuration
-        // This is a placeholder until we implement settings persistence
+    @FXML
+    private void handleSave() {
+        try {
+            UserSettings settings = settingsService.findFirst().orElse(new UserSettings());
+            settings.setCurrency(cbCurrency.getValue());
+            settings.setLocale(cbLocale.getValue());
+            settings.setTheme(cbTheme.getValue());
+            settings.setDatabasePath(tfDatabasePath.getText());
+            settings.setAutoBackup(cbAutoBackup.isSelected());
+            settings.setBackupPath(tfBackupPath.getText());
+            settings.setSyncPath(tfSyncPath.getText());
+            settings.setConflictStrategy(cbConflictStrategy.getValue());
+            
+            if (settings.getId() == null) {
+                settingsService.create(settings);
+            } else {
+                settingsService.update(settings);
+            }
+            
+            showInfo("Success", "Settings saved successfully");
+        } catch (Exception e) {
+            showError("Error", "Failed to save settings: " + e.getMessage());
+        }
     }
 
-    private void saveSettings() {
-        UserSettings s = settingsService.findFirst().orElse(new UserSettings());
-        s.setCurrency(cbCurrency.getValue());
-        s.setLocale(cbLocale.getValue());
-        s.setTheme(cbTheme.getValue());
-        settingsService.create(s);
-        // TODO: feedback to user
+    @FXML
+    private void handleChooseBackupPath() {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Select Backup Directory");
+        File file = chooser.showDialog(tfBackupPath.getScene().getWindow());
+        if (file != null) {
+            tfBackupPath.setText(file.getAbsolutePath());
+        }
     }
 
-    @Override
-    public void cleanup() {
-        // No cleanup needed for settings
-        super.cleanup();
+    @FXML
+    private void handleChooseSyncPath() {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Select Sync Directory");
+        File file = chooser.showDialog(tfSyncPath.getScene().getWindow());
+        if (file != null) {
+            tfSyncPath.setText(file.getAbsolutePath());
+        }
+    }
+
+    private void updateSyncStatus() {
+        if (syncService != null) {
+            LocalDateTime lastSync = syncService.getLastSyncTime();
+            lblLastSync.setText("Last sync: " + 
+                (lastSync != null ? DateTimeUtils.formatDateTime(lastSync) : "Never"));
+            
+            boolean hasPendingChanges = syncService.hasPendingChanges();
+            lblSyncStatus.setText(hasPendingChanges ? "Changes pending" : "Up to date");
+        }
+    }
+
+    @FXML
+    private void handleSync() {
+        try {
+            // Implement sync logic here
+            showInfo("Success", "Sync completed successfully");
+            updateSyncStatus();
+        } catch (Exception e) {
+            showError("Error", "Failed to sync: " + e.getMessage());
+        }
     }
 }

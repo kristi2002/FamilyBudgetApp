@@ -1,32 +1,163 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+
+<?import java.lang.String?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
 <?import javafx.geometry.Insets?>
 
-<VBox spacing="10" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/19"
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/16"
       fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.StatisticsController"
-      VBox.vgrow="ALWAYS">
+      VBox.vgrow="ALWAYS" style="-fx-background-color: white;">
+    
     <padding>
         <Insets top="10" right="10" bottom="10" left="10"/>
     </padding>
     
-    <HBox spacing="5" alignment="CENTER_LEFT" VBox.vgrow="NEVER">
-        <children>
-            <DatePicker fx:id="dpStartDate" promptText="Start Date"/>
-            <DatePicker fx:id="dpEndDate" promptText="End Date"/>
-            <Button text="Update" onAction="#handleUpdateStatistics"/>
-        </children>
+    <!-- Time Period Selection -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Period:"/>
+        <ComboBox fx:id="cbPeriodType" promptText="Select Period" style="-fx-background-color: white; -fx-border-color: #ddd;"/>
+        <DatePicker fx:id="dpStartDate" promptText="Start Date" style="-fx-background-color: white; -fx-border-color: #ddd;"/>
+        <DatePicker fx:id="dpEndDate" promptText="End Date" style="-fx-background-color: white; -fx-border-color: #ddd;"/>
+        <ComboBox fx:id="cbComparisonPeriod" promptText="Compare With" style="-fx-background-color: white; -fx-border-color: #ddd;"/>
+        <Button text="Update" onAction="#handleUpdateStatistics" 
+                style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 5 10;"/>
     </HBox>
     
-    <TableView fx:id="tableMonthly" VBox.vgrow="ALWAYS">
-        <columns>
-            <TableColumn fx:id="colMonth" text="Month" prefWidth="150"/>
-            <TableColumn fx:id="colIncome" text="Income" prefWidth="150"/>
-            <TableColumn fx:id="colExpenses" text="Expenses" prefWidth="150"/>
-            <TableColumn fx:id="colBalance" text="Balance" prefWidth="150"/>
-        </columns>
-        <columnResizePolicy>
-            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-        </columnResizePolicy>
-    </TableView>
+    <!-- Category Filters -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Categories:"/>
+        <ComboBox fx:id="cbMainCategory" promptText="Main Category" style="-fx-background-color: white; -fx-border-color: #ddd;"/>
+        <CheckBox fx:id="chkIncludeSubcategories" text="Include Subcategories" style="-fx-text-fill: #2c3e50;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <ToggleButton fx:id="btnShowChart" text="Show Chart" 
+                     style="-fx-background-color: #95a5a6; -fx-text-fill: white;"/>
+        <ComboBox fx:id="cbChartType" promptText="Chart Type" style="-fx-background-color: white; -fx-border-color: #ddd;"/>
+    </HBox>
+    
+    <!-- Statistics Summary -->
+    <GridPane hgap="20" vgap="10" style="-fx-padding: 10; -fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-radius: 5; -fx-background-radius: 5;">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="150"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="150"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="150"/>
+        </columnConstraints>
+        
+        <!-- Current Period -->
+        <VBox spacing="5" GridPane.columnIndex="0" style="-fx-padding: 10; -fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 3; -fx-background-radius: 3;">
+            <Label text="Current Period" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+            <Label fx:id="lblCurrentIncome" text="Income: €0.00"/>
+            <Label fx:id="lblCurrentExpenses" text="Expenses: €0.00"/>
+            <Label fx:id="lblCurrentBalance" text="Balance: €0.00"/>
+            <Label fx:id="lblCurrentSavings" text="Savings Rate: 0%"/>
+        </VBox>
+        
+        <!-- Comparison Period -->
+        <VBox spacing="5" GridPane.columnIndex="1" style="-fx-padding: 10; -fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 3; -fx-background-radius: 3;">
+            <Label text="Comparison Period" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+            <Label fx:id="lblCompIncome" text="Income: €0.00"/>
+            <Label fx:id="lblCompExpenses" text="Expenses: €0.00"/>
+            <Label fx:id="lblCompBalance" text="Balance: €0.00"/>
+            <Label fx:id="lblCompSavings" text="Savings Rate: 0%"/>
+        </VBox>
+        
+        <!-- Difference -->
+        <VBox spacing="5" GridPane.columnIndex="2" style="-fx-padding: 10; -fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 3; -fx-background-radius: 3;">
+            <Label text="Difference" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+            <Label fx:id="lblDiffIncome" text="Income: €0.00"/>
+            <Label fx:id="lblDiffExpenses" text="Expenses: €0.00"/>
+            <Label fx:id="lblDiffBalance" text="Balance: €0.00"/>
+            <Label fx:id="lblDiffSavings" text="Savings Rate: 0%"/>
+        </VBox>
+    </GridPane>
+    
+    <!-- Chart/Table Container -->
+    <StackPane VBox.vgrow="ALWAYS">
+        <!-- Charts -->
+        <VBox fx:id="chartContainer" visible="false" managed="false">
+            <TabPane>
+                <Tab text="Overview" closable="false">
+                    <BarChart fx:id="overviewChart">
+                        <xAxis><CategoryAxis label="Categories"/></xAxis>
+                        <yAxis><NumberAxis label="Amount"/></yAxis>
+                    </BarChart>
+                </Tab>
+                <Tab text="Trends" closable="false">
+                    <LineChart fx:id="trendChart">
+                        <xAxis><CategoryAxis label="Time"/></xAxis>
+                        <yAxis><NumberAxis label="Amount"/></yAxis>
+                    </LineChart>
+                </Tab>
+                <Tab text="Category Distribution" closable="false">
+                    <PieChart fx:id="distributionChart"/>
+                </Tab>
+            </TabPane>
+        </VBox>
+        
+        <!-- Tables -->
+        <VBox fx:id="tableContainer">
+            <TabPane>
+                <Tab text="Monthly Summary" closable="false">
+                    <TableView fx:id="tableMonthlySummary" style="-fx-background-color: white; -fx-border-color: #ddd;">
+                        <columns>
+                            <TableColumn fx:id="colMonth" text="Month"/>
+                            <TableColumn fx:id="colIncome" text="Income"/>
+                            <TableColumn fx:id="colExpenses" text="Expenses"/>
+                            <TableColumn fx:id="colBalance" text="Balance"/>
+                            <TableColumn fx:id="colSavings" text="Savings"/>
+                        </columns>
+                    </TableView>
+                </Tab>
+                <Tab text="Category Analysis" closable="false">
+                    <TableView fx:id="tableCategoryAnalysis" style="-fx-background-color: white; -fx-border-color: #ddd;">
+                        <columns>
+                            <TableColumn fx:id="colCategory" text="Category"/>
+                            <TableColumn fx:id="colCurrentAmount" text="Current Period"/>
+                            <TableColumn fx:id="colPreviousAmount" text="Previous Period"/>
+                            <TableColumn fx:id="colDifference" text="Difference"/>
+                            <TableColumn fx:id="colPercentage" text="Percentage Change"/>
+                        </columns>
+                    </TableView>
+                </Tab>
+                <Tab text="Budget Tracking" closable="false">
+                    <TableView fx:id="tableBudgetTracking" style="-fx-background-color: white; -fx-border-color: #ddd;">
+                        <columns>
+                            <TableColumn fx:id="colBudgetCategory" text="Category"/>
+                            <TableColumn fx:id="colBudgetAmount" text="Budget"/>
+                            <TableColumn fx:id="colActualAmount" text="Actual"/>
+                            <TableColumn fx:id="colVariance" text="Variance"/>
+                            <TableColumn fx:id="colProgress" text="Progress"/>
+                        </columns>
+                    </TableView>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </StackPane>
+    
+    <!-- Export Options -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button fx:id="btnExportPDF" text="Export PDF" onAction="#handleExportPDF"
+                style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 5 10;"/>
+        <Button fx:id="btnExportExcel" text="Export Excel" onAction="#handleExportExcel"
+                style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 5 10;"/>
+    </HBox>
 </VBox>

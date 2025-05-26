@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.TagController"
+            stylesheets="@../css/styles.css">
+    
+    <top>
+        <VBox spacing="10" styleClass="content-padding">
+            <Label text="Tag Management" styleClass="view-title"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="tagNameField" promptText="Enter tag name"/>
+                <Button fx:id="addTagButton" text="Add Tag" onAction="#handleAddTag"/>
+                <Button fx:id="deleteTagButton" text="Delete Tag" onAction="#deleteSelectedTag"/>
+            </HBox>
+        </VBox>
+    </top>
+    
+    <center>
+        <SplitPane dividerPositions="0.7">
+            <TreeTableView fx:id="tagTreeTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TreeTableColumn fx:id="nameColumn" text="Tag Name" prefWidth="200"/>
+                </columns>
+                <contextMenu>
+                    <ContextMenu>
+                        <items>
+                            <MenuItem text="Add Child Tag" onAction="#handleAddTag"/>
+                            <MenuItem text="Delete Tag" onAction="#deleteSelectedTag"/>
+                        </items>
+                    </ContextMenu>
+                </contextMenu>
+            </TreeTableView>
+            
+            <VBox fx:id="tagDetailsPane" spacing="10" styleClass="content-padding">
+                <Label text="Tag Details" styleClass="section-title"/>
+                <GridPane vgap="5" hgap="10">
+                    <Label text="Full Path:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <Label fx:id="fullPathLabel" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                    
+                    <Label text="Number of Children:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <Label fx:id="childrenCountLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                    
+                    <Label text="Number of Transactions:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <Label fx:id="transactionCountLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    
+                    <Label text="Total Amount:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <Label fx:id="totalAmountLabel" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                </GridPane>
+            </VBox>
+        </SplitPane>
+    </center>
+    
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    
+</BorderPane> 

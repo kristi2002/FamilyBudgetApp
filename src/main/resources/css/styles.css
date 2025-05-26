@@ -1,0 +1,208 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f5f5f5;
+}
+
+.content-padding {
+    -fx-padding: 10px;
+}
+
+.view-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 10px 0;
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 5px 0;
+}
+
+/* Transaction Table Styles */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-width: 1px;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #ddd;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #f8f9fa;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+/* Tag Tree Styles */
+.tree-table-view {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-width: 1px;
+}
+
+.tree-table-row-cell {
+    -fx-background-color: white;
+}
+
+.tree-table-row-cell:odd {
+    -fx-background-color: #f8f9fa;
+}
+
+.tree-table-row-cell:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+/* Button Styles */
+.button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-padding: 5px 10px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.button:pressed {
+    -fx-background-color: #004085;
+}
+
+/* Text Field Styles */
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-width: 1px;
+    -fx-padding: 5px;
+}
+
+.text-field:focused {
+    -fx-border-color: #007bff;
+}
+
+/* ComboBox Styles */
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-width: 1px;
+}
+
+.combo-box:focused {
+    -fx-border-color: #007bff;
+}
+
+/* ListView Styles */
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-width: 1px;
+}
+
+.list-cell:odd {
+    -fx-background-color: #f8f9fa;
+}
+
+.list-cell:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+/* Financial Text Styles */
+.income-text {
+    -fx-text-fill: #28a745;
+    -fx-font-weight: bold;
+}
+
+.expense-text {
+    -fx-text-fill: #dc3545;
+    -fx-font-weight: bold;
+}
+
+.balance-text {
+    -fx-font-weight: bold;
+}
+
+.positive-balance {
+    -fx-text-fill: #28a745;
+}
+
+.negative-balance {
+    -fx-text-fill: #dc3545;
+}
+
+/* Dialog Styles */
+.dialog-pane {
+    -fx-background-color: white;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #f8f9fa;
+}
+
+.dialog-pane .button-bar .button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+.dialog-pane .button-bar .button:hover {
+    -fx-background-color: #0056b3;
+}
+
+/* Split Pane Styles */
+.split-pane {
+    -fx-background-color: transparent;
+}
+
+.split-pane-divider {
+    -fx-background-color: #ddd;
+    -fx-padding: 0 1px 0 1px;
+}
+
+/* Date Picker Styles */
+.date-picker {
+    -fx-background-color: white;
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #ddd;
+}
+
+.date-picker .cell {
+    -fx-background-color: white;
+}
+
+.date-picker .cell:hover {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+.date-picker .selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+/* Checkbox Styles */
+.check-box .box {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-width: 1px;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: white;
+}
+
+.check-box:selected .box {
+    -fx-background-color: #007bff;
+} 

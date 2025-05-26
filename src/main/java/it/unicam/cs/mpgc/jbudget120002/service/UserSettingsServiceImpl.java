@@ -1,38 +1,61 @@
 package it.unicam.cs.mpgc.jbudget120002.service;
 
 import it.unicam.cs.mpgc.jbudget120002.model.UserSettings;
-import it.unicam.cs.mpgc.jbudget120002.repository.UserSettingsRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.Optional;
 
 public class UserSettingsServiceImpl implements UserSettingsService {
+    private final EntityManager entityManager;
 
-    private final UserSettingsRepository repo;
-
-    public UserSettingsServiceImpl(UserSettingsRepository repo) {
-        this.repo = repo;
+    public UserSettingsServiceImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     @Override
     public UserSettings create(UserSettings s) {
-        repo.save(s);
-        return s;
+        entityManager.getTransaction().begin();
+        try {
+            entityManager.persist(s);
+            entityManager.getTransaction().commit();
+            return s;
+        } catch (Exception e) {
+            entityManager.getTransaction().rollback();
+            throw e;
+        }
     }
 
     @Override
     public Optional<UserSettings> findFirst() {
-        return repo.findFirst();
+        TypedQuery<UserSettings> q = entityManager.createQuery(
+                "FROM UserSettings u", UserSettings.class);
+        return q.getResultStream().findFirst();
     }
 
     @Override
     public UserSettings update(UserSettings s) {
-        repo.save(s);
-        return s;
+        entityManager.getTransaction().begin();
+        try {
+            entityManager.merge(s);
+            entityManager.getTransaction().commit();
+            return s;
+        } catch (Exception e) {
+            entityManager.getTransaction().rollback();
+            throw e;
+        }
     }
 
     @Override
     public void delete(Long id) {
-        repo.findFirst()
+        entityManager.getTransaction().begin();
+        try {
+            findFirst()
                 .filter(us -> us.getId().equals(id))
-                .ifPresent(repo::delete);
+                .ifPresent(entityManager::remove);
+            entityManager.getTransaction().commit();
+        } catch (Exception e) {
+            entityManager.getTransaction().rollback();
+            throw e;
+        }
     }
 }

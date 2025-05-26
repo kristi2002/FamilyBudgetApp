@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox spacing="10" xmlns:fx="http://javafx.com/fxml"
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/16"
       fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.BudgetsController"
       VBox.vgrow="ALWAYS">
     <padding>

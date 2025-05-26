@@ -1,18 +1,27 @@
 package it.unicam.cs.mpgc.jbudget120002.service;
 
+import it.unicam.cs.mpgc.jbudget120002.service.*;
 import jakarta.persistence.EntityManager;
 import it.unicam.cs.mpgc.jbudget120002.repository.*;
 
 public class ServiceFactory {
     private final EntityManager entityManager;
-    private TagService tagService;
     private TransactionService transactionService;
+    private TagService tagService;
+    private StatisticsService statisticsService;
     private ScheduledTransactionService scheduledService;
     private BudgetService budgetService;
-    private StatisticsService statisticsService;
+    private UserSettingsService userSettingsService;
 
     public ServiceFactory(EntityManager entityManager) {
         this.entityManager = entityManager;
+    }
+
+    public TransactionService getTransactionService() {
+        if (transactionService == null) {
+            transactionService = new TransactionServiceImpl(entityManager, getTagService());
+        }
+        return transactionService;
     }
 
     public TagService getTagService() {
@@ -22,11 +31,11 @@ public class ServiceFactory {
         return tagService;
     }
 
-    public TransactionService getTransactionService() {
-        if (transactionService == null) {
-            transactionService = new TransactionServiceImpl(entityManager, getTagService());
+    public StatisticsService getStatisticsService() {
+        if (statisticsService == null) {
+            statisticsService = new StatisticsServiceImpl(entityManager, getTransactionService(), getTagService());
         }
-        return transactionService;
+        return statisticsService;
     }
 
     public ScheduledTransactionService getScheduledTransactionService() {
@@ -43,10 +52,10 @@ public class ServiceFactory {
         return budgetService;
     }
 
-    public StatisticsService getStatisticsService() {
-        if (statisticsService == null) {
-            statisticsService = new StatisticsServiceImpl(entityManager, getTransactionService(), getTagService());
+    public UserSettingsService getUserSettingsService() {
+        if (userSettingsService == null) {
+            userSettingsService = new UserSettingsServiceImpl(entityManager);
         }
-        return statisticsService;
+        return userSettingsService;
     }
 } 

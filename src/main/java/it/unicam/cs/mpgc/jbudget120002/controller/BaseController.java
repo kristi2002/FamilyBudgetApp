@@ -10,23 +10,85 @@ import it.unicam.cs.mpgc.jbudget120002.service.ServiceFactory;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public abstract class BaseController implements Initializable {
-    protected static final EntityManagerFactory emf = 
-        Persistence.createEntityManagerFactory("jbudgetPU");
-    protected final EntityManager entityManager;
-    protected final ServiceFactory serviceFactory;
+    private static final Logger LOGGER = Logger.getLogger(BaseController.class.getName());
+    private static EntityManagerFactory emf;
+    protected EntityManager entityManager;
+    protected ServiceFactory serviceFactory;
+    protected BaseController parentController;
+    private boolean isInitialized = false;
 
-    public BaseController() {
-        this.entityManager = emf.createEntityManager();
-        this.serviceFactory = new ServiceFactory(entityManager);
+    static {
+        try {
+            emf = Persistence.createEntityManagerFactory("jbudgetPU");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to create EntityManagerFactory", e);
+            throw new RuntimeException("Failed to create EntityManagerFactory", e);
+        }
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        initializeServices();
-        setupUI();
-        loadData();
+        try {
+            if (!isInitialized) {
+                LOGGER.info("Initializing controller: " + getClass().getSimpleName());
+                
+                // Create a new EntityManager if needed
+                if (entityManager == null || !entityManager.isOpen()) {
+                    LOGGER.info("Creating new EntityManager instance");
+                    entityManager = emf.createEntityManager();
+                    serviceFactory = new ServiceFactory(entityManager);
+                }
+                
+                initializeServices();
+                setupUI();
+                loadData();
+                isInitialized = true;
+                LOGGER.info("Successfully initialized controller: " + getClass().getSimpleName());
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to initialize controller: " + getClass().getSimpleName(), e);
+            showError("Initialization Error", "Failed to initialize: " + e.getMessage());
+            throw new RuntimeException("Failed to initialize controller", e);
+        }
+    }
+
+    public void setParentController(BaseController parent) {
+        this.parentController = parent;
+    }
+
+    protected BaseController getParentController() {
+        return parentController;
+    }
+
+    public void refreshData() {
+        try {
+            // Create a new EntityManager if needed
+            if (entityManager == null || !entityManager.isOpen()) {
+                LOGGER.info("Creating new EntityManager instance for refresh");
+                entityManager = emf.createEntityManager();
+                serviceFactory = new ServiceFactory(entityManager);
+            }
+            
+            // Begin transaction
+            entityManager.getTransaction().begin();
+            
+            try {
+                loadData();
+                entityManager.getTransaction().commit();
+            } catch (Exception e) {
+                if (entityManager.getTransaction().isActive()) {
+                    entityManager.getTransaction().rollback();
+                }
+                throw e;
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to refresh data in controller: " + getClass().getSimpleName(), e);
+            showError("Refresh Error", "Failed to refresh data: " + e.getMessage());
+        }
     }
 
     protected abstract void initializeServices();
@@ -58,8 +120,31 @@ public abstract class BaseController implements Initializable {
     }
 
     public void cleanup() {
-        if (entityManager != null && entityManager.isOpen()) {
-            entityManager.close();
+        try {
+            if (entityManager != null && entityManager.isOpen()) {
+                if (entityManager.getTransaction().isActive()) {
+                    entityManager.getTransaction().rollback();
+                }
+                entityManager.close();
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error during cleanup of controller: " + getClass().getSimpleName(), e);
         }
+    }
+
+    public static void closeEntityManagerFactory() {
+        if (emf != null && emf.isOpen()) {
+            try {
+                emf.close();
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Error closing EntityManagerFactory", e);
+            }
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        cleanup();
+        super.finalize();
     }
 } 

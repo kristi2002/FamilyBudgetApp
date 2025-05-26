@@ -2,12 +2,20 @@ package it.unicam.cs.mpgc.jbudget120002.service;
 
 import it.unicam.cs.mpgc.jbudget120002.model.Tag;
 import it.unicam.cs.mpgc.jbudget120002.model.Transaction;
+import it.unicam.cs.mpgc.jbudget120002.model.TransactionStatistics;
+import it.unicam.cs.mpgc.jbudget120002.model.TransactionStatisticsImpl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TransactionServiceImpl implements TransactionService {
     private final EntityManager entityManager;
@@ -166,5 +174,106 @@ public class TransactionServiceImpl implements TransactionService {
         query.setParameter("start", startDate);
         query.setParameter("end", endDate);
         return query.getSingleResult() != null ? query.getSingleResult() : BigDecimal.ZERO;
+    }
+
+    @Override
+    public List<Transaction> findByTag(Tag tag, boolean includeChildren) {
+        if (!includeChildren) {
+            return findByTag(tag.getId());
+        }
+        
+        Set<Tag> allTags = new HashSet<>();
+        allTags.add(tag);
+        if (includeChildren) {
+            allTags.addAll(tagService.getAllDescendants(tag.getId()));
+        }
+        
+        Set<Long> tagIds = allTags.stream()
+            .map(Tag::getId)
+            .collect(Collectors.toSet());
+            
+        TypedQuery<Transaction> query = entityManager.createQuery(
+            "SELECT DISTINCT t FROM Transaction t JOIN t.tags tag WHERE tag.id IN :tagIds",
+            Transaction.class);
+        query.setParameter("tagIds", tagIds);
+        return query.getResultList();
+    }
+
+    @Override
+    public List<Transaction> findByTags(Collection<Tag> tags, boolean matchAll) {
+        if (tags == null || tags.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Long> tagIds = tags.stream()
+            .map(Tag::getId)
+            .collect(Collectors.toSet());
+
+        String jpql = matchAll ?
+            "SELECT t FROM Transaction t WHERE " +
+            "SIZE(t.tags) >= :tagCount AND " +
+            "NOT EXISTS (SELECT tag FROM Tag tag WHERE tag.id IN :tagIds AND tag NOT MEMBER OF t.tags)" :
+            "SELECT DISTINCT t FROM Transaction t JOIN t.tags tag WHERE tag.id IN :tagIds";
+
+        TypedQuery<Transaction> query = entityManager.createQuery(jpql, Transaction.class);
+        query.setParameter("tagIds", tagIds);
+        if (matchAll) {
+            query.setParameter("tagCount", (long) tagIds.size());
+        }
+        return query.getResultList();
+    }
+
+    @Override
+    public Map<Tag, BigDecimal> calculateTagTotals(LocalDate startDate, LocalDate endDate, boolean includeChildren) {
+        List<Tag> allTags = tagService.findAll();
+        Map<Tag, BigDecimal> totals = new HashMap<>();
+        
+        for (Tag tag : allTags) {
+            List<Transaction> transactions = findByTag(tag, includeChildren);
+            BigDecimal total = transactions.stream()
+                .filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate))
+                .map(t -> t.isIncome() ? t.getAmount() : t.getAmount().negate())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            totals.put(tag, total);
+        }
+        
+        return totals;
+    }
+
+    @Override
+    public List<Transaction> findTransactionsBetweenDates(LocalDate startDate, LocalDate endDate) {
+        TypedQuery<Transaction> query = entityManager.createQuery(
+            "SELECT t FROM Transaction t WHERE t.date BETWEEN :startDate AND :endDate ORDER BY t.date",
+            Transaction.class);
+        query.setParameter("startDate", startDate);
+        query.setParameter("endDate", endDate);
+        return query.getResultList();
+    }
+
+    @Override
+    public Map<Tag, TransactionStatistics> calculateTagStatistics(LocalDate startDate, LocalDate endDate, boolean includeChildren) {
+        List<Tag> allTags = tagService.findAll();
+        Map<Tag, TransactionStatistics> statistics = new HashMap<>();
+        
+        for (Tag tag : allTags) {
+            TransactionStatisticsImpl stats = new TransactionStatisticsImpl();
+            List<Transaction> transactions = findByTag(tag, includeChildren);
+            
+            transactions.stream()
+                .filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate))
+                .forEach(stats::addTransaction);
+                
+            statistics.put(tag, stats);
+        }
+        
+        return statistics;
+    }
+
+    @Override
+    public BigDecimal calculateAmountForTagInPeriod(Tag tag, LocalDate startDate, LocalDate endDate) {
+        return findByDateRange(startDate, endDate).stream()
+            .filter(t -> t.getTags().contains(tag))
+            .map(Transaction::getAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

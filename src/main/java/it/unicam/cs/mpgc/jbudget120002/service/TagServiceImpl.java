@@ -3,146 +3,186 @@ package it.unicam.cs.mpgc.jbudget120002.service;
 import it.unicam.cs.mpgc.jbudget120002.model.Tag;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class TagServiceImpl implements TagService {
-    private final EntityManager entityManager;
-
+public class TagServiceImpl extends BaseService implements TagService {
+    
     public TagServiceImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
+        super(entityManager);
     }
 
     @Override
     public Tag createTag(String name, Long parentId) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tag name cannot be empty");
+        }
+
         entityManager.getTransaction().begin();
         try {
-            Tag tag = new Tag(name);
+            Tag tag = new Tag(name.trim());
+            
             if (parentId != null) {
-                Tag parent = entityManager.find(Tag.class, parentId);
-                if (parent != null) {
-                    tag.setParent(parent);
-                }
+                Tag parent = findById(parentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Parent tag not found"));
+                tag.setParent(parent);
             }
+            
             entityManager.persist(tag);
             entityManager.getTransaction().commit();
             return tag;
         } catch (Exception e) {
             entityManager.getTransaction().rollback();
-            throw e;
+            throw new IllegalArgumentException("Failed to create tag: " + e.getMessage());
         }
     }
 
     @Override
     public Optional<Tag> findById(Long id) {
+        if (id == null) {
+            return Optional.empty();
+        }
         return Optional.ofNullable(entityManager.find(Tag.class, id));
     }
 
     @Override
     public List<Tag> findRootTags() {
         TypedQuery<Tag> query = entityManager.createQuery(
-            "SELECT t FROM Tag t WHERE t.parent IS NULL", Tag.class);
+            "SELECT t FROM Tag t WHERE t.parent IS NULL ORDER BY t.fullPath", Tag.class);
         return query.getResultList();
     }
 
     @Override
     public List<Tag> findChildTags(Long parentId) {
+        if (parentId == null) {
+            return Collections.emptyList();
+        }
+        
         TypedQuery<Tag> query = entityManager.createQuery(
-            "SELECT t FROM Tag t WHERE t.parent.id = :parentId", Tag.class);
+            "SELECT t FROM Tag t WHERE t.parent.id = :parentId ORDER BY t.fullPath", Tag.class);
         query.setParameter("parentId", parentId);
         return query.getResultList();
     }
 
     @Override
     public void updateTag(Long id, String newName, Long newParentId) {
+        if (id == null) {
+            throw new IllegalArgumentException("Tag ID cannot be null");
+        }
+        if (newName == null || newName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tag name cannot be empty");
+        }
+
         entityManager.getTransaction().begin();
         try {
-            Tag tag = entityManager.find(Tag.class, id);
-            if (tag != null) {
-                tag.setName(newName);
-                if (newParentId != null) {
-                    Tag newParent = entityManager.find(Tag.class, newParentId);
-                    if (newParent != null && !isCircularReference(tag, newParent)) {
-                        tag.setParent(newParent);
+            Tag tag = findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tag not found"));
+            
+            // Check if new parent would create a cycle
+            if (newParentId != null) {
+                Tag newParent = findById(newParentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Parent tag not found"));
+                
+                // Check for circular reference
+                Tag current = newParent;
+                while (current != null) {
+                    if (current.getId().equals(id)) {
+                        throw new IllegalArgumentException("Cannot create circular reference in tag hierarchy");
                     }
-                } else {
-                    tag.setParent(null);
+                    current = current.getParent();
                 }
+                
+                tag.setParent(newParent);
+            } else {
+                tag.setParent(null);
             }
+            
+            tag.setName(newName.trim());
+            entityManager.merge(tag);
             entityManager.getTransaction().commit();
         } catch (Exception e) {
             entityManager.getTransaction().rollback();
-            throw e;
+            throw new IllegalArgumentException("Failed to update tag: " + e.getMessage());
         }
     }
 
     @Override
     public void deleteTag(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Tag ID cannot be null");
+        }
+
         entityManager.getTransaction().begin();
         try {
-            Tag tag = entityManager.find(Tag.class, id);
-            if (tag != null) {
-                // Remove parent reference
-                tag.setParent(null);
-                
-                // Set children's parent to null
-                for (Tag child : tag.getChildren()) {
-                    child.setParent(null);
-                }
-                
-                entityManager.remove(tag);
-            }
+            Tag tag = findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tag not found"));
+            
+            // Remove this tag from all transactions
+            tag.getTransactions().forEach(t -> t.getTags().remove(tag));
+            
+            // Update children's parent to null (this will update their fullPaths)
+            tag.getChildren().forEach(child -> child.setParent(null));
+            
+            entityManager.remove(tag);
             entityManager.getTransaction().commit();
         } catch (Exception e) {
             entityManager.getTransaction().rollback();
-            throw e;
+            throw new IllegalArgumentException("Failed to delete tag: " + e.getMessage());
         }
     }
 
     @Override
     public Set<Tag> getAllDescendants(Long tagId) {
-        Tag tag = entityManager.find(Tag.class, tagId);
-        if (tag == null) {
-            return Set.of();
+        if (tagId == null) {
+            return Collections.emptySet();
         }
-        return getAllDescendantsRecursive(tag);
+        
+        Tag tag = findById(tagId)
+            .orElseThrow(() -> new IllegalArgumentException("Tag not found"));
+            
+        Set<Tag> descendants = new HashSet<>();
+        collectDescendants(tag, descendants);
+        return descendants;
     }
 
-    private Set<Tag> getAllDescendantsRecursive(Tag tag) {
-        return tag.getChildren().stream()
-            .flatMap(child -> {
-                Set<Tag> descendants = getAllDescendantsRecursive(child);
-                descendants.add(child);
-                return descendants.stream();
-            })
-            .collect(Collectors.toSet());
-    }
-
-    private boolean isCircularReference(Tag tag, Tag newParent) {
-        Tag current = newParent;
-        while (current != null) {
-            if (current.getId().equals(tag.getId())) {
-                return true;
-            }
-            current = current.getParent();
+    private void collectDescendants(Tag tag, Set<Tag> descendants) {
+        for (Tag child : tag.getChildren()) {
+            descendants.add(child);
+            collectDescendants(child, descendants);
         }
-        return false;
     }
 
     @Override
     public List<Tag> searchTags(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        
         TypedQuery<Tag> searchQuery = entityManager.createQuery(
-            "SELECT t FROM Tag t WHERE LOWER(t.name) LIKE LOWER(:query)", Tag.class);
-        searchQuery.setParameter("query", "%" + query + "%");
+            "SELECT t FROM Tag t WHERE LOWER(t.name) LIKE LOWER(:query) OR LOWER(t.fullPath) LIKE LOWER(:query) ORDER BY t.fullPath", Tag.class);
+        searchQuery.setParameter("query", "%" + query.trim() + "%");
         return searchQuery.getResultList();
     }
 
     @Override
     public List<Tag> findAll() {
-        TypedQuery<Tag> query = entityManager.createQuery(
-            "SELECT t FROM Tag t", Tag.class);
-        return query.getResultList();
+        return entityManager.createQuery("SELECT t FROM Tag t ORDER BY t.fullPath", Tag.class)
+            .getResultList();
     }
-}
+
+    @Override
+    public List<Tag> findTagAndDescendants(Tag parent) {
+        List<Tag> result = new ArrayList<>();
+        if (parent == null) {
+            return result;
+        }
+        
+        result.add(parent);
+        if (parent.getChildren() != null) {
+            for (Tag child : parent.getChildren()) {
+                result.addAll(findTagAndDescendants(child));
+            }
+        }
+        return result;
+    }
+} 
