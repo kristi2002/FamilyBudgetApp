@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.jbudget120002.service;
 
 import it.unicam.cs.mpgc.jbudget120002.model.*;
+import it.unicam.cs.mpgc.jbudget120002.model.StatisticsModels.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -78,4 +79,73 @@ public interface StatisticsService {
      * Get yearly comparison of expenses by category
      */
     Map<Integer, Map<Tag, BigDecimal>> getYearlyComparison(int startYear, int endYear);
+
+    /**
+     * Get trend analysis for a specific category over time
+     */
+    List<CategoryTrend> getCategoryTrends(
+        LocalDate startDate,
+        LocalDate endDate,
+        Tag category,
+        String interval // "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"
+    );
+
+    /**
+     * Get spending patterns analysis
+     */
+    SpendingPattern getSpendingPatterns(
+        LocalDate startDate,
+        LocalDate endDate,
+        Tag category
+    );
+
+    /**
+     * Get budget utilization over time
+     */
+    List<BudgetUtilization> getBudgetUtilization(
+        LocalDate startDate,
+        LocalDate endDate,
+        Tag category
+    );
+
+    /**
+     * Get category-wise spending forecast
+     */
+    Map<Tag, SpendingForecast> getSpendingForecast(
+        LocalDate startDate,
+        LocalDate endDate
+    );
+
+    /**
+     * Get savings progress analysis
+     */
+    SavingsProgress getSavingsProgress(
+        LocalDate startDate,
+        LocalDate endDate
+    );
+
+    /**
+     * Get category-wise budget recommendations based on historical data
+     */
+    Map<Tag, BudgetRecommendation> getBudgetRecommendations(
+        LocalDate startDate,
+        LocalDate endDate
+    );
+
+    /**
+     * Get spending anomalies detection
+     */
+    List<SpendingAnomaly> detectSpendingAnomalies(
+        LocalDate startDate,
+        LocalDate endDate,
+        Tag category
+    );
+
+    /**
+     * Get category-wise spending patterns by time of day/week
+     */
+    Map<Tag, TimeBasedPattern> getTimeBasedPatterns(
+        LocalDate startDate,
+        LocalDate endDate
+    );
 } 

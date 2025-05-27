@@ -22,6 +22,8 @@
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.ScatterChart?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.geometry.Insets?>
 
 <VBox spacing="10" xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/16"
@@ -92,32 +94,63 @@
     
     <!-- Chart/Table Container -->
     <StackPane VBox.vgrow="ALWAYS">
-        <!-- Charts -->
-        <VBox fx:id="chartContainer" visible="false" managed="false">
-            <TabPane>
-                <Tab text="Overview" closable="false">
-                    <BarChart fx:id="overviewChart">
-                        <xAxis><CategoryAxis label="Categories"/></xAxis>
-                        <yAxis><NumberAxis label="Amount"/></yAxis>
-                    </BarChart>
-                </Tab>
-                <Tab text="Trends" closable="false">
-                    <LineChart fx:id="trendChart">
+        <!-- Analysis Tabs -->
+        <TabPane fx:id="analysisTabs">
+            <Tab fx:id="tabTrends" text="Trends" closable="false">
+                <VBox spacing="10">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Analysis Interval:"/>
+                        <ComboBox fx:id="cbAnalysisInterval" prefWidth="150"/>
+                    </HBox>
+                    <LineChart fx:id="trendChart" VBox.vgrow="ALWAYS">
                         <xAxis><CategoryAxis label="Time"/></xAxis>
                         <yAxis><NumberAxis label="Amount"/></yAxis>
                     </LineChart>
-                </Tab>
-                <Tab text="Category Distribution" closable="false">
-                    <PieChart fx:id="distributionChart"/>
-                </Tab>
-            </TabPane>
-        </VBox>
-        
-        <!-- Tables -->
-        <VBox fx:id="tableContainer">
-            <TabPane>
-                <Tab text="Monthly Summary" closable="false">
-                    <TableView fx:id="tableMonthlySummary" style="-fx-background-color: white; -fx-border-color: #ddd;">
+                </VBox>
+            </Tab>
+            
+            <Tab fx:id="tabPatterns" text="Patterns" closable="false">
+                <VBox spacing="10">
+                    <BarChart fx:id="patternChart" VBox.vgrow="ALWAYS">
+                        <xAxis><CategoryAxis label="Category"/></xAxis>
+                        <yAxis><NumberAxis label="Amount"/></yAxis>
+                    </BarChart>
+                </VBox>
+            </Tab>
+            
+            <Tab fx:id="tabForecast" text="Forecast" closable="false">
+                <VBox spacing="10">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Forecast Method:"/>
+                        <ComboBox fx:id="cbForecastMethod" prefWidth="200"/>
+                        <Label text="Confidence Level:"/>
+                        <Slider fx:id="sldConfidenceLevel" prefWidth="200"/>
+                    </HBox>
+                    <ScatterChart fx:id="forecastChart" VBox.vgrow="ALWAYS">
+                        <xAxis><CategoryAxis label="Time"/></xAxis>
+                        <yAxis><NumberAxis label="Amount"/></yAxis>
+                    </ScatterChart>
+                </VBox>
+            </Tab>
+            
+            <Tab fx:id="tabAnomalies" text="Anomalies" closable="false">
+                <VBox spacing="10">
+                    <TableView fx:id="tableAnomalies" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colTimestamp" text="Timestamp"/>
+                            <TableColumn fx:id="colAnomalyCategory" text="Category"/>
+                            <TableColumn fx:id="colAmount" text="Amount"/>
+                            <TableColumn fx:id="colExpected" text="Expected"/>
+                            <TableColumn fx:id="colDeviation" text="Deviation"/>
+                            <TableColumn fx:id="colType" text="Type"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+            
+            <Tab fx:id="tabMonthlySummary" text="Monthly Summary" closable="false">
+                <VBox spacing="10">
+                    <TableView fx:id="tableMonthlySummary" VBox.vgrow="ALWAYS">
                         <columns>
                             <TableColumn fx:id="colMonth" text="Month"/>
                             <TableColumn fx:id="colIncome" text="Income"/>
@@ -126,31 +159,41 @@
                             <TableColumn fx:id="colSavings" text="Savings"/>
                         </columns>
                     </TableView>
-                </Tab>
-                <Tab text="Category Analysis" closable="false">
-                    <TableView fx:id="tableCategoryAnalysis" style="-fx-background-color: white; -fx-border-color: #ddd;">
+                </VBox>
+            </Tab>
+            
+            <Tab fx:id="tabCategoryAnalysis" text="Category Analysis" closable="false">
+                <VBox spacing="10">
+                    <TableView fx:id="tableCategoryAnalysis" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TableColumn fx:id="colCategory" text="Category"/>
-                            <TableColumn fx:id="colCurrentAmount" text="Current Period"/>
-                            <TableColumn fx:id="colPreviousAmount" text="Previous Period"/>
+                            <TableColumn fx:id="colCategoryName" text="Category"/>
+                            <TableColumn fx:id="colCurrentAmount" text="Current Amount"/>
+                            <TableColumn fx:id="colPreviousAmount" text="Previous Amount"/>
                             <TableColumn fx:id="colDifference" text="Difference"/>
-                            <TableColumn fx:id="colPercentage" text="Percentage Change"/>
+                            <TableColumn fx:id="colPercentage" text="Percentage"/>
+                            <TableColumn fx:id="colCategoryAmount" text="Amount"/>
+                            <TableColumn fx:id="colCategoryChange" text="Change"/>
                         </columns>
                     </TableView>
-                </Tab>
-                <Tab text="Budget Tracking" closable="false">
-                    <TableView fx:id="tableBudgetTracking" style="-fx-background-color: white; -fx-border-color: #ddd;">
+                </VBox>
+            </Tab>
+            
+            <Tab fx:id="tabBudgetTracking" text="Budget Tracking" closable="false">
+                <VBox spacing="10">
+                    <TableView fx:id="tableBudgetTracking" VBox.vgrow="ALWAYS">
                         <columns>
                             <TableColumn fx:id="colBudgetCategory" text="Category"/>
-                            <TableColumn fx:id="colBudgetAmount" text="Budget"/>
+                            <TableColumn fx:id="colBudgetAmount" text="Budgeted"/>
                             <TableColumn fx:id="colActualAmount" text="Actual"/>
+                            <TableColumn fx:id="colUtilization" text="Utilization"/>
                             <TableColumn fx:id="colVariance" text="Variance"/>
                             <TableColumn fx:id="colProgress" text="Progress"/>
+                            <TableColumn fx:id="colStatus" text="Status"/>
                         </columns>
                     </TableView>
-                </Tab>
-            </TabPane>
-        </VBox>
+                </VBox>
+            </Tab>
+        </TabPane>
     </StackPane>
     
     <!-- Export Options -->

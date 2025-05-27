@@ -20,14 +20,19 @@
                         <fx:include fx:id="statisticsView" source="StatisticsView.fxml" />
                     </content>
                 </Tab>
-                <Tab fx:id="scheduledTab" text="Scheduled" closable="false">
+                <Tab fx:id="deadlinesTab" text="Deadlines" closable="false">
                     <content>
-                        <fx:include fx:id="scheduledView" source="ScheduledView.fxml" />
+                        <fx:include fx:id="deadlinesView" source="DeadlinesView.fxml" />
                     </content>
                 </Tab>
                 <Tab fx:id="budgetsTab" text="Budgets" closable="false">
                     <content>
                         <fx:include fx:id="budgetsView" source="BudgetsView.fxml" />
+                    </content>
+                </Tab>
+                <Tab fx:id="loanAmortizationTab" text="Loan Amortization" closable="false">
+                    <content>
+                        <fx:include fx:id="loanAmortizationView" source="LoanAmortizationView.fxml" />
                     </content>
                 </Tab>
                 <Tab fx:id="tagsTab" text="Tags" closable="false">

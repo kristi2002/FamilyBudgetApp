@@ -66,6 +66,9 @@ public class ScheduledTransaction {
     @OneToMany(mappedBy = "scheduledTransaction", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> generatedTransactions = new ArrayList<>();
 
+    @Column
+    private String category;
+
     // Default constructor for JPA
     protected ScheduledTransaction() {}
 
@@ -131,6 +134,7 @@ public class ScheduledTransaction {
     public ProcessingState getProcessingState() { return processingState; }
     public Set<Tag> getTags() { return tags; }
     public List<Transaction> getGeneratedTransactions() { return generatedTransactions; }
+    public String getCategory() { return category; }
 
     // Setters
     public void setId(Long id) { this.id = id; }
@@ -143,4 +147,5 @@ public class ScheduledTransaction {
     public void setRecurrenceValue(int value) { this.recurrenceValue = value; }
     public void setProcessingState(ProcessingState state) { this.processingState = state; }
     public void setTags(Set<Tag> tags) { this.tags = tags; }
+    public void setCategory(String category) { this.category = category; }
 }

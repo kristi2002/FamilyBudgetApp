@@ -14,6 +14,7 @@ public class Deadline {
     private LocalDate dueDate;
     private double amount;
     private boolean isPaid;
+    private String category;
 
     @OneToOne
     private Transaction relatedTransaction;
@@ -24,12 +25,14 @@ public class Deadline {
                     LocalDate dueDate,
                     double amount,
                     boolean isPaid,
-                    Transaction relatedTransaction) {
+                    Transaction relatedTransaction,
+                    String category) {
         this.description = description;
         this.dueDate = dueDate;
         this.amount = amount;
         this.isPaid = isPaid;
         this.relatedTransaction = relatedTransaction;
+        this.category = category;
     }
 
     public Long getId() { return id; }
@@ -38,6 +41,7 @@ public class Deadline {
     public double getAmount() { return amount; }
     public boolean isPaid() { return isPaid; }
     public Transaction getRelatedTransaction() { return relatedTransaction; }
+    public String getCategory() { return category; }
 
     public void setDescription(String description) {
         this.description = description;
@@ -54,4 +58,5 @@ public class Deadline {
     public void setRelatedTransaction(Transaction relatedTransaction) {
         this.relatedTransaction = relatedTransaction;
     }
+    public void setCategory(String category) { this.category = category; }
 }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/16"
+      fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.LoanAmortizationController"
+      spacing="12" style="-fx-background-color: white;">
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Amount:" />
+        <TextField fx:id="tfAmount" promptText="Loan Amount" />
+        <Label text="Interest Rate (%):" />
+        <TextField fx:id="tfInterestRate" promptText="Annual Rate" />
+        <Label text="Term (months):" />
+        <TextField fx:id="tfTerm" promptText="Months" />
+        <Label text="Start Date:" />
+        <DatePicker fx:id="dpStartDate" />
+        <Button fx:id="btnGenerate" text="Generate Schedule" />
+    </HBox>
+    <TableView fx:id="tableSchedule" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colNumber" text="#" prefWidth="40" />
+            <TableColumn fx:id="colDueDate" text="Due Date" prefWidth="100" />
+            <TableColumn fx:id="colPrincipal" text="Principal" prefWidth="100" />
+            <TableColumn fx:id="colInterest" text="Interest" prefWidth="100" />
+            <TableColumn fx:id="colTotal" text="Total Payment" prefWidth="120" />
+        </columns>
+    </TableView>
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button fx:id="btnSaveAsScheduled" text="Save as Scheduled Transactions" />
+    </HBox>
+</VBox> 

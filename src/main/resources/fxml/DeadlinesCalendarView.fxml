@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/16"
+      fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.DeadlinesCalendarController"
+      spacing="10" style="-fx-background-color: white;">
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Button fx:id="btnPrevMonth" text="&lt;" />
+        <Label fx:id="lblMonthYear" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+        <Button fx:id="btnNextMonth" text="&gt;" />
+    </HBox>
+    <GridPane fx:id="calendarGrid" hgap="5" vgap="5" style="-fx-background-color: #f5f5f5; -fx-padding: 10;">
+        <!-- Days will be added dynamically -->
+    </GridPane>
+</VBox> 

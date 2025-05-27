@@ -15,6 +15,7 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.scene.paint.Color;
 
 public class DeadlinesController extends BaseController {
     @FXML private DatePicker dpMonth;
@@ -24,7 +25,10 @@ public class DeadlinesController extends BaseController {
     @FXML private TableColumn<ScheduledTransaction, String> colAmount;
     @FXML private TableColumn<ScheduledTransaction, String> colStatus;
     @FXML private TableColumn<ScheduledTransaction, String> colTags;
+    @FXML private TableColumn<ScheduledTransaction, String> colCategory;
+    @FXML private ComboBox<String> cbCategoryFilter;
     @FXML private Label lblTotalDue;
+    @FXML private Label notificationBanner;
 
     private ScheduledTransactionService scheduledService;
     private ObservableList<ScheduledTransaction> deadlines;
@@ -52,11 +56,17 @@ public class DeadlinesController extends BaseController {
             new SimpleStringProperty(cellData.getValue().getTags().stream()
                 .map(tag -> tag.getName())
                 .collect(Collectors.joining(", "))));
+        colCategory.setCellValueFactory(cellData ->
+            new SimpleStringProperty(cellData.getValue().getCategory())
+        );
 
         tableDeadlines.setItems(deadlines);
 
         // Add listener for month changes
         dpMonth.valueProperty().addListener((obs, oldVal, newVal) -> refreshData());
+
+        // Add listener for category filter
+        cbCategoryFilter.valueProperty().addListener((obs, oldVal, newVal) -> filterByCategory());
     }
 
     @Override
@@ -70,8 +80,17 @@ public class DeadlinesController extends BaseController {
             List<ScheduledTransaction> monthlyDeadlines = scheduledService
                 .findDeadlinesForMonth(selectedMonth);
             deadlines.setAll(monthlyDeadlines);
+            // Populate category filter
+            List<String> categories = monthlyDeadlines.stream()
+                .map(ScheduledTransaction::getCategory)
+                .filter(c -> c != null && !c.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+            cbCategoryFilter.getItems().setAll(categories);
+            cbCategoryFilter.setValue(null);
         }
         updateTotalDue();
+        updateNotifications();
     }
 
     private void updateTotalDue() {
@@ -81,6 +100,22 @@ public class DeadlinesController extends BaseController {
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         lblTotalDue.setText(String.format("Total Due: $%,.2f", total));
+    }
+
+    private void updateNotifications() {
+        LocalDate today = LocalDate.now();
+        LocalDate soon = today.plusDays(3);
+        List<ScheduledTransaction> soonOrOverdue = deadlines.stream()
+            .filter(d -> d.getStartDate() != null && (d.getStartDate().isBefore(today) || (d.getStartDate().isAfter(today.minusDays(1)) && d.getStartDate().isBefore(soon))))
+            .filter(d -> d.getProcessingState() == ScheduledTransaction.ProcessingState.PENDING)
+            .collect(Collectors.toList());
+        if (!soonOrOverdue.isEmpty()) {
+            notificationBanner.setText("⚠️ You have " + soonOrOverdue.size() + " deadlines due soon or overdue!");
+            notificationBanner.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5 10;");
+        } else {
+            notificationBanner.setText("");
+            notificationBanner.setStyle("");
+        }
     }
 
     @FXML
@@ -108,6 +143,18 @@ public class DeadlinesController extends BaseController {
             } catch (Exception e) {
                 showError("Error", "Failed to mark transaction as unpaid: " + e.getMessage());
             }
+        }
+    }
+
+    private void filterByCategory() {
+        String selectedCategory = cbCategoryFilter.getValue();
+        if (selectedCategory == null || selectedCategory.isEmpty()) {
+            tableDeadlines.setItems(deadlines);
+        } else {
+            ObservableList<ScheduledTransaction> filtered = deadlines.filtered(d ->
+                selectedCategory.equals(d.getCategory())
+            );
+            tableDeadlines.setItems(filtered);
         }
     }
 }

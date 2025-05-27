@@ -8,10 +8,12 @@ public class ServiceFactory {
     private final EntityManager entityManager;
     private TransactionService transactionService;
     private TagService tagService;
-    private StatisticsService statisticsService;
-    private ScheduledTransactionService scheduledService;
-    private BudgetService budgetService;
+    private ExchangeRateService exchangeRateService;
     private UserSettingsService userSettingsService;
+    private ScheduledTransactionService scheduledTransactionService;
+    private StatisticsService statisticsService;
+    private BudgetService budgetService;
+    private DeadlineService deadlineService;
 
     public ServiceFactory(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -19,7 +21,7 @@ public class ServiceFactory {
 
     public TransactionService getTransactionService() {
         if (transactionService == null) {
-            transactionService = new TransactionServiceImpl(entityManager, getTagService());
+            transactionService = new TransactionServiceImpl(entityManager, getTagService(), getExchangeRateService());
         }
         return transactionService;
     }
@@ -31,18 +33,32 @@ public class ServiceFactory {
         return tagService;
     }
 
+    public ExchangeRateService getExchangeRateService() {
+        if (exchangeRateService == null) {
+            exchangeRateService = new ExchangeRateServiceImpl(entityManager);
+        }
+        return exchangeRateService;
+    }
+
+    public UserSettingsService getUserSettingsService() {
+        if (userSettingsService == null) {
+            userSettingsService = new UserSettingsServiceImpl(entityManager);
+        }
+        return userSettingsService;
+    }
+
+    public ScheduledTransactionService getScheduledTransactionService() {
+        if (scheduledTransactionService == null) {
+            scheduledTransactionService = new ScheduledTransactionServiceImpl(entityManager, getTagService());
+        }
+        return scheduledTransactionService;
+    }
+
     public StatisticsService getStatisticsService() {
         if (statisticsService == null) {
             statisticsService = new StatisticsServiceImpl(entityManager, getTransactionService(), getTagService());
         }
         return statisticsService;
-    }
-
-    public ScheduledTransactionService getScheduledTransactionService() {
-        if (scheduledService == null) {
-            scheduledService = new ScheduledTransactionServiceImpl(entityManager, getTagService());
-        }
-        return scheduledService;
     }
 
     public BudgetService getBudgetService() {
@@ -52,10 +68,10 @@ public class ServiceFactory {
         return budgetService;
     }
 
-    public UserSettingsService getUserSettingsService() {
-        if (userSettingsService == null) {
-            userSettingsService = new UserSettingsServiceImpl(entityManager);
+    public DeadlineService getDeadlineService() {
+        if (deadlineService == null) {
+            deadlineService = new DeadlineServiceImpl(new DeadlineRepositoryJpa(entityManager));
         }
-        return userSettingsService;
+        return deadlineService;
     }
 } 

@@ -20,18 +20,20 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService {
     private final EntityManager entityManager;
     private final TagService tagService;
+    private final ExchangeRateService exchangeRateService;
 
-    public TransactionServiceImpl(EntityManager entityManager, TagService tagService) {
+    public TransactionServiceImpl(EntityManager entityManager, TagService tagService, ExchangeRateService exchangeRateService) {
         this.entityManager = entityManager;
         this.tagService = tagService;
+        this.exchangeRateService = exchangeRateService;
     }
 
     @Override
     public Transaction createTransaction(LocalDate date, String description, BigDecimal amount,
-            boolean isIncome, Set<Long> tagIds) {
+            boolean isIncome, Set<Long> tagIds, String currency) {
         entityManager.getTransaction().begin();
         try {
-            Transaction transaction = new Transaction(date, description, amount, isIncome);
+            Transaction transaction = new Transaction(date, description, amount, isIncome, currency);
             
             // Add tags
             for (Long tagId : tagIds) {
@@ -86,7 +88,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public void updateTransaction(Long id, LocalDate date, String description,
-            BigDecimal amount, boolean isIncome, Set<Long> tagIds) {
+            BigDecimal amount, boolean isIncome, Set<Long> tagIds, String currency) {
         entityManager.getTransaction().begin();
         try {
             Transaction transaction = findById(id);
@@ -95,6 +97,7 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.setDescription(description);
                 transaction.setAmount(amount);
                 transaction.setIncome(isIncome);
+                transaction.setCurrency(currency);
 
                 // Update tags
                 transaction.getTags().clear();
@@ -110,10 +113,16 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public BigDecimal calculateBalance(LocalDate start, LocalDate end) {
+    public BigDecimal calculateBalance(LocalDate start, LocalDate end, String targetCurrency) {
         List<Transaction> transactions = findByDateRange(start, end);
         return transactions.stream()
-            .map(t -> t.isIncome() ? t.getAmount() : t.getAmount().negate())
+            .map(t -> {
+                BigDecimal amount = t.isIncome() ? t.getAmount() : t.getAmount().negate();
+                if (!t.getCurrency().equals(targetCurrency)) {
+                    return exchangeRateService.convertAmount(amount, t.getCurrency(), targetCurrency);
+                }
+                return amount;
+            })
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -157,41 +166,50 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public BigDecimal calculateIncomeForPeriod(LocalDate startDate, LocalDate endDate) {
-        TypedQuery<BigDecimal> query = entityManager.createQuery(
-            "SELECT SUM(t.amount) FROM Transaction t WHERE t.isIncome = true " +
-            "AND t.date BETWEEN :start AND :end", BigDecimal.class);
-        query.setParameter("start", startDate);
-        query.setParameter("end", endDate);
-        return query.getSingleResult() != null ? query.getSingleResult() : BigDecimal.ZERO;
+    public BigDecimal calculateIncomeForPeriod(LocalDate startDate, LocalDate endDate, String targetCurrency) {
+        List<Transaction> transactions = findByDateRange(startDate, endDate);
+        return transactions.stream()
+            .filter(Transaction::isIncome)
+            .map(t -> {
+                if (!t.getCurrency().equals(targetCurrency)) {
+                    return exchangeRateService.convertAmount(t.getAmount(), t.getCurrency(), targetCurrency);
+                }
+                return t.getAmount();
+            })
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
-    public BigDecimal calculateExpensesForPeriod(LocalDate startDate, LocalDate endDate) {
-        TypedQuery<BigDecimal> query = entityManager.createQuery(
-            "SELECT SUM(t.amount) FROM Transaction t WHERE t.isIncome = false " +
-            "AND t.date BETWEEN :start AND :end", BigDecimal.class);
-        query.setParameter("start", startDate);
-        query.setParameter("end", endDate);
-        return query.getSingleResult() != null ? query.getSingleResult() : BigDecimal.ZERO;
+    public BigDecimal calculateExpensesForPeriod(LocalDate startDate, LocalDate endDate, String targetCurrency) {
+        List<Transaction> transactions = findByDateRange(startDate, endDate);
+        return transactions.stream()
+            .filter(t -> !t.isIncome())
+            .map(t -> {
+                if (!t.getCurrency().equals(targetCurrency)) {
+                    return exchangeRateService.convertAmount(t.getAmount(), t.getCurrency(), targetCurrency);
+                }
+                return t.getAmount();
+            })
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
     public List<Transaction> findByTag(Tag tag, boolean includeChildren) {
+        if (tag == null) {
+            return Collections.emptyList();
+        }
         if (!includeChildren) {
             return findByTag(tag.getId());
         }
-        
         Set<Tag> allTags = new HashSet<>();
         allTags.add(tag);
         if (includeChildren) {
             allTags.addAll(tagService.getAllDescendants(tag.getId()));
         }
-        
         Set<Long> tagIds = allTags.stream()
+            .filter(java.util.Objects::nonNull)
             .map(Tag::getId)
             .collect(Collectors.toSet());
-            
         TypedQuery<Transaction> query = entityManager.createQuery(
             "SELECT DISTINCT t FROM Transaction t JOIN t.tags tag WHERE tag.id IN :tagIds",
             Transaction.class);
@@ -224,17 +242,27 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Map<Tag, BigDecimal> calculateTagTotals(LocalDate startDate, LocalDate endDate, boolean includeChildren) {
-        List<Tag> allTags = tagService.findAll();
+    public Map<Tag, BigDecimal> calculateTagTotals(LocalDate startDate, LocalDate endDate, 
+            boolean includeChildren, String targetCurrency) {
         Map<Tag, BigDecimal> totals = new HashMap<>();
+        List<Tag> tags = tagService.findAll();
         
-        for (Tag tag : allTags) {
+        for (Tag tag : tags) {
             List<Transaction> transactions = findByTag(tag, includeChildren);
             BigDecimal total = transactions.stream()
                 .filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate))
-                .map(t -> t.isIncome() ? t.getAmount() : t.getAmount().negate())
+                .map(t -> {
+                    BigDecimal amount = t.isIncome() ? t.getAmount() : t.getAmount().negate();
+                    if (!t.getCurrency().equals(targetCurrency)) {
+                        return exchangeRateService.convertAmount(amount, t.getCurrency(), targetCurrency);
+                    }
+                    return amount;
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-            totals.put(tag, total);
+            
+            if (total.compareTo(BigDecimal.ZERO) != 0) {
+                totals.put(tag, total);
+            }
         }
         
         return totals;
@@ -251,17 +279,28 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Map<Tag, TransactionStatistics> calculateTagStatistics(LocalDate startDate, LocalDate endDate, boolean includeChildren) {
-        List<Tag> allTags = tagService.findAll();
+    public Map<Tag, TransactionStatistics> calculateTagStatistics(LocalDate startDate, LocalDate endDate, 
+            boolean includeChildren, String targetCurrency) {
         Map<Tag, TransactionStatistics> statistics = new HashMap<>();
+        List<Tag> tags = tagService.findAll();
         
-        for (Tag tag : allTags) {
+        for (Tag tag : tags) {
             TransactionStatisticsImpl stats = new TransactionStatisticsImpl();
             List<Transaction> transactions = findByTag(tag, includeChildren);
             
             transactions.stream()
                 .filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate))
-                .forEach(stats::addTransaction);
+                .forEach(t -> {
+                    if (!t.getCurrency().equals(targetCurrency)) {
+                        BigDecimal convertedAmount = exchangeRateService.convertAmount(
+                            t.getAmount(), t.getCurrency(), targetCurrency);
+                        Transaction convertedTransaction = new Transaction(
+                            t.getDate(), t.getDescription(), convertedAmount, t.isIncome(), targetCurrency);
+                        stats.addTransaction(convertedTransaction);
+                    } else {
+                        stats.addTransaction(t);
+                    }
+                });
                 
             statistics.put(tag, stats);
         }
@@ -270,10 +309,79 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public BigDecimal calculateAmountForTagInPeriod(Tag tag, LocalDate startDate, LocalDate endDate) {
-        return findByDateRange(startDate, endDate).stream()
-            .filter(t -> t.getTags().contains(tag))
-            .map(Transaction::getAmount)
+    public BigDecimal calculateAmountForTagInPeriod(Tag tag, LocalDate startDate, LocalDate endDate, 
+            String targetCurrency) {
+        List<Transaction> transactions = findByTag(tag, true);
+        return transactions.stream()
+            .filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate))
+            .map(t -> {
+                BigDecimal amount = t.isIncome() ? t.getAmount() : t.getAmount().negate();
+                if (!t.getCurrency().equals(targetCurrency)) {
+                    return exchangeRateService.convertAmount(amount, t.getCurrency(), targetCurrency);
+                }
+                return amount;
+            })
             .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Override
+    public BigDecimal calculateNetWorth(LocalDate asOfDate, String targetCurrency) {
+        List<Transaction> transactions = findByDateRange(LocalDate.MIN, asOfDate);
+        return transactions.stream()
+            .map(t -> {
+                BigDecimal amount = t.isIncome() ? t.getAmount() : t.getAmount().negate();
+                if (!t.getCurrency().equals(targetCurrency)) {
+                    return exchangeRateService.convertAmount(amount, t.getCurrency(), targetCurrency);
+                }
+                return amount;
+            })
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Override
+    public Transaction createTransaction(LocalDate date, String description, BigDecimal amount,
+            boolean isIncome, Set<Long> tagIds) {
+        return createTransaction(date, description, amount, isIncome, tagIds, "EUR");
+    }
+
+    @Override
+    public void updateTransaction(Long id, LocalDate date, String description,
+            BigDecimal amount, boolean isIncome, Set<Long> tagIds) {
+        updateTransaction(id, date, description, amount, isIncome, tagIds, "EUR");
+    }
+
+    @Override
+    public BigDecimal calculateBalance(LocalDate start, LocalDate end) {
+        return calculateBalance(start, end, "EUR");
+    }
+
+    @Override
+    public BigDecimal calculateIncomeForPeriod(LocalDate startDate, LocalDate endDate) {
+        return calculateIncomeForPeriod(startDate, endDate, "EUR");
+    }
+
+    @Override
+    public BigDecimal calculateExpensesForPeriod(LocalDate startDate, LocalDate endDate) {
+        return calculateExpensesForPeriod(startDate, endDate, "EUR");
+    }
+
+    @Override
+    public Map<Tag, BigDecimal> calculateTagTotals(LocalDate startDate, LocalDate endDate, boolean includeChildren) {
+        return calculateTagTotals(startDate, endDate, includeChildren, "EUR");
+    }
+
+    @Override
+    public Map<Tag, TransactionStatistics> calculateTagStatistics(LocalDate startDate, LocalDate endDate, boolean includeChildren) {
+        return calculateTagStatistics(startDate, endDate, includeChildren, "EUR");
+    }
+
+    @Override
+    public BigDecimal calculateAmountForTagInPeriod(Tag tag, LocalDate startDate, LocalDate endDate) {
+        return calculateAmountForTagInPeriod(tag, startDate, endDate, "EUR");
+    }
+
+    @Override
+    public BigDecimal calculateNetWorth(LocalDate asOfDate) {
+        return calculateNetWorth(asOfDate, "EUR");
     }
 }

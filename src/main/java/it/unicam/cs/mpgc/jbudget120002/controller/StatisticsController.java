@@ -3,6 +3,7 @@ package it.unicam.cs.mpgc.jbudget120002.controller;
 import it.unicam.cs.mpgc.jbudget120002.model.*;
 import it.unicam.cs.mpgc.jbudget120002.service.*;
 import it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils;
+import it.unicam.cs.mpgc.jbudget120002.model.StatisticsModels.*;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -15,6 +16,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -66,7 +68,7 @@ public class StatisticsController extends BaseController {
     @FXML private TableColumn<MonthlyStatistic, Double> colSavings;
 
     // Category Analysis Table Columns
-    @FXML private TableColumn<CategoryStatistic, String> colCategory;
+    @FXML private TableColumn<CategoryStatistic, String> colCategoryName;
     @FXML private TableColumn<CategoryStatistic, BigDecimal> colCurrentAmount;
     @FXML private TableColumn<CategoryStatistic, BigDecimal> colPreviousAmount;
     @FXML private TableColumn<CategoryStatistic, BigDecimal> colDifference;
@@ -90,6 +92,29 @@ public class StatisticsController extends BaseController {
     private ObservableList<CategoryStatistic> categoryStats;
     private ObservableList<BudgetStatistic> budgetStats;
 
+    // New UI Controls
+    @FXML private TabPane analysisTabs;
+    @FXML private Tab tabTrends;
+    @FXML private Tab tabPatterns;
+    @FXML private Tab tabForecast;
+    @FXML private Tab tabAnomalies;
+    
+    @FXML private ComboBox<String> cbAnalysisInterval;
+    @FXML private ComboBox<String> cbForecastMethod;
+    @FXML private Slider sldConfidenceLevel;
+    
+    @FXML private BarChart<String, Number> patternChart;
+    @FXML private ScatterChart<String, Number> forecastChart;
+    @FXML private TableView<SpendingAnomaly> tableAnomalies;
+    
+    // Table Columns for Anomalies
+    @FXML private TableColumn<SpendingAnomaly, LocalDateTime> colTimestamp;
+    @FXML private TableColumn<SpendingAnomaly, String> colAnomalyCategory;
+    @FXML private TableColumn<SpendingAnomaly, BigDecimal> colAmount;
+    @FXML private TableColumn<SpendingAnomaly, BigDecimal> colExpected;
+    @FXML private TableColumn<SpendingAnomaly, Double> colDeviation;
+    @FXML private TableColumn<SpendingAnomaly, String> colType;
+
     @Override
     protected void initializeServices() {
         statisticsService = serviceFactory.getStatisticsService();
@@ -109,6 +134,9 @@ public class StatisticsController extends BaseController {
         setupChartControls();
         setupTables();
         setupEventHandlers();
+        setupAnalysisControls();
+        setupCharts();
+        setupAnomaliesTable();
     }
 
     private void setupPeriodControls() {
@@ -220,7 +248,7 @@ public class StatisticsController extends BaseController {
         tableCategoryAnalysis.setItems(categoryStats);
         
         // Set up column cell factories for Category Analysis
-        colCategory.setCellValueFactory(cellData -> {
+        colCategoryName.setCellValueFactory(cellData -> {
             Tag category = cellData.getValue().getCategory();
             return new SimpleStringProperty(category != null ? category.getName() : "");
         });
@@ -471,13 +499,17 @@ public class StatisticsController extends BaseController {
         );
         categoryStats.setAll(categoryData);
         
-        // Update budget tracking
-        List<BudgetStatistic> budgetData = statisticsService.getBudgetStatistics(
-            dpStartDate.getValue(),
-            dpEndDate.getValue(),
-            selectedCategory
-        );
-        budgetStats.setAll(budgetData);
+        // Update budget tracking - only if a category is selected
+        if (selectedCategory != null) {
+            List<BudgetStatistic> budgetData = statisticsService.getBudgetStatistics(
+                dpStartDate.getValue(),
+                dpEndDate.getValue(),
+                selectedCategory
+            );
+            budgetStats.setAll(budgetData);
+        } else {
+            budgetStats.clear();
+        }
     }
 
     private void updateCharts() {
@@ -556,5 +588,206 @@ public class StatisticsController extends BaseController {
     private void handleExportExcel() {
         // TODO: Implement Excel export
         showInfo("Export", "Excel export will be implemented in a future update.");
+    }
+
+    private void setupAnalysisControls() {
+        cbAnalysisInterval.getItems().addAll(
+            "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"
+        );
+        cbAnalysisInterval.setValue("MONTHLY");
+
+        cbForecastMethod.getItems().addAll(
+            "Moving Average", "Linear Regression", "Exponential Smoothing"
+        );
+        cbForecastMethod.setValue("Moving Average");
+
+        sldConfidenceLevel.setMin(0.5);
+        sldConfidenceLevel.setMax(0.99);
+        sldConfidenceLevel.setValue(0.95);
+        sldConfidenceLevel.setShowTickLabels(true);
+        sldConfidenceLevel.setShowTickMarks(true);
+    }
+
+    private void setupCharts() {
+        // Trend Chart
+        trendChart.setTitle("Category Spending Trends");
+        trendChart.getXAxis().setLabel("Time");
+        trendChart.getYAxis().setLabel("Amount");
+
+        // Pattern Chart
+        patternChart.setTitle("Spending Patterns");
+        patternChart.getXAxis().setLabel("Category");
+        patternChart.getYAxis().setLabel("Amount");
+
+        // Forecast Chart
+        forecastChart.setTitle("Spending Forecast");
+        forecastChart.getXAxis().setLabel("Time");
+        forecastChart.getYAxis().setLabel("Amount");
+    }
+
+    private void setupAnomaliesTable() {
+        colTimestamp.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
+        colAnomalyCategory.setCellValueFactory(cellData -> 
+            new SimpleStringProperty(cellData.getValue().category().getName()));
+        colAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        colExpected.setCellValueFactory(new PropertyValueFactory<>("expectedAmount"));
+        colDeviation.setCellValueFactory(new PropertyValueFactory<>("deviationPercentage"));
+        colType.setCellValueFactory(new PropertyValueFactory<>("anomalyType"));
+
+        // Format currency columns
+        colAmount.setCellFactory(column -> new TableCell<SpendingAnomaly, BigDecimal>() {
+            @Override
+            protected void updateItem(BigDecimal amount, boolean empty) {
+                super.updateItem(amount, empty);
+                if (empty || amount == null) {
+                    setText(null);
+                } else {
+                    setText(CurrencyUtils.formatAmount(amount));
+                }
+            }
+        });
+        colExpected.setCellFactory(column -> new TableCell<SpendingAnomaly, BigDecimal>() {
+            @Override
+            protected void updateItem(BigDecimal amount, boolean empty) {
+                super.updateItem(amount, empty);
+                if (empty || amount == null) {
+                    setText(null);
+                } else {
+                    setText(CurrencyUtils.formatAmount(amount));
+                }
+            }
+        });
+
+        // Format percentage column
+        colDeviation.setCellFactory(column -> new TableCell<SpendingAnomaly, Double>() {
+            @Override
+            protected void updateItem(Double percentage, boolean empty) {
+                super.updateItem(percentage, empty);
+                if (empty || percentage == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%+.1f%%", percentage));
+                }
+            }
+        });
+    }
+
+    @FXML
+    private void handleAnalysisUpdate() {
+        LocalDate start = dpStartDate.getValue();
+        LocalDate end = dpEndDate.getValue();
+        Tag category = cbMainCategory.getValue();
+        
+        if (start == null || end == null) {
+            showError("Error", "Please select a valid date range");
+            return;
+        }
+
+        updateTrendAnalysis(start, end, category, cbAnalysisInterval.getValue());
+        updatePatternAnalysis(start, end, category);
+        updateForecastAnalysis(start, end, category);
+        updateAnomalyDetection(start, end, category);
+    }
+
+    private void updateTrendAnalysis(LocalDate start, LocalDate end, Tag category, String interval) {
+        List<CategoryTrend> trends = statisticsService.getCategoryTrends(start, end, category, interval);
+        
+        XYChart.Series<String, Number> actualSeries = new XYChart.Series<>();
+        actualSeries.setName("Actual Spending");
+        
+        XYChart.Series<String, Number> averageSeries = new XYChart.Series<>();
+        averageSeries.setName("Average");
+        
+        XYChart.Series<String, Number> trendSeries = new XYChart.Series<>();
+        trendSeries.setName("Trend");
+
+        for (CategoryTrend trend : trends) {
+            String dateStr = formatDate(trend.date(), interval);
+            actualSeries.getData().add(new XYChart.Data<>(dateStr, trend.amount()));
+            averageSeries.getData().add(new XYChart.Data<>(dateStr, trend.average()));
+            trendSeries.getData().add(new XYChart.Data<>(dateStr, trend.trend()));
+        }
+
+        trendChart.getData().clear();
+        trendChart.getData().addAll(actualSeries, averageSeries, trendSeries);
+    }
+
+    private void updatePatternAnalysis(LocalDate start, LocalDate end, Tag category) {
+        Map<Tag, TimeBasedPattern> patterns = statisticsService.getTimeBasedPatterns(start, end);
+        TimeBasedPattern pattern = patterns.get(category);
+        
+        if (pattern != null) {
+            XYChart.Series<String, Number> hourlySeries = new XYChart.Series<>();
+            hourlySeries.setName("Hourly Distribution");
+            
+            XYChart.Series<String, Number> dailySeries = new XYChart.Series<>();
+            dailySeries.setName("Daily Distribution");
+            
+            // Add hourly data
+            for (int hour = 0; hour < 24; hour++) {
+                BigDecimal amount = pattern.hourlyDistribution().getOrDefault(hour, BigDecimal.ZERO);
+                hourlySeries.getData().add(new XYChart.Data<>(String.format("%02d:00", hour), amount));
+            }
+            
+            // Add daily data
+            String[] days = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+            for (int i = 0; i < 7; i++) {
+                BigDecimal amount = pattern.dailyDistribution().getOrDefault(i + 1, BigDecimal.ZERO);
+                dailySeries.getData().add(new XYChart.Data<>(days[i], amount));
+            }
+
+            patternChart.getData().clear();
+            patternChart.getData().addAll(hourlySeries, dailySeries);
+        }
+    }
+
+    private void updateForecastAnalysis(LocalDate start, LocalDate end, Tag category) {
+        Map<Tag, SpendingForecast> forecasts = statisticsService.getSpendingForecast(start, end);
+        
+        XYChart.Series<String, Number> actualSeries = new XYChart.Series<>();
+        actualSeries.setName("Actual");
+        
+        XYChart.Series<String, Number> forecastSeries = new XYChart.Series<>();
+        forecastSeries.setName("Forecast");
+
+        SpendingForecast forecast = forecasts.get(category);
+        if (forecast != null) {
+            // Add historical data
+            for (int i = 0; i < forecast.historicalData().size(); i++) {
+                String dateStr = formatDate(start.plusDays(i), "DAILY");
+                actualSeries.getData().add(new XYChart.Data<>(dateStr, forecast.historicalData().get(i)));
+            }
+            
+            // Add forecast point
+            forecastSeries.getData().add(new XYChart.Data<>(
+                formatDate(end.plusDays(1), "DAILY"),
+                forecast.projectedAmount()
+            ));
+        }
+
+        forecastChart.getData().clear();
+        forecastChart.getData().addAll(actualSeries, forecastSeries);
+    }
+
+    private void updateAnomalyDetection(LocalDate start, LocalDate end, Tag category) {
+        List<SpendingAnomaly> anomalies = statisticsService.detectSpendingAnomalies(start, end, category);
+        tableAnomalies.getItems().setAll(anomalies);
+    }
+
+    private String formatDate(LocalDate date, String interval) {
+        switch (interval) {
+            case "DAILY":
+                return date.toString();
+            case "WEEKLY":
+                return "Week " + date.get(java.time.temporal.WeekFields.ISO.weekOfWeekBasedYear());
+            case "MONTHLY":
+                return date.getMonth().toString() + " " + date.getYear();
+            case "QUARTERLY":
+                return "Q" + ((date.getMonthValue() - 1) / 3 + 1) + " " + date.getYear();
+            case "YEARLY":
+                return String.valueOf(date.getYear());
+            default:
+                return date.toString();
+        }
     }
 }
