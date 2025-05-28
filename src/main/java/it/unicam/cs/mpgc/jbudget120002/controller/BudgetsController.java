@@ -1,7 +1,6 @@
 package it.unicam.cs.mpgc.jbudget120002.controller;
 
-import it.unicam.cs.mpgc.jbudget120002.model.Budget;
-import it.unicam.cs.mpgc.jbudget120002.model.Tag;
+import it.unicam.cs.mpgc.jbudget120002.model.*;
 import it.unicam.cs.mpgc.jbudget120002.service.BudgetService;
 import it.unicam.cs.mpgc.jbudget120002.service.TagService;
 import javafx.beans.property.SimpleObjectProperty;
@@ -16,9 +15,26 @@ import javafx.scene.layout.HBox;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Controller class managing the budgets view in the Family Budget App.
+ * This class handles the user interface for creating, monitoring, and
+ * managing budget plans and their utilization.
+ *
+ * Responsibilities:
+ * - Display and manage budget list
+ * - Handle budget creation and editing
+ * - Monitor budget utilization and alerts
+ * - Implement budget templates
+ * - Coordinate with BudgetService for data operations
+ *
+ * Usage:
+ * Used by MainController to manage the budgets tab and provide
+ * budget management functionality to users.
+ */
 public class BudgetsController extends BaseController {
     @FXML private TextField tfName;
     @FXML private TextField tfAmount;
@@ -26,18 +42,18 @@ public class BudgetsController extends BaseController {
     @FXML private DatePicker dpEndDate;
     @FXML private ComboBox<Tag> cbTags;
     @FXML private FlowPane flowSelectedTags;
-    @FXML private TableView<Budget> table;
-    @FXML private TableColumn<Budget, String> colName;
-    @FXML private TableColumn<Budget, BigDecimal> colAmount;
-    @FXML private TableColumn<Budget, LocalDate> colStartDate;
-    @FXML private TableColumn<Budget, LocalDate> colEndDate;
-    @FXML private TableColumn<Budget, String> colTags;
-    @FXML private TableColumn<Budget, BigDecimal> colSpent;
-    @FXML private TableColumn<Budget, BigDecimal> colRemaining;
+    @FXML private TableView<BudgetTableItem> table;
+    @FXML private TableColumn<BudgetTableItem, String> colName;
+    @FXML private TableColumn<BudgetTableItem, BigDecimal> colAmount;
+    @FXML private TableColumn<BudgetTableItem, LocalDate> colStartDate;
+    @FXML private TableColumn<BudgetTableItem, LocalDate> colEndDate;
+    @FXML private TableColumn<BudgetTableItem, BigDecimal> colSpent;
+    @FXML private TableColumn<BudgetTableItem, BigDecimal> colRemaining;
+    @FXML private TableColumn<BudgetTableItem, String> colTags;
 
     private BudgetService budgetService;
     private TagService tagService;
-    private ObservableList<Budget> budgets;
+    private ObservableList<BudgetTableItem> budgets;
     private Set<Tag> selectedTags;
 
     @Override
@@ -56,7 +72,9 @@ public class BudgetsController extends BaseController {
 
         // Setup table columns
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        colAmount.setCellValueFactory(new PropertyValueFactory<>("budgetedAmount"));
+        colSpent.setCellValueFactory(new PropertyValueFactory<>("actualAmount"));
+        colRemaining.setCellValueFactory(new PropertyValueFactory<>("remainingAmount"));
         colStartDate.setCellValueFactory(new PropertyValueFactory<>("startDate"));
         colEndDate.setCellValueFactory(new PropertyValueFactory<>("endDate"));
         colTags.setCellValueFactory(cellData -> {
@@ -64,14 +82,6 @@ public class BudgetsController extends BaseController {
                 .map(Tag::getName)
                 .collect(Collectors.joining(", "));
             return new SimpleStringProperty(tags);
-        });
-        colSpent.setCellValueFactory(cellData -> {
-            BigDecimal spent = budgetService.calculateSpentAmount(cellData.getValue().getId());
-            return new SimpleObjectProperty<>(spent);
-        });
-        colRemaining.setCellValueFactory(cellData -> {
-            BigDecimal remaining = budgetService.calculateRemainingAmount(cellData.getValue().getId());
-            return new SimpleObjectProperty<>(remaining);
         });
 
         // Setup tags combobox
@@ -94,37 +104,56 @@ public class BudgetsController extends BaseController {
     }
 
     public void refreshData() {
-        budgets.setAll(budgetService.findAll());
+        budgets.setAll(budgetService.findAll().stream()
+            .map(budget -> {
+                BudgetTableItem item = new BudgetTableItem(
+                    budget.getId(),
+                    budget.getName(),
+                    budget.getAmount(),
+                    budgetService.calculateSpentAmount(budget.getId()),
+                    budgetService.calculateRemainingAmount(budget.getId()),
+                    budget.getStartDate(),
+                    budget.getEndDate()
+                );
+                budget.getTags().forEach(item::addTag);
+                return item;
+            })
+            .collect(Collectors.toList()));
     }
 
     @FXML
     private void handleAddBudget() {
         try {
-            BigDecimal amount = new BigDecimal(tfAmount.getText());
-            Budget budget = budgetService.createBudget(
+            if (selectedTags.isEmpty()) {
+                showError("Error", "Please select at least one category");
+                return;
+            }
+            
+            // Use the first selected tag as the category
+            Long categoryId = selectedTags.iterator().next().getId();
+            
+            budgetService.createBudget(
                 tfName.getText(),
-                amount,
                 dpStartDate.getValue(),
                 dpEndDate.getValue(),
-                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+                new BigDecimal(tfAmount.getText()),
+                categoryId
             );
-            
-            budgets.add(budget);
+            refreshData();
             clearForm();
-        } catch (NumberFormatException e) {
-            showError("Invalid Amount", "Please enter a valid number for the amount.");
         } catch (Exception e) {
-            showError("Error", "Failed to add budget: " + e.getMessage());
+            showError("Error adding budget", e.getMessage());
         }
     }
 
     @FXML
     private void handleDeleteBudget() {
-        Budget selected = table.getSelectionModel().getSelectedItem();
+        BudgetTableItem selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
             try {
                 budgetService.deleteBudget(selected.getId());
-                budgets.remove(selected);
+                refreshData();
+                clearForm();
             } catch (Exception e) {
                 showError("Error", "Failed to delete budget: " + e.getMessage());
             }
@@ -133,34 +162,39 @@ public class BudgetsController extends BaseController {
 
     @FXML
     private void handleUpdateBudget() {
-        Budget selected = table.getSelectionModel().getSelectedItem();
+        BudgetTableItem selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
             try {
-                BigDecimal amount = new BigDecimal(tfAmount.getText());
+                if (selectedTags.isEmpty()) {
+                    showError("Error", "Please select at least one category");
+                    return;
+                }
+                
+                // Use the first selected tag as the category
+                Long categoryId = selectedTags.iterator().next().getId();
+                
                 budgetService.updateBudget(
                     selected.getId(),
                     tfName.getText(),
-                    amount,
                     dpStartDate.getValue(),
                     dpEndDate.getValue(),
-                    selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+                    new BigDecimal(tfAmount.getText()),
+                    categoryId
                 );
                 refreshData();
                 clearForm();
-            } catch (NumberFormatException e) {
-                showError("Invalid Amount", "Please enter a valid number for the amount.");
             } catch (Exception e) {
-                showError("Error", "Failed to update budget: " + e.getMessage());
+                showError("Error updating budget", e.getMessage());
             }
         }
     }
 
     @FXML
     private void handleTableSelection() {
-        Budget selected = table.getSelectionModel().getSelectedItem();
+        BudgetTableItem selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
             tfName.setText(selected.getName());
-            tfAmount.setText(selected.getAmount().toString());
+            tfAmount.setText(selected.getBudgetedAmount().toString());
             dpStartDate.setValue(selected.getStartDate());
             dpEndDate.setValue(selected.getEndDate());
             selectedTags.clear();
@@ -193,5 +227,13 @@ public class BudgetsController extends BaseController {
             tagBox.getChildren().addAll(tagLabel, removeBtn);
             flowSelectedTags.getChildren().add(tagBox);
         }
+    }
+
+    protected void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

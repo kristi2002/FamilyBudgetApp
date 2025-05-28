@@ -11,15 +11,19 @@
     </padding>
 
     <!-- Filters Section -->
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="From:"/>
-        <DatePicker fx:id="dpStartDate"/>
-        <Label text="To:"/>
-        <DatePicker fx:id="dpEndDate"/>
-        <ComboBox fx:id="cbCurrency"/>
-        <CheckBox fx:id="cbIncludeChildTags" text="Include Child Tags"/>
-        <CheckBox fx:id="cbMatchAllTags" text="Match All Tags"/>
-    </HBox>
+    <TitledPane text="Filters" expanded="false">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="From:"/>
+            <DatePicker fx:id="dpStartDate"/>
+            <Label text="To:"/>
+            <DatePicker fx:id="dpEndDate"/>
+            <ComboBox fx:id="cbCurrency"/>
+            <CheckBox fx:id="cbIncludeChildTags" text="Include Child Tags"/>
+            <CheckBox fx:id="cbMatchAllTags" text="Match All Tags"/>
+            <TextField fx:id="tfSearch" promptText="Search description or amount"/>
+            <Button fx:id="btnClearFilters" text="Clear Filters" onAction="#handleClearFilters"/>
+        </HBox>
+    </TitledPane>
 
     <!-- Statistics Section -->
     <HBox spacing="20" alignment="CENTER_LEFT">
@@ -56,16 +60,20 @@
             <FlowPane fx:id="flowSelectedTags" hgap="5" vgap="5"/>
         </VBox>
         
-        <Button text="Add Transaction" onAction="#handleAddTransaction" 
-            GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+        <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
+            <Button text="Add Transaction" onAction="#handleAddTransaction"/>
+            <Button fx:id="btnSave" text="Save Changes" onAction="#handleSaveTransaction"/>
+            <Button fx:id="btnClearForm" text="Clear" onAction="#handleClearForm"/>
+        </HBox>
     </GridPane>
 
     <!-- Transactions Table -->
     <TableView fx:id="table" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colDate" text="Date"/>
-            <TableColumn fx:id="colDesc" text="Description"/>
-            <TableColumn fx:id="colAmount" text="Amount"/>
+            <TableColumn fx:id="colDate" text="Date" prefWidth="120"/>
+            <TableColumn fx:id="colScheduled" text="Scheduled" prefWidth="40"/>
+            <TableColumn fx:id="colDesc" text="Description" prefWidth="220"/>
+            <TableColumn fx:id="colAmount" text="Amount" prefWidth="120"/>
             <TableColumn fx:id="colTags" text="Tags"/>
         </columns>
     </TableView>

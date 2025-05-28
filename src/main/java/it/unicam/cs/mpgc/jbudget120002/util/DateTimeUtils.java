@@ -5,7 +5,19 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Utility class for consistent date and time formatting across the application.
+ * Utility class providing date and time formatting, parsing, and manipulation
+ * methods for the Family Budget App. This class centralizes common date/time
+ * operations to ensure consistency across the application.
+ *
+ * Responsibilities:
+ * - Format and parse dates and times
+ * - Provide date calculations and conversions
+ * - Support custom date/time formats for UI and reports
+ * - Handle time zone and locale-specific operations
+ *
+ * Usage:
+ * Used throughout the application for consistent date/time handling in
+ * models, services, controllers, and UI components.
  */
 public class DateTimeUtils {
     public static final DateTimeFormatter DATE_FORMATTER = 

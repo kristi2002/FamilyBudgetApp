@@ -7,6 +7,22 @@ import java.util.logging.Logger;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
+/**
+ * Main controller class for the Family Budget App's primary user interface.
+ * This class manages the main application window and coordinates between different
+ * views and controllers.
+ *
+ * Responsibilities:
+ * - Main window initialization and management
+ * - Navigation between different views
+ * - UI state management
+ * - Event handling for main menu actions
+ * - Coordination of child controllers
+ *
+ * Usage:
+ * Serves as the primary entry point for the application's UI, managing the main
+ * window and coordinating user interactions across different sections of the app.
+ */
 public class MainController extends BaseController {
     private static final Logger LOGGER = Logger.getLogger(MainController.class.getName());
 
@@ -20,6 +36,7 @@ public class MainController extends BaseController {
     @FXML private Tab budgetsTab;
     @FXML private Tab tagsTab;
     @FXML private Tab settingsTab;
+    @FXML private Tab dashboardTab;
 
     // View references - using Node to accept any layout type
     @FXML private Node transactionsView;
@@ -91,6 +108,8 @@ public class MainController extends BaseController {
                     onTagsTabSelected();
                 } else if (newTab == settingsTab) {
                     onSettingsTabSelected();
+                } else if (newTab == dashboardTab) {
+                    onDashboardTabSelected();
                 }
             });
         } else {
@@ -101,11 +120,11 @@ public class MainController extends BaseController {
     @Override
     protected void loadData() {
         LOGGER.info("Loading MainController data");
-        // Show transactions view by default
-        if (transactionsTab != null && tabPane != null) {
-            tabPane.getSelectionModel().select(transactionsTab);
+        // Show dashboard view by default
+        if (dashboardTab != null && tabPane != null) {
+            tabPane.getSelectionModel().select(dashboardTab);
         } else {
-            LOGGER.warning("TransactionsTab or TabPane is null");
+            LOGGER.warning("DashboardTab or TabPane is null");
         }
     }
 
@@ -143,6 +162,10 @@ public class MainController extends BaseController {
         if (settingsViewController != null) {
             settingsViewController.refreshData();
         }
+    }
+
+    private void onDashboardTabSelected() {
+        // Implementation needed
     }
 
     public void refreshAllViews() {

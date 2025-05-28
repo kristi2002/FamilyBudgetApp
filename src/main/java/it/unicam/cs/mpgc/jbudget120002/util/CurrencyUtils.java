@@ -9,6 +9,21 @@ import java.util.HashMap;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Utility class providing currency formatting, parsing, and conversion methods
+ * for the Family Budget App. This class centralizes currency-related operations
+ * to ensure consistency and accuracy across the application.
+ *
+ * Responsibilities:
+ * - Format and parse currency amounts
+ * - Provide currency symbol and code lookups
+ * - Support multi-currency conversions and calculations
+ * - Handle locale-specific currency formatting
+ *
+ * Usage:
+ * Used throughout the application for consistent currency handling in
+ * models, services, controllers, and UI components.
+ */
 public class CurrencyUtils {
     private static final Map<String, Currency> SUPPORTED_CURRENCIES = new HashMap<>();
     private static final String DEFAULT_CURRENCY = "EUR";

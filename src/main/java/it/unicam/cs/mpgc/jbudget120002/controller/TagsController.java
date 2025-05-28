@@ -10,6 +10,22 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import java.util.List;
 
+/**
+ * Controller class managing category tags in the Family Budget App.
+ * This class handles the creation, organization, and management of
+ * categorization tags used throughout the application.
+ *
+ * Responsibilities:
+ * - Create and manage category tags
+ * - Organize tags in hierarchical structures
+ * - Handle tag relationships and dependencies
+ * - Provide tag selection functionality
+ * - Coordinate with TagService for persistence
+ *
+ * Usage:
+ * Used by MainController to manage the tags tab and provide
+ * category management functionality to users.
+ */
 public class TagsController extends BaseController {
     @FXML private TextField tfName;
     @FXML private ComboBox<Tag> cbParent;

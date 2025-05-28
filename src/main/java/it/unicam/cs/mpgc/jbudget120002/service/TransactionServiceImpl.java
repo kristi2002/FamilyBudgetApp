@@ -17,6 +17,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Core implementation of the TransactionService interface that manages all financial transactions
+ * in the Family Budget App. This class handles the creation, modification, and retrieval of
+ * transactions, including recurring and scheduled transactions.
+ *
+ * Responsibilities:
+ * - CRUD operations for transactions
+ * - Transaction categorization and tagging
+ * - Recurring transaction management
+ * - Transaction search and filtering
+ * - Financial calculations (totals, balances, etc.)
+ *
+ * Usage:
+ * Used by controllers to manage all transaction-related operations and by other services
+ * (like StatisticsService) to access transaction data for analysis and reporting.
+ */
 public class TransactionServiceImpl implements TransactionService {
     private final EntityManager entityManager;
     private final TagService tagService;
@@ -99,11 +115,12 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.setIncome(isIncome);
                 transaction.setCurrency(currency);
 
-                // Update tags
-                transaction.getTags().clear();
+                // Update tags using setTags
+                Set<Tag> newTags = new HashSet<>();
                 for (Long tagId : tagIds) {
-                    tagService.findById(tagId).ifPresent(transaction::addTag);
+                    tagService.findById(tagId).ifPresent(newTags::add);
                 }
+                transaction.setTags(newTags);
             }
             entityManager.getTransaction().commit();
         } catch (Exception e) {

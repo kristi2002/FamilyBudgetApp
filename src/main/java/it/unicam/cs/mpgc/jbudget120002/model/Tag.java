@@ -3,6 +3,22 @@ package it.unicam.cs.mpgc.jbudget120002.model;
 import jakarta.persistence.*;
 import java.util.*;
 
+/**
+ * Entity class representing a categorization tag in the Family Budget App.
+ * This class implements a hierarchical tagging system for categorizing
+ * transactions, budgets, and other financial data.
+ *
+ * Responsibilities:
+ * - Define category names and hierarchies
+ * - Support parent-child relationships between categories
+ * - Enable flexible categorization of financial data
+ * - Maintain category metadata and relationships
+ * - Support category-based reporting and analysis
+ *
+ * Usage:
+ * Used throughout the application to categorize transactions and budgets,
+ * enabling organized financial management and detailed reporting.
+ */
 @Entity
 @Table(name = "tags")
 public class Tag {

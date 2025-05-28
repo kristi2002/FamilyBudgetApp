@@ -21,6 +21,22 @@ import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+/**
+ * Controller class managing the statistics and analytics view in the Family Budget App.
+ * This class handles the visualization and analysis of financial data through
+ * various charts, graphs, and statistical reports.
+ *
+ * Responsibilities:
+ * - Display financial statistics and trends
+ * - Generate and update charts and graphs
+ * - Handle date range selection for analysis
+ * - Present budget utilization insights
+ * - Show spending patterns and anomalies
+ *
+ * Usage:
+ * Used by MainController to manage the statistics tab and provide
+ * comprehensive financial analysis and reporting to users.
+ */
 public class StatisticsController extends BaseController {
     // Period Selection Controls
     @FXML private ComboBox<String> cbPeriodType;

@@ -2,6 +2,22 @@ package it.unicam.cs.mpgc.jbudget120002.model;
 
 import jakarta.persistence.*;
 
+/**
+ * Entity class representing user settings and preferences in the Family Budget App.
+ * This class stores application-wide configuration settings and user preferences
+ * that affect the behavior and appearance of the application.
+ *
+ * Responsibilities:
+ * - Store currency preferences
+ * - Manage date and number formats
+ * - Track user interface preferences
+ * - Store notification settings
+ * - Maintain application configuration
+ *
+ * Usage:
+ * Used by UserSettingsService to manage application settings
+ * and provide consistent configuration across the application.
+ */
 @Entity
 @Table(name = "user_settings")
 public class UserSettings {

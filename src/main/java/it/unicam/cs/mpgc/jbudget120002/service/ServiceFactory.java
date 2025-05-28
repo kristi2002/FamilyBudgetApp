@@ -14,6 +14,7 @@ public class ServiceFactory {
     private StatisticsService statisticsService;
     private BudgetService budgetService;
     private DeadlineService deadlineService;
+    private SyncService syncService;
 
     public ServiceFactory(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -63,7 +64,7 @@ public class ServiceFactory {
 
     public BudgetService getBudgetService() {
         if (budgetService == null) {
-            budgetService = new BudgetServiceImpl(entityManager, getTagService(), getTransactionService());
+            budgetService = new BudgetServiceImpl(entityManager, getTransactionService(), getTagService());
         }
         return budgetService;
     }
@@ -73,5 +74,17 @@ public class ServiceFactory {
             deadlineService = new DeadlineServiceImpl(new DeadlineRepositoryJpa(entityManager));
         }
         return deadlineService;
+    }
+
+    public SyncService getSyncService() {
+        if (syncService == null) {
+            syncService = new FileSyncService(
+                entityManager,
+                getTransactionService(),
+                getScheduledTransactionService(),
+                "sync/data.json"
+            );
+        }
+        return syncService;
     }
 } 

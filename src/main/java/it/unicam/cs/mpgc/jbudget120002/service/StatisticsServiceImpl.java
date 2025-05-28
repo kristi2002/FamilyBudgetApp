@@ -11,6 +11,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * Implements the StatisticsService interface to provide comprehensive statistical analysis
+ * and reporting for the Family Budget App. This class aggregates, analyzes, and compares
+ * financial data such as transactions, budgets, and categories to generate insights for users.
+ *
+ * Responsibilities:
+ * - Calculate monthly, category-based, and budget statistics
+ * - Detect spending anomalies and generate forecasts
+ * - Provide time-based and trend analyses
+ * - Support for savings progress and net worth calculations
+ *
+ * Usage:
+ * Used by controllers to retrieve and display statistical data, trends, and reports
+ * for the user interface. Relies on TransactionService and TagService for data access.
+ */
 public class StatisticsServiceImpl implements StatisticsService {
     private final EntityManager entityManager;
     private final TransactionService transactionService;
@@ -142,6 +157,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
         
         if (includeSubcategories) {
+            // Check if the transaction's tag is a descendant of the root category
             return isTagOrDescendant(primaryTag, rootCategory);
         } else {
             return primaryTag.equals(rootCategory);
@@ -318,7 +334,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 continue; // Need at least 3 transactions for meaningful analysis
             }
             
-            // Calculate average and standard deviation
+            // Calculate average and standard deviation for anomaly detection
             BigDecimal total = tagTransactions.stream()
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

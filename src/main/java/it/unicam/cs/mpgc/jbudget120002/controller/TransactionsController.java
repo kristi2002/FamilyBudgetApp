@@ -24,6 +24,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Controller class managing the transactions view in the Family Budget App.
+ * This class handles the user interface for viewing, creating, editing, and
+ * managing financial transactions.
+ *
+ * Responsibilities:
+ * - Display and manage transaction list
+ * - Handle transaction creation and editing
+ * - Implement transaction filtering and search
+ * - Manage transaction categorization
+ * - Coordinate with TransactionService for data operations
+ *
+ * Usage:
+ * Used by MainController to manage the transactions tab and provide
+ * transaction management functionality to users.
+ */
 public class TransactionsController extends BaseController {
     // Basic transaction form controls
     @FXML private DatePicker dpDate;
@@ -39,6 +55,10 @@ public class TransactionsController extends BaseController {
     @FXML private ComboBox<String> cbCurrency;
     @FXML private CheckBox cbIncludeChildTags;
     @FXML private CheckBox cbMatchAllTags;
+    @FXML private TextField tfSearch;
+    @FXML private Button btnClearFilters;
+    @FXML private Button btnSave;
+    @FXML private Button btnClearForm;
     
     // Statistics labels
     @FXML private Label lblTotalIncome;
@@ -51,6 +71,7 @@ public class TransactionsController extends BaseController {
     @FXML private TableColumn<Transaction, String> colDesc;
     @FXML private TableColumn<Transaction, BigDecimal> colAmount;
     @FXML private TableColumn<Transaction, String> colTags;
+    @FXML private TableColumn<Transaction, Boolean> colScheduled;
 
     private TransactionService transactionService;
     private TagService tagService;
@@ -81,6 +102,11 @@ public class TransactionsController extends BaseController {
         setupTagsUI();
         setupFilters();
         setupContextMenu();
+        btnSave = new Button("Save Changes");
+        btnSave.setOnAction(e -> handleSaveTransaction());
+        tfSearch.textProperty().addListener((obs, oldVal, newVal) -> refreshData());
+        btnClearFilters.setOnAction(e -> handleClearFilters());
+        btnClearForm.setOnAction(e -> handleClearForm());
     }
 
     private void setupDatePickers() {
@@ -147,6 +173,25 @@ public class TransactionsController extends BaseController {
             return new SimpleStringProperty(tags);
         });
 
+        // Scheduled indicator column
+        colScheduled.setCellValueFactory(cellData -> new javafx.beans.property.SimpleBooleanProperty(cellData.getValue().isScheduled()));
+        colScheduled.setCellFactory(column -> new TableCell<Transaction, Boolean>() {
+            @Override
+            protected void updateItem(Boolean scheduled, boolean empty) {
+                super.updateItem(scheduled, empty);
+                if (empty || scheduled == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else if (scheduled) {
+                    setText("\u23F0"); // Unicode alarm clock as indicator
+                    setTooltip(new Tooltip("Scheduled/Recurring Transaction"));
+                } else {
+                    setText("");
+                    setTooltip(null);
+                }
+            }
+        });
+
         table.setItems(transactions);
     }
 
@@ -198,7 +243,6 @@ public class TransactionsController extends BaseController {
 
     public void refreshData() {
         List<Transaction> filteredTransactions;
-        
         if (selectedTags.isEmpty()) {
             filteredTransactions = transactionService.findByDateRange(
                 dpStartDate.getValue(),
@@ -209,14 +253,21 @@ public class TransactionsController extends BaseController {
                 selectedTags,
                 cbMatchAllTags.isSelected()
             );
-            
             // Apply date filter
             filteredTransactions = filteredTransactions.stream()
                 .filter(t -> !t.getDate().isBefore(dpStartDate.getValue())
                     && !t.getDate().isAfter(dpEndDate.getValue()))
                 .collect(Collectors.toList());
         }
-        
+        // Apply search filter
+        String searchText = tfSearch.getText();
+        if (searchText != null && !searchText.trim().isEmpty()) {
+            String lower = searchText.toLowerCase();
+            filteredTransactions = filteredTransactions.stream()
+                .filter(t -> t.getDescription().toLowerCase().contains(lower)
+                    || t.getAmount().toPlainString().contains(lower))
+                .collect(Collectors.toList());
+        }
         transactions.setAll(filteredTransactions);
         updateStatistics();
     }
@@ -241,8 +292,13 @@ public class TransactionsController extends BaseController {
 
     @FXML
     private void handleAddTransaction() {
+        String amountText = tfAmount.getText();
+        if (amountText == null || amountText.trim().isEmpty()) {
+            showError("Invalid Amount", "Amount cannot be empty. Please enter a value.");
+            return;
+        }
         try {
-            BigDecimal amount = new BigDecimal(tfAmount.getText());
+            BigDecimal amount = new BigDecimal(amountText.trim());
             Transaction transaction = transactionService.createTransaction(
                 dpDate.getValue(),
                 tfDesc.getText(),
@@ -250,7 +306,6 @@ public class TransactionsController extends BaseController {
                 cbIncome.isSelected(),
                 selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
             );
-            
             transactions.add(0, transaction);
             clearForm();
             refreshData();
@@ -299,6 +354,53 @@ public class TransactionsController extends BaseController {
         }
     }
 
+    @FXML
+    private void handleClearFilters() {
+        dpStartDate.setValue(LocalDate.now().minusMonths(1));
+        dpEndDate.setValue(LocalDate.now());
+        selectedTags.clear();
+        updateSelectedTagsList();
+        tfSearch.clear();
+        cbIncludeChildTags.setSelected(true);
+        cbMatchAllTags.setSelected(false);
+        refreshData();
+    }
+
+    @FXML
+    private void handleSaveTransaction() {
+        Transaction selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("No Selection", "Please select a transaction to edit.");
+            return;
+        }
+
+        String amountText = tfAmount.getText();
+        if (amountText == null || amountText.trim().isEmpty()) {
+            showError("Invalid Amount", "Amount cannot be empty. Please enter a value.");
+            return;
+        }
+
+        try {
+            BigDecimal amount = new BigDecimal(amountText.trim());
+            System.out.println("Saving tags: " + selectedTags.stream().map(Tag::getId).collect(Collectors.toSet()));
+            transactionService.updateTransaction(
+                selected.getId(),
+                dpDate.getValue(),
+                tfDesc.getText(),
+                amount,
+                cbIncome.isSelected(),
+                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+            );
+            refreshData();
+            clearForm();
+        } catch (NumberFormatException e) {
+            showError("Invalid Amount", "Please enter a valid number for the amount.");
+        } catch (Exception e) {
+            e.printStackTrace(); // Print stack trace for debugging
+            showError("Error", "Failed to update transaction: " + e.getMessage());
+        }
+    }
+
     private void clearForm() {
         dpDate.setValue(LocalDate.now());
         tfDesc.clear();
@@ -324,5 +426,10 @@ public class TransactionsController extends BaseController {
             tagBox.getChildren().addAll(tagLabel, removeBtn);
             flowSelectedTags.getChildren().add(tagBox);
         }
+    }
+
+    @FXML
+    private void handleClearForm() {
+        clearForm();
     }
 }

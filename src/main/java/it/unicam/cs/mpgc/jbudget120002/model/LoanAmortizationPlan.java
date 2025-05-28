@@ -7,6 +7,22 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity class representing a loan amortization plan in the Family Budget App.
+ * This class manages loan details, payment schedules, and amortization calculations
+ * for tracking and managing loans and their payments.
+ *
+ * Responsibilities:
+ * - Store loan details (principal, interest rate, term)
+ * - Calculate payment schedules
+ * - Track payment progress
+ * - Manage loan status and balances
+ * - Link to related transactions
+ *
+ * Usage:
+ * Used by the application to manage loans and their payments,
+ * providing detailed tracking and amortization calculations.
+ */
 @Entity
 @Table(name = "loan_amortization_plans")
 public class LoanAmortizationPlan {
@@ -46,6 +62,10 @@ public class LoanAmortizationPlan {
         generateAmortizationSchedule();
     }
 
+    /**
+     * Generates the amortization schedule for the loan.
+     * Uses the standard PMT formula to calculate monthly payments and splits each payment into principal and interest.
+     */
     private void generateAmortizationSchedule() {
         BigDecimal monthlyRate = annualInterestRate.divide(BigDecimal.valueOf(1200), 10, RoundingMode.HALF_UP);
         BigDecimal monthlyPayment = calculateMonthlyPayment(monthlyRate);
@@ -54,15 +74,18 @@ public class LoanAmortizationPlan {
         LocalDate paymentDate = startDate;
 
         for (int month = 1; month <= termInMonths; month++) {
+            // Calculate interest for the current month
             BigDecimal interest = remainingBalance.multiply(monthlyRate).setScale(2, RoundingMode.HALF_UP);
+            // Calculate principal for the current month
             BigDecimal principal = monthlyPayment.subtract(interest);
             
             if (month == termInMonths) {
-                // Last payment - adjust for rounding
+                // Last payment - adjust for rounding to ensure the loan is fully paid off
                 principal = remainingBalance;
                 monthlyPayment = principal.add(interest);
             }
 
+            // Create a transaction for this installment
             Transaction installment = new Transaction(
                 paymentDate,
                 String.format("%s - Payment %d/%d", description, month, termInMonths),
@@ -77,6 +100,14 @@ public class LoanAmortizationPlan {
         }
     }
 
+    /**
+     * Calculates the fixed monthly payment using the PMT formula:
+     * PMT = P * (r * (1 + r)^n) / ((1 + r)^n - 1)
+     * where:
+     *   P = principal amount
+     *   r = monthly interest rate
+     *   n = total number of payments (months)
+     */
     private BigDecimal calculateMonthlyPayment(BigDecimal monthlyRate) {
         // PMT formula: P * (r * (1 + r)^n) / ((1 + r)^n - 1)
         BigDecimal numerator = monthlyRate.multiply(

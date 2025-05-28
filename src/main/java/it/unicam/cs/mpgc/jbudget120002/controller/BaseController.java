@@ -13,6 +13,22 @@ import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+/**
+ * Base controller class that provides common functionality for all controllers
+ * in the Family Budget App. This class implements shared features and lifecycle
+ * management for all UI controllers.
+ *
+ * Responsibilities:
+ * - Initialize and manage service dependencies
+ * - Handle common UI setup and cleanup
+ * - Provide shared utility methods
+ * - Manage controller lifecycle
+ * - Implement error handling and logging
+ *
+ * Usage:
+ * Extended by all other controllers to inherit common functionality
+ * and maintain consistent behavior across the application.
+ */
 public abstract class BaseController implements Initializable {
     private static final Logger LOGGER = Logger.getLogger(BaseController.class.getName());
     private static EntityManagerFactory emf;

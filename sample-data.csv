@@ -1,0 +1,13 @@
+Date,Description,Amount,Type,Tags
+2024-05-01,Salary,2000,Income,Salary
+2024-05-03,Groceries,-150,Expense,Food
+2024-05-05,Electricity Bill,-60,Expense,Utilities
+2024-05-07,Restaurant,-40,Expense,Food
+2024-05-10,Rent,-700,Expense,Housing
+2024-05-12,Internet,-30,Expense,Utilities
+2024-05-15,Freelance Project,500,Income,Freelance
+2024-05-18,Bus Pass,-25,Expense,Transport
+2024-05-20,Movie Night,-20,Expense,Entertainment
+2024-05-22,Book Purchase,-35,Expense,Education
+2024-05-25,Gift,-50,Expense,Other
+2024-05-28,Interest,10,Income,Other 

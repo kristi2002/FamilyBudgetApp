@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import javafx.scene.image.Image;
 
 public class MainApp extends Application {
     private static final Logger LOGGER = Logger.getLogger(MainApp.class.getName());
@@ -26,6 +27,8 @@ public class MainApp extends Application {
             stage.setScene(scene);
             stage.setMinWidth(800);
             stage.setMinHeight(600);
+            // Set the window icon
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/logo.png")));
             stage.show();
 
             // Add a close request handler to cleanup resources

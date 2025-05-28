@@ -7,6 +7,22 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Optional;
 
+/**
+ * Service implementation for managing currency exchange rates in the Family Budget App.
+ * This class handles retrieval, caching, and conversion of exchange rates for
+ * multi-currency support throughout the application.
+ *
+ * Responsibilities:
+ * - Retrieve and update exchange rates from external sources
+ * - Cache exchange rates for efficient access
+ * - Convert amounts between different currencies
+ * - Handle currency conversion logic for transactions and budgets
+ * - Provide exchange rate data to other services and controllers
+ *
+ * Usage:
+ * Used by services and controllers to perform currency conversions and
+ * ensure accurate financial calculations in multi-currency scenarios.
+ */
 public class ExchangeRateServiceImpl extends BaseService implements ExchangeRateService {
     
     public ExchangeRateServiceImpl(EntityManager entityManager) {

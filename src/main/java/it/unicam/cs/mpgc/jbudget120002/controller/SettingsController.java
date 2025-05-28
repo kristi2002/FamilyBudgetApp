@@ -2,6 +2,7 @@ package it.unicam.cs.mpgc.jbudget120002.controller;
 
 import it.unicam.cs.mpgc.jbudget120002.model.UserSettings;
 import it.unicam.cs.mpgc.jbudget120002.model.ConflictResolutionStrategy;
+import it.unicam.cs.mpgc.jbudget120002.model.SyncStatus;
 import it.unicam.cs.mpgc.jbudget120002.service.SyncService;
 import it.unicam.cs.mpgc.jbudget120002.service.FileSyncService;
 import it.unicam.cs.mpgc.jbudget120002.service.UserSettingsService;
@@ -15,7 +16,26 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.List;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.stream.Collectors;
 
+/**
+ * Controller class managing user settings and preferences in the Family Budget App.
+ * This class handles the configuration of application-wide settings such as
+ * currency preferences, date formats, and user-specific options.
+ *
+ * Responsibilities:
+ * - Manage user preferences and settings
+ * - Handle currency configuration
+ * - Configure date and number formats
+ * - Manage application appearance settings
+ * - Coordinate with UserSettingsService for persistence
+ *
+ * Usage:
+ * Used by MainController to manage the settings tab and provide
+ * configuration options to users.
+ */
 public class SettingsController extends BaseController {
 
     @FXML private ComboBox<String> cbCurrency;
@@ -33,12 +53,12 @@ public class SettingsController extends BaseController {
     @FXML private Label lblSyncStatus;
 
     private UserSettingsService settingsService;
-    private FileSyncService syncService;
+    private SyncService syncService;
 
     @Override
     protected void initializeServices() {
         settingsService = serviceFactory.getUserSettingsService();
-        syncService = new FileSyncService(entityManager);
+        syncService = serviceFactory.getSyncService();
     }
 
     @Override
@@ -131,15 +151,20 @@ public class SettingsController extends BaseController {
             lblLastSync.setText("Last sync: " + 
                 (lastSync != null ? DateTimeUtils.formatDateTime(lastSync) : "Never"));
             
-            boolean hasPendingChanges = syncService.hasPendingChanges();
-            lblSyncStatus.setText(hasPendingChanges ? "Changes pending" : "Up to date");
+            SyncStatus status = syncService.getSyncStatus();
+            lblSyncStatus.setText(status.hasChanges() ? "Changes pending" : "Up to date");
         }
     }
 
     @FXML
     private void handleSync() {
         try {
-            // Implement sync logic here
+            LocalDateTime lastSync = syncService.getLastSyncTime();
+            if (lastSync != null) {
+                syncService.syncWithServer(lastSync);
+            } else {
+                syncService.forceSync();
+            }
             showInfo("Success", "Sync completed successfully");
             updateSyncStatus();
         } catch (Exception e) {

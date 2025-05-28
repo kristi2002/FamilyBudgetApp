@@ -6,6 +6,22 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Entity class representing a budget plan in the Family Budget App.
+ * This class manages budget allocations for specific categories and time periods,
+ * tracking spending limits and actual expenditures.
+ *
+ * Responsibilities:
+ * - Define budget amounts and time periods
+ * - Track budget categories through tags
+ * - Monitor budget utilization
+ * - Support budget templates and recurring budgets
+ * - Enable budget alerts and notifications
+ *
+ * Usage:
+ * Used by BudgetService to manage budget planning and tracking,
+ * and by StatisticsService to provide budget utilization insights.
+ */
 @Entity
 @Table(name = "budgets")
 public class Budget {

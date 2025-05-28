@@ -9,6 +9,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Entity class representing a scheduled or recurring transaction in the Family Budget App.
+ * This class manages transactions that are planned for future execution or occur
+ * on a regular basis, such as monthly bills or recurring income.
+ *
+ * Responsibilities:
+ * - Define transaction schedule and frequency
+ * - Track next execution date
+ * - Manage recurring transaction patterns
+ * - Link to generated transactions
+ * - Support schedule modifications and cancellations
+ *
+ * Usage:
+ * Used by ScheduledTransactionService to manage automated transactions
+ * and by the application to handle recurring financial operations.
+ */
 @Entity
 @Table(name = "scheduled_transactions")
 public class ScheduledTransaction {

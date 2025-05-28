@@ -1,7 +1,11 @@
 package it.unicam.cs.mpgc.jbudget120002.service;
 
-import it.unicam.cs.mpgc.jbudget120002.model.ConflictResolutionStrategy;
+import it.unicam.cs.mpgc.jbudget120002.model.Transaction;
+import it.unicam.cs.mpgc.jbudget120002.model.ScheduledTransaction;
+import it.unicam.cs.mpgc.jbudget120002.model.SyncStatus;
+
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,28 +15,54 @@ import java.util.Map;
  */
 public interface SyncService {
     /**
-     * Exports the current database state to a synchronization format.
-     * @return Map containing the sync data and metadata
+     * Synchronize data with remote server
+     * @param lastSyncTime Last successful synchronization time
+     * @return Map of changes made during sync
      */
-    Map<String, Object> exportData();
-
+    Map<String, List<?>> syncWithServer(LocalDateTime lastSyncTime);
+    
     /**
-     * Imports data from another device or backup.
-     * @param syncData The data to import
-     * @param strategy The conflict resolution strategy to use
-     * @return true if import was successful
+     * Resolve conflicts between local and remote changes
+     * @param localChanges Local changes
+     * @param remoteChanges Remote changes
+     * @return Resolved changes
      */
-    boolean importData(Map<String, Object> syncData, ConflictResolutionStrategy strategy);
-
+    Map<String, List<?>> resolveConflicts(Map<String, List<?>> localChanges, 
+                                         Map<String, List<?>> remoteChanges);
+    
     /**
-     * Gets the last synchronization timestamp.
-     * @return The timestamp of the last successful sync
+     * Get changes since last sync
+     * @param lastSyncTime Last successful synchronization time
+     * @return Map of changes
+     */
+    Map<String, List<?>> getChangesSince(LocalDateTime lastSyncTime);
+    
+    /**
+     * Apply changes from remote server
+     * @param changes Changes to apply
+     */
+    void applyChanges(Map<String, List<?>> changes);
+    
+    /**
+     * Get sync status
+     * @return Sync status information
+     */
+    SyncStatus getSyncStatus();
+    
+    /**
+     * Enable/disable automatic sync
+     * @param enabled Whether automatic sync should be enabled
+     */
+    void setAutoSync(boolean enabled);
+    
+    /**
+     * Get last successful sync time
+     * @return Last sync time
      */
     LocalDateTime getLastSyncTime();
-
+    
     /**
-     * Checks if there are pending changes to sync.
-     * @return true if there are local changes that haven't been synced
+     * Force immediate sync
      */
-    boolean hasPendingChanges();
+    void forceSync();
 } 

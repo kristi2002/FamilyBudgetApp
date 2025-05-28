@@ -3,6 +3,21 @@ package it.unicam.cs.mpgc.jbudget120002.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+/**
+ * Entity class representing a loan installment in the Family Budget App.
+ * This class stores details about individual payments made towards a loan,
+ * including principal, interest, and payment date.
+ *
+ * Responsibilities:
+ * - Store installment amount, principal, and interest
+ * - Track payment date and status
+ * - Link to related loan and transactions
+ * - Provide details for amortization schedules and reporting
+ *
+ * Usage:
+ * Used by LoanAmortizationPlan and related services to manage and
+ * track loan payments and generate amortization schedules.
+ */
 public class Installment {
     private int number;
     private LocalDate dueDate;

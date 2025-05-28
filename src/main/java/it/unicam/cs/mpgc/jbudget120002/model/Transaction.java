@@ -5,6 +5,22 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * Core entity class representing a financial transaction in the Family Budget App.
+ * This class encapsulates all details of a monetary transaction, including amount,
+ * date, description, and categorization.
+ *
+ * Responsibilities:
+ * - Store transaction details (amount, date, description)
+ * - Track transaction type (income/expense)
+ * - Manage transaction categorization through tags
+ * - Support currency handling
+ * - Link to related entities (scheduled transactions, loan plans)
+ *
+ * Usage:
+ * Used throughout the application to represent financial transactions,
+ * serving as the primary data model for transaction management and reporting.
+ */
 @Entity
 @Table(name = "transactions")
 public class Transaction {
@@ -86,21 +102,19 @@ public class Transaction {
     
     // Tag Management
     public void addTag(Tag tag) {
-        if (tag != null && tags.add(tag)) {
-            tag.getTransactions().add(this);
+        if (tag != null) {
+            tags.add(tag);
         }
     }
 
     public void removeTag(Tag tag) {
-        if (tag != null && tags.remove(tag)) {
-            tag.getTransactions().remove(this);
+        if (tag != null) {
+            tags.remove(tag);
         }
     }
 
     public void clearTags() {
-        for (Tag tag : new HashSet<>(tags)) {
-            removeTag(tag);
-        }
+        tags = new HashSet<>();
     }
 
     public boolean hasTag(Tag tag) {
@@ -116,9 +130,11 @@ public class Transaction {
     }
 
     public void setTags(Collection<Tag> newTags) {
-        clearTags();
+        tags = new HashSet<>();
         if (newTags != null) {
-            newTags.forEach(this::addTag);
+            for (Tag tag : newTags) {
+                addTag(tag);
+            }
         }
     }
 

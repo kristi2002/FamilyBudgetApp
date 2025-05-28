@@ -21,6 +21,22 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Controller class managing scheduled and recurring transactions in the Family Budget App.
+ * This class handles the creation, monitoring, and management of transactions that
+ * occur on a regular basis or are scheduled for future execution.
+ *
+ * Responsibilities:
+ * - Display and manage scheduled transactions
+ * - Handle recurring transaction setup
+ * - Monitor upcoming scheduled payments
+ * - Process scheduled transaction execution
+ * - Coordinate with TransactionService for scheduled operations
+ *
+ * Usage:
+ * Used by MainController to manage the scheduled transactions tab and provide
+ * automated transaction management functionality to users.
+ */
 public class ScheduledController extends BaseController {
     @FXML private DatePicker dpStartDate;
     @FXML private DatePicker dpEndDate;
