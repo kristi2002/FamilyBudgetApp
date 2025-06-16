@@ -124,16 +124,22 @@ public class TagsController extends BaseController {
     @FXML
     private void handleDeleteTag() {
         Tag selected = table.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            try {
-                tagService.deleteTag(selected.getId());
-                tags.remove(selected);
-                cbParent.getItems().remove(selected);
-                updateParentComboBox();
-                updateTreeView();
-            } catch (Exception e) {
-                showError("Error", "Failed to delete tag: " + e.getMessage());
-            }
+        if (selected == null) {
+            showWarning("Delete Error", "No tag is selected. Please select a tag to delete.");
+            return;
+        }
+        if (selected.getId() == null) {
+            showWarning("Delete Error", "The selected tag has no ID and cannot be deleted. This may indicate a data issue. Try restarting the app or recreating the tag.");
+            return;
+        }
+        try {
+            tagService.deleteTag(selected.getId());
+            tags.remove(selected);
+            cbParent.getItems().remove(selected);
+            updateParentComboBox();
+            updateTreeView();
+        } catch (Exception e) {
+            showError("Error", "Failed to delete tag: " + e.getMessage());
         }
     }
 

@@ -401,4 +401,16 @@ public class TransactionServiceImpl implements TransactionService {
     public BigDecimal calculateNetWorth(LocalDate asOfDate) {
         return calculateNetWorth(asOfDate, "EUR");
     }
+
+    @Override
+    public List<Transaction> findTransactionsInPeriod(LocalDate startDate, LocalDate endDate, int limit) {
+        TypedQuery<Transaction> query = entityManager.createQuery(
+            "SELECT t FROM Transaction t WHERE t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC",
+            Transaction.class
+        );
+        query.setParameter("startDate", startDate);
+        query.setParameter("endDate", endDate);
+        query.setMaxResults(limit);
+        return query.getResultList();
+    }
 }

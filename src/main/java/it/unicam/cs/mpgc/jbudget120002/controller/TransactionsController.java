@@ -59,6 +59,7 @@ public class TransactionsController extends BaseController {
     @FXML private Button btnClearFilters;
     @FXML private Button btnSave;
     @FXML private Button btnClearForm;
+    @FXML private Button btnCancel;
     
     // Statistics labels
     @FXML private Label lblTotalIncome;
@@ -79,6 +80,7 @@ public class TransactionsController extends BaseController {
     private ObservableList<Transaction> transactions;
     private Set<Tag> selectedTags;
     private String currentCurrency;
+    private boolean isEditMode = false;
 
     @Override
     protected void initializeServices() {
@@ -104,16 +106,22 @@ public class TransactionsController extends BaseController {
         setupContextMenu();
         btnSave = new Button("Save Changes");
         btnSave.setOnAction(e -> handleSaveTransaction());
+        btnCancel = new Button("Cancel");
+        btnCancel.setOnAction(e -> handleCancelEdit());
         tfSearch.textProperty().addListener((obs, oldVal, newVal) -> refreshData());
         btnClearFilters.setOnAction(e -> handleClearFilters());
         btnClearForm.setOnAction(e -> handleClearForm());
+        updateButtonStates();
     }
 
     private void setupDatePickers() {
         // Initialize date pickers
+        List<Transaction> all = transactionService.findAll();
+        LocalDate minDate = all.stream().map(Transaction::getDate).min(LocalDate::compareTo).orElse(LocalDate.now().minusYears(10));
+        LocalDate maxDate = all.stream().map(Transaction::getDate).max(LocalDate::compareTo).orElse(LocalDate.now().plusYears(10));
         dpDate.setValue(LocalDate.now());
-        dpStartDate.setValue(LocalDate.now().minusMonths(1));
-        dpEndDate.setValue(LocalDate.now());
+        dpStartDate.setValue(minDate);
+        dpEndDate.setValue(maxDate);
         
         // Set up date format
         javafx.util.StringConverter<LocalDate> dateConverter = new javafx.util.StringConverter<LocalDate>() {
@@ -226,13 +234,11 @@ public class TransactionsController extends BaseController {
         ContextMenu contextMenu = new ContextMenu();
         MenuItem editMenuItem = new MenuItem("Edit");
         MenuItem deleteMenuItem = new MenuItem("Delete");
-        MenuItem manageTagsMenuItem = new MenuItem("Manage Tags");
         
         editMenuItem.setOnAction(e -> handleEditTransaction());
         deleteMenuItem.setOnAction(e -> handleDeleteTransaction());
-        manageTagsMenuItem.setOnAction(e -> handleManageTags());
         
-        contextMenu.getItems().addAll(editMenuItem, deleteMenuItem, new SeparatorMenuItem(), manageTagsMenuItem);
+        contextMenu.getItems().addAll(editMenuItem, deleteMenuItem);
         table.setContextMenu(contextMenu);
     }
 
@@ -242,6 +248,7 @@ public class TransactionsController extends BaseController {
     }
 
     public void refreshData() {
+        refreshTagComboBox();
         List<Transaction> filteredTransactions;
         if (selectedTags.isEmpty()) {
             filteredTransactions = transactionService.findByDateRange(
@@ -292,6 +299,10 @@ public class TransactionsController extends BaseController {
 
     @FXML
     private void handleAddTransaction() {
+        if (isEditMode) {
+            showError("Invalid Action", "Please save or cancel the current edit before adding a new transaction.");
+            return;
+        }
         String amountText = tfAmount.getText();
         if (amountText == null || amountText.trim().isEmpty()) {
             showError("Invalid Amount", "Amount cannot be empty. Please enter a value.");
@@ -320,6 +331,7 @@ public class TransactionsController extends BaseController {
     private void handleEditTransaction() {
         Transaction selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
+            isEditMode = true;
             dpDate.setValue(selected.getDate());
             tfDesc.setText(selected.getDescription());
             tfAmount.setText(selected.getAmount().toString());
@@ -327,6 +339,7 @@ public class TransactionsController extends BaseController {
             selectedTags.clear();
             selectedTags.addAll(selected.getTags());
             updateSelectedTagsList();
+            updateButtonStates();
         }
     }
 
@@ -345,19 +358,13 @@ public class TransactionsController extends BaseController {
     }
 
     @FXML
-    private void handleManageTags() {
-        Transaction selected = table.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            selectedTags.clear();
-            selectedTags.addAll(selected.getTags());
-            updateSelectedTagsList();
-        }
-    }
-
-    @FXML
     private void handleClearFilters() {
-        dpStartDate.setValue(LocalDate.now().minusMonths(1));
-        dpEndDate.setValue(LocalDate.now());
+        // Find earliest and latest transaction dates
+        List<Transaction> all = transactionService.findAll();
+        LocalDate minDate = all.stream().map(Transaction::getDate).min(LocalDate::compareTo).orElse(LocalDate.now().minusYears(10));
+        LocalDate maxDate = all.stream().map(Transaction::getDate).max(LocalDate::compareTo).orElse(LocalDate.now().plusYears(10));
+        dpStartDate.setValue(minDate);
+        dpEndDate.setValue(maxDate);
         selectedTags.clear();
         updateSelectedTagsList();
         tfSearch.clear();
@@ -382,15 +389,35 @@ public class TransactionsController extends BaseController {
 
         try {
             BigDecimal amount = new BigDecimal(amountText.trim());
-            System.out.println("Saving tags: " + selectedTags.stream().map(Tag::getId).collect(Collectors.toSet()));
+            LocalDate newDate = dpDate.getValue();
+            
+            // Check if the new date is outside the current filter range
+            boolean needsDateRangeUpdate = newDate.isBefore(dpStartDate.getValue()) || 
+                                         newDate.isAfter(dpEndDate.getValue());
+            
             transactionService.updateTransaction(
                 selected.getId(),
-                dpDate.getValue(),
+                newDate,
                 tfDesc.getText(),
                 amount,
                 cbIncome.isSelected(),
                 selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
             );
+            
+            // If the new date is outside the current range, update the date range to include it
+            if (needsDateRangeUpdate) {
+                LocalDate start = dpStartDate.getValue();
+                LocalDate end = dpEndDate.getValue();
+                if (newDate.isBefore(start)) {
+                    dpStartDate.setValue(newDate);
+                } else if (newDate.isAfter(end)) {
+                    dpEndDate.setValue(newDate);
+                }
+            }
+            
+            // Clear selected tags before refreshing data
+            selectedTags.clear();
+            updateSelectedTagsList();
             refreshData();
             clearForm();
         } catch (NumberFormatException e) {
@@ -402,12 +429,14 @@ public class TransactionsController extends BaseController {
     }
 
     private void clearForm() {
+        isEditMode = false;
         dpDate.setValue(LocalDate.now());
         tfDesc.clear();
         tfAmount.clear();
         cbIncome.setSelected(false);
         selectedTags.clear();
         updateSelectedTagsList();
+        updateButtonStates();
     }
 
     private void updateSelectedTagsList() {
@@ -430,6 +459,35 @@ public class TransactionsController extends BaseController {
 
     @FXML
     private void handleClearForm() {
+        clearForm();
+    }
+
+    private void refreshTagComboBox() {
+        cbTags.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+    }
+
+    private void updateButtonStates() {
+        btnSave.setVisible(isEditMode);
+        btnSave.setManaged(isEditMode);
+        btnCancel.setVisible(isEditMode);
+        btnCancel.setManaged(isEditMode);
+        btnClearForm.setVisible(!isEditMode);
+        btnClearForm.setManaged(!isEditMode);
+    }
+
+    @FXML
+    private void handleCancelEdit() {
+        Transaction selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            // Restore the original transaction data
+            dpDate.setValue(selected.getDate());
+            tfDesc.setText(selected.getDescription());
+            tfAmount.setText(selected.getAmount().toString());
+            cbIncome.setSelected(selected.isIncome());
+            selectedTags.clear();
+            selectedTags.addAll(selected.getTags());
+            updateSelectedTagsList();
+        }
         clearForm();
     }
 }

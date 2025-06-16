@@ -153,6 +153,17 @@ public class StatisticsController extends BaseController {
         setupAnalysisControls();
         setupCharts();
         setupAnomaliesTable();
+
+        // --- ADDED: Set default date range and categories based on available data ---
+        List<Transaction> allTransactions = transactionService.findAll();
+        if (!allTransactions.isEmpty()) {
+            LocalDate minDate = allTransactions.stream().map(Transaction::getDate).min(LocalDate::compareTo).orElse(LocalDate.now());
+            LocalDate maxDate = allTransactions.stream().map(Transaction::getDate).max(LocalDate::compareTo).orElse(LocalDate.now());
+            dpStartDate.setValue(minDate);
+            dpEndDate.setValue(maxDate);
+        }
+        // Removed code that overwrites cbMainCategory items
+        // --- END ADDED ---
     }
 
     private void setupPeriodControls() {
@@ -170,13 +181,19 @@ public class StatisticsController extends BaseController {
     }
 
     private void setupCategoryControls() {
-        cbMainCategory.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+        List<Tag> allTags = tagService.findAll();
+        Tag allOption = new Tag("All Categories");
+        allOption.setId(null);
+        List<Tag> comboTags = new ArrayList<>();
+        comboTags.add(allOption);
+        comboTags.addAll(allTags);
+        cbMainCategory.setItems(FXCollections.observableArrayList(comboTags));
+        cbMainCategory.setValue(allOption);
         cbMainCategory.setConverter(new StringConverter<Tag>() {
             @Override
             public String toString(Tag tag) {
                 return tag != null ? tag.getName() : "";
             }
-
             @Override
             public Tag fromString(String string) {
                 return null; // Not needed for ComboBox
@@ -387,11 +404,43 @@ public class StatisticsController extends BaseController {
 
     private void setupEventHandlers() {
         cbPeriodType.setOnAction(e -> updateDateRange());
-        dpStartDate.valueProperty().addListener((obs, oldVal, newVal) -> refreshData());
-        dpEndDate.valueProperty().addListener((obs, oldVal, newVal) -> refreshData());
-        cbMainCategory.setOnAction(e -> refreshData());
+        dpStartDate.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && dpEndDate.getValue() != null) {
+                refreshData();
+                updateTrendAnalysis(newVal, dpEndDate.getValue(), cbMainCategory.getValue(), cbAnalysisInterval.getValue());
+                updatePatternAnalysis(newVal, dpEndDate.getValue(), cbMainCategory.getValue());
+            }
+        });
+        dpEndDate.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && dpStartDate.getValue() != null) {
+                refreshData();
+                updateTrendAnalysis(dpStartDate.getValue(), newVal, cbMainCategory.getValue(), cbAnalysisInterval.getValue());
+                updatePatternAnalysis(dpStartDate.getValue(), newVal, cbMainCategory.getValue());
+            }
+        });
+        cbMainCategory.setOnAction(e -> {
+            refreshData();
+            if (dpStartDate.getValue() != null && dpEndDate.getValue() != null) {
+                updateTrendAnalysis(dpStartDate.getValue(), dpEndDate.getValue(), cbMainCategory.getValue(), cbAnalysisInterval.getValue());
+                updatePatternAnalysis(dpStartDate.getValue(), dpEndDate.getValue(), cbMainCategory.getValue());
+            }
+        });
         chkIncludeSubcategories.setOnAction(e -> refreshData());
         cbChartType.setOnAction(e -> updateCharts());
+        cbAnalysisInterval.setOnAction(e -> {
+            if (dpStartDate.getValue() != null && dpEndDate.getValue() != null) {
+                updateTrendAnalysis(dpStartDate.getValue(), dpEndDate.getValue(), cbMainCategory.getValue(), cbAnalysisInterval.getValue());
+            }
+        });
+        // Add tab change listener to update charts when switching tabs
+        analysisTabs.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+            if (newTab == tabPatterns && dpStartDate.getValue() != null && dpEndDate.getValue() != null) {
+                updatePatternAnalysis(dpStartDate.getValue(), dpEndDate.getValue(), cbMainCategory.getValue());
+            }
+            if (newTab == tabForecast && dpStartDate.getValue() != null && dpEndDate.getValue() != null) {
+                updateForecastAnalysis(dpStartDate.getValue(), dpEndDate.getValue(), cbMainCategory.getValue());
+            }
+        });
     }
 
     @Override
@@ -612,6 +661,18 @@ public class StatisticsController extends BaseController {
         );
         cbAnalysisInterval.setValue("MONTHLY");
 
+        // Add listener for interval changes
+        cbAnalysisInterval.setOnAction(e -> {
+            if (dpStartDate.getValue() != null && dpEndDate.getValue() != null) {
+                updateTrendAnalysis(
+                    dpStartDate.getValue(),
+                    dpEndDate.getValue(),
+                    cbMainCategory.getValue(),
+                    cbAnalysisInterval.getValue()
+                );
+            }
+        });
+
         cbForecastMethod.getItems().addAll(
             "Moving Average", "Linear Regression", "Exponential Smoothing"
         );
@@ -703,62 +764,110 @@ public class StatisticsController extends BaseController {
         updatePatternAnalysis(start, end, category);
         updateForecastAnalysis(start, end, category);
         updateAnomalyDetection(start, end, category);
+        
+        // Force chart updates
+        trendChart.layout();
+        patternChart.layout();
+        forecastChart.layout();
     }
 
     private void updateTrendAnalysis(LocalDate start, LocalDate end, Tag category, String interval) {
+        // If 'All Categories' is selected, pass null as the category
+        if (category != null && "All Categories".equals(category.getName())) {
+            category = null;
+        }
+        
         List<CategoryTrend> trends = statisticsService.getCategoryTrends(start, end, category, interval);
         
+        // Clear existing data
+        trendChart.getData().clear();
+        
+        if (trends.isEmpty()) {
+            // Add a dummy data point to indicate no data
+            XYChart.Series<String, Number> dummySeries = new XYChart.Series<>();
+            dummySeries.setName("No data available");
+            dummySeries.getData().add(new XYChart.Data<>("No Data", 0));
+            trendChart.getData().add(dummySeries);
+            return;
+        }
+        
+        // Create series for actual spending
         XYChart.Series<String, Number> actualSeries = new XYChart.Series<>();
         actualSeries.setName("Actual Spending");
         
+        // Create series for average
         XYChart.Series<String, Number> averageSeries = new XYChart.Series<>();
         averageSeries.setName("Average");
         
+        // Create series for trend
         XYChart.Series<String, Number> trendSeries = new XYChart.Series<>();
         trendSeries.setName("Trend");
-
+        
+        // Add data points
         for (CategoryTrend trend : trends) {
             String dateStr = formatDate(trend.date(), interval);
-            actualSeries.getData().add(new XYChart.Data<>(dateStr, trend.amount()));
-            averageSeries.getData().add(new XYChart.Data<>(dateStr, trend.average()));
-            trendSeries.getData().add(new XYChart.Data<>(dateStr, trend.trend()));
+            actualSeries.getData().add(new XYChart.Data<>(dateStr, trend.amount().doubleValue()));
+            averageSeries.getData().add(new XYChart.Data<>(dateStr, trend.average().doubleValue()));
+            trendSeries.getData().add(new XYChart.Data<>(dateStr, trend.trend().doubleValue()));
         }
-
-        trendChart.getData().clear();
+        
+        // Add all series to the chart
         trendChart.getData().addAll(actualSeries, averageSeries, trendSeries);
+        
+        // Force chart update
+        trendChart.layout();
     }
 
     private void updatePatternAnalysis(LocalDate start, LocalDate end, Tag category) {
-        Map<Tag, TimeBasedPattern> patterns = statisticsService.getTimeBasedPatterns(start, end);
-        TimeBasedPattern pattern = patterns.get(category);
+        // Clear existing data
+        patternChart.getData().clear();
         
-        if (pattern != null) {
-            XYChart.Series<String, Number> hourlySeries = new XYChart.Series<>();
-            hourlySeries.setName("Hourly Distribution");
-            
-            XYChart.Series<String, Number> dailySeries = new XYChart.Series<>();
-            dailySeries.setName("Daily Distribution");
-            
-            // Add hourly data
-            for (int hour = 0; hour < 24; hour++) {
-                BigDecimal amount = pattern.hourlyDistribution().getOrDefault(hour, BigDecimal.ZERO);
-                hourlySeries.getData().add(new XYChart.Data<>(String.format("%02d:00", hour), amount));
-            }
-            
-            // Add daily data
-            String[] days = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-            for (int i = 0; i < 7; i++) {
-                BigDecimal amount = pattern.dailyDistribution().getOrDefault(i + 1, BigDecimal.ZERO);
-                dailySeries.getData().add(new XYChart.Data<>(days[i], amount));
-            }
-
-            patternChart.getData().clear();
-            patternChart.getData().addAll(hourlySeries, dailySeries);
+        // Get patterns for the selected category
+        SpendingPattern pattern = statisticsService.getSpendingPatterns(start, end, category);
+        
+        if (pattern == null) {
+            // Add a dummy data point to indicate no data
+            XYChart.Series<String, Number> dummySeries = new XYChart.Series<>();
+            dummySeries.setName("No data available");
+            dummySeries.getData().add(new XYChart.Data<>("No Data", 0));
+            patternChart.getData().add(dummySeries);
+            return;
         }
+        
+        // Create series for average amount
+        XYChart.Series<String, Number> averageSeries = new XYChart.Series<>();
+        averageSeries.setName("Average Amount");
+        
+        // Create series for max amount
+        XYChart.Series<String, Number> maxSeries = new XYChart.Series<>();
+        maxSeries.setName("Maximum Amount");
+        
+        // Create series for min amount
+        XYChart.Series<String, Number> minSeries = new XYChart.Series<>();
+        minSeries.setName("Minimum Amount");
+        
+        // Add data points
+        String categoryName = category != null ? category.getName() : "All Categories";
+        averageSeries.getData().add(new XYChart.Data<>(categoryName, pattern.averageAmount().doubleValue()));
+        maxSeries.getData().add(new XYChart.Data<>(categoryName, pattern.maxAmount().doubleValue()));
+        minSeries.getData().add(new XYChart.Data<>(categoryName, pattern.minAmount().doubleValue()));
+        
+        // Add all series to the chart
+        patternChart.getData().addAll(averageSeries, maxSeries, minSeries);
+        
+        // Force chart update
+        patternChart.layout();
     }
 
     private void updateForecastAnalysis(LocalDate start, LocalDate end, Tag category) {
+        System.out.println("[DEBUG] updateForecastAnalysis called: start=" + start + ", end=" + end + ", category=" + (category != null ? category.getName() + " (ID=" + category.getId() + ")" : "null"));
         Map<Tag, SpendingForecast> forecasts = statisticsService.getSpendingForecast(start, end);
+        
+        // Debug output
+        System.out.println("[DEBUG] Forecast map keys:");
+        for (Tag t : forecasts.keySet()) {
+            System.out.println("  - " + t.getName() + " (ID=" + t.getId() + ")");
+        }
         
         XYChart.Series<String, Number> actualSeries = new XYChart.Series<>();
         actualSeries.setName("Actual");
@@ -766,7 +875,14 @@ public class StatisticsController extends BaseController {
         XYChart.Series<String, Number> forecastSeries = new XYChart.Series<>();
         forecastSeries.setName("Forecast");
 
-        SpendingForecast forecast = forecasts.get(category);
+        // Fix: Use the correct key for 'All Categories'
+        Tag lookupTag = category;
+        if (category == null || "All Categories".equals(category.getName())) {
+            lookupTag = new Tag("All Categories");
+            lookupTag.setId(null);
+        }
+
+        SpendingForecast forecast = forecasts.get(lookupTag);
         if (forecast != null) {
             // Add historical data
             for (int i = 0; i < forecast.historicalData().size(); i++) {

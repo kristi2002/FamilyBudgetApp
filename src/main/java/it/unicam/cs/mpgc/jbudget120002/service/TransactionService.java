@@ -78,4 +78,6 @@ public interface TransactionService {
     BigDecimal calculateNetWorth(LocalDate asOfDate);
     
     BigDecimal calculateNetWorth(LocalDate asOfDate, String targetCurrency);
+
+    List<Transaction> findTransactionsInPeriod(LocalDate startDate, LocalDate endDate, int limit);
 }

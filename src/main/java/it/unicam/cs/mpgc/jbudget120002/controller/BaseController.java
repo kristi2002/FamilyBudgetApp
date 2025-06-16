@@ -40,6 +40,11 @@ public abstract class BaseController implements Initializable {
     static {
         try {
             emf = Persistence.createEntityManagerFactory("jbudgetPU");
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                if (emf != null && emf.isOpen()) {
+                    emf.close();
+                }
+            }));
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to create EntityManagerFactory", e);
             throw new RuntimeException("Failed to create EntityManagerFactory", e);
@@ -59,11 +64,17 @@ public abstract class BaseController implements Initializable {
                     serviceFactory = new ServiceFactory(entityManager);
                 }
                 
-                initializeServices();
-                setupUI();
-                loadData();
-                isInitialized = true;
-                LOGGER.info("Successfully initialized controller: " + getClass().getSimpleName());
+                try {
+                    initializeServices();
+                    setupUI();
+                    loadData();
+                    isInitialized = true;
+                    LOGGER.info("Successfully initialized controller: " + getClass().getSimpleName());
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "Error during controller initialization", e);
+                    cleanup();
+                    throw e;
+                }
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to initialize controller: " + getClass().getSimpleName(), e);
@@ -142,6 +153,7 @@ public abstract class BaseController implements Initializable {
                     entityManager.getTransaction().rollback();
                 }
                 entityManager.close();
+                entityManager = null;
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error during cleanup of controller: " + getClass().getSimpleName(), e);
@@ -152,6 +164,7 @@ public abstract class BaseController implements Initializable {
         if (emf != null && emf.isOpen()) {
             try {
                 emf.close();
+                emf = null;
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Error closing EntityManagerFactory", e);
             }

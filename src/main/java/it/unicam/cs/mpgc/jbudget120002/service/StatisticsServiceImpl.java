@@ -10,6 +10,7 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.time.temporal.ChronoUnit;
+import jakarta.persistence.TypedQuery;
 
 /**
  * Implements the StatisticsService interface to provide comprehensive statistical analysis
@@ -42,25 +43,29 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public List<MonthlyStatistic> getMonthlyStatistics(LocalDate startDate, LocalDate endDate) {
         List<Transaction> transactions = transactionService.findByDateRange(startDate, endDate);
-        Map<YearMonth, List<Transaction>> transactionsByMonth = transactions.stream()
-            .collect(Collectors.groupingBy(t -> YearMonth.from(t.getDate())));
-            
-        return transactionsByMonth.entrySet().stream()
-            .map(entry -> {
-                BigDecimal income = entry.getValue().stream()
-                    .filter(Transaction::isIncome)
-                    .map(Transaction::getAmount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    
-                BigDecimal expenses = entry.getValue().stream()
-                    .filter(t -> !t.isIncome())
-                    .map(Transaction::getAmount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    
-                return new MonthlyStatistic(entry.getKey(), income, expenses);
-            })
-            .sorted(Comparator.comparing(MonthlyStatistic::getMonth))
-            .collect(Collectors.toList());
+        List<MonthlyStatistic> stats = new ArrayList<>();
+        YearMonth current = YearMonth.from(startDate);
+        YearMonth end = YearMonth.from(endDate);
+
+        while (!current.isAfter(end)) {
+            LocalDate monthStart = current.atDay(1);
+            LocalDate monthEnd = current.atEndOfMonth();
+
+            BigDecimal income = transactions.stream()
+                .filter(t -> t.isIncome() && !t.getDate().isBefore(monthStart) && !t.getDate().isAfter(monthEnd))
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal expenses = transactions.stream()
+                .filter(t -> !t.isIncome() && !t.getDate().isBefore(monthStart) && !t.getDate().isAfter(monthEnd))
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            stats.add(new MonthlyStatistic(current, income, expenses));
+            current = current.plusMonths(1);
+        }
+
+        return stats;
     }
 
     @Override
@@ -133,12 +138,11 @@ public class StatisticsServiceImpl implements StatisticsService {
     ) {
         return transactions.stream()
             .filter(t -> isRelevantTransaction(t, rootCategory, includeSubcategories))
+            .map(t -> new Object[]{getPrimaryTag(t), t})
+            .filter(arr -> arr[0] != null) // Skip transactions with null primary tag
             .collect(Collectors.groupingBy(
-                this::getPrimaryTag,
-                Collectors.mapping(
-                    Transaction::getAmount,
-                    Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
-                )
+                arr -> (Tag) arr[0],
+                Collectors.mapping(arr -> ((Transaction) arr[1]).getAmount(), Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
     }
 
@@ -208,35 +212,63 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public List<CategoryExpense> getTopExpenseCategories(
-            LocalDate startDate, LocalDate endDate, int limit) {
+    public List<CategoryExpense> getTopExpenseCategories(LocalDate startDate, LocalDate endDate, int limit) {
         List<Transaction> transactions = transactionService.findByDateRange(startDate, endDate);
-        Map<Tag, BigDecimal> expensesByCategory = aggregateTransactionsByTag(
-            transactions.stream()
-                .filter(t -> !t.isIncome())
-                .collect(Collectors.toList()),
-            null,
-            true
-        );
-        
-        return expensesByCategory.entrySet().stream()
-            .map(entry -> new CategoryExpense(entry.getKey(), entry.getValue()))
-            .sorted(Comparator.comparing(CategoryExpense::getAmount).reversed())
+        // Only keep expenses
+        transactions = transactions.stream()
+            .filter(t -> !t.isIncome())
+            .collect(Collectors.toList());
+        // Group by primary tag
+        Map<Tag, BigDecimal> expensesByTag = transactions.stream()
+            .collect(Collectors.groupingBy(
+                this::getPrimaryTag,
+                Collectors.mapping(Transaction::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
+            ));
+        // Sort and limit
+        return expensesByTag.entrySet().stream()
+            .sorted(Map.Entry.<Tag, BigDecimal>comparingByValue().reversed())
             .limit(limit)
+            .map(e -> new CategoryExpense(e.getKey(), e.getValue()))
             .collect(Collectors.toList());
     }
 
     @Override
     public List<MonthlyBalance> getMonthlyBalances(LocalDate startDate, LocalDate endDate) {
-        List<MonthlyStatistic> monthlyStats = getMonthlyStatistics(startDate, endDate);
-        return monthlyStats.stream()
-            .map(stat -> new MonthlyBalance(
-                stat.getMonth(),
-                stat.getIncome(),
-                stat.getExpenses(),
-                stat.getBalance()
-            ))
-            .collect(Collectors.toList());
+        // Instead of loading all transactions and processing them in memory,
+        // use a more efficient SQL query to calculate monthly balances
+        TypedQuery<Object[]> query = entityManager.createQuery(
+            "SELECT FUNCTION('YEAR', t.date), FUNCTION('MONTH', t.date), " +
+            "SUM(CASE WHEN t.isIncome = true THEN t.amount ELSE 0 END), " +
+            "SUM(CASE WHEN t.isIncome = false THEN t.amount ELSE 0 END), " +
+            "SUM(CASE WHEN t.isIncome = true THEN t.amount ELSE -t.amount END) " +
+            "FROM Transaction t " +
+            "WHERE t.date BETWEEN :startDate AND :endDate " +
+            "GROUP BY FUNCTION('YEAR', t.date), FUNCTION('MONTH', t.date) " +
+            "ORDER BY FUNCTION('YEAR', t.date), FUNCTION('MONTH', t.date)",
+            Object[].class
+        );
+        query.setParameter("startDate", startDate);
+        query.setParameter("endDate", endDate);
+
+        List<Object[]> results = query.getResultList();
+        System.out.println("Raw monthly balance query results:");
+        for (Object[] result : results) {
+            System.out.println(java.util.Arrays.toString(result));
+        }
+        List<MonthlyBalance> balances = new ArrayList<>();
+
+        for (Object[] result : results) {
+            int year = (Integer) result[0];
+            int month = (Integer) result[1];
+            BigDecimal income = (BigDecimal) result[2];
+            BigDecimal expenses = (BigDecimal) result[3];
+            BigDecimal balance = (BigDecimal) result[4];
+            
+            YearMonth yearMonth = YearMonth.of(year, month);
+            balances.add(new MonthlyBalance(yearMonth, income, expenses, balance));
+        }
+
+        return balances;
     }
 
     @Override
@@ -543,19 +575,48 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public Map<Tag, SpendingForecast> getSpendingForecast(LocalDate startDate, LocalDate endDate) {
         List<Transaction> transactions = transactionService.findByDateRange(startDate, endDate);
+        System.out.println("[DEBUG] getSpendingForecast: transactions found = " + transactions.size());
         Map<Tag, List<Transaction>> transactionsByTag = transactions.stream()
             .collect(Collectors.groupingBy(this::getPrimaryTag));
-            
+        
         Map<Tag, SpendingForecast> forecasts = new HashMap<>();
+        
+        // --- Support for 'All Categories' ---
+        if (!transactions.isEmpty()) {
+            Tag allCategoriesTag = new Tag("All Categories");
+            allCategoriesTag.setId(null); // No ID for dummy tag
+            List<Transaction> allTransactions = new ArrayList<>(transactions);
+            if (allTransactions.size() >= 1) {
+                BigDecimal totalSpending = allTransactions.stream()
+                    .map(Transaction::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal currentAverage = totalSpending.divide(
+                    BigDecimal.valueOf(allTransactions.size()),
+                    2,
+                    java.math.RoundingMode.HALF_UP
+                );
+                double confidenceLevel = 0.7 + (allTransactions.size() / 100.0);
+                confidenceLevel = Math.min(0.95, Math.max(0.5, confidenceLevel));
+                List<BigDecimal> historicalData = allTransactions.stream()
+                    .map(Transaction::getAmount)
+                    .collect(Collectors.toList());
+                forecasts.put(allCategoriesTag, new SpendingForecast(
+                    allCategoriesTag,
+                    currentAverage,
+                    currentAverage,
+                    confidenceLevel,
+                    historicalData
+                ));
+            }
+        }
+        // --- End support for 'All Categories' ---
         
         for (Map.Entry<Tag, List<Transaction>> entry : transactionsByTag.entrySet()) {
             Tag tag = entry.getKey();
             List<Transaction> tagTransactions = entry.getValue();
-            
-            if (tagTransactions.size() < 3) {
-                continue; // Need at least 3 transactions for meaningful analysis
+            if (tagTransactions.size() < 1) {
+                continue; // Need at least 1 transaction for meaningful analysis
             }
-            
             // Calculate current average spending
             BigDecimal totalSpending = tagTransactions.stream()
                 .map(Transaction::getAmount)
@@ -565,7 +626,6 @@ public class StatisticsServiceImpl implements StatisticsService {
                 2,
                 java.math.RoundingMode.HALF_UP
             );
-            
             // Calculate standard deviation
             double variance = tagTransactions.stream()
                 .map(t -> t.getAmount().subtract(currentAverage).pow(2))
@@ -573,29 +633,20 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .average()
                 .orElse(0.0);
             double stdDev = Math.sqrt(variance);
-            
             // Calculate confidence level based on number of transactions and variance
             double confidenceLevel = Math.min(0.95, 0.7 + (tagTransactions.size() / 100.0));
             confidenceLevel = Math.max(0.5, confidenceLevel - (stdDev / currentAverage.doubleValue()));
-            
             // Project next month's spending (average + trend)
             BigDecimal projectedAmount = currentAverage;
-            
             // Add trend analysis if we have enough data
             if (tagTransactions.size() >= 6) {
-                // Sort transactions by date
                 tagTransactions.sort(Comparator.comparing(Transaction::getDate));
-                
-                // Calculate trend using linear regression
                 double[] x = new double[tagTransactions.size()];
                 double[] y = new double[tagTransactions.size()];
-                
                 for (int i = 0; i < tagTransactions.size(); i++) {
                     x[i] = i;
                     y[i] = tagTransactions.get(i).getAmount().doubleValue();
                 }
-                
-                // Calculate slope (trend)
                 double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
                 for (int i = 0; i < x.length; i++) {
                     sumX += x[i];
@@ -603,18 +654,12 @@ public class StatisticsServiceImpl implements StatisticsService {
                     sumXY += x[i] * y[i];
                     sumX2 += x[i] * x[i];
                 }
-                
                 double slope = (x.length * sumXY - sumX * sumY) / (x.length * sumX2 - sumX * sumX);
-                
-                // Adjust projected amount based on trend
                 projectedAmount = currentAverage.add(BigDecimal.valueOf(slope));
             }
-            
-            // Store historical data for visualization
             List<BigDecimal> historicalData = tagTransactions.stream()
                 .map(Transaction::getAmount)
                 .collect(Collectors.toList());
-            
             forecasts.put(tag, new SpendingForecast(
                 tag,
                 currentAverage,
@@ -623,7 +668,11 @@ public class StatisticsServiceImpl implements StatisticsService {
                 historicalData
             ));
         }
-        
+        // Debug output: print forecast map keys
+        System.out.println("[DEBUG] getSpendingForecast: forecast map keys:");
+        for (Tag t : forecasts.keySet()) {
+            System.out.println("  - " + t.getName() + " (ID=" + t.getId() + ")");
+        }
         return forecasts;
     }
 
@@ -678,8 +727,8 @@ public class StatisticsServiceImpl implements StatisticsService {
             .filter(t -> category == null || getPrimaryTag(t).equals(category))
             .collect(Collectors.toList());
             
-        if (categoryTransactions.size() < 3) {
-            return null; // Need at least 3 transactions for meaningful analysis
+        if (categoryTransactions.size() < 1) {
+            return null; // Need at least 1 transaction for meaningful analysis
         }
         
         // Calculate average transaction amount
@@ -745,8 +794,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         List<Transaction> categoryTransactions = transactions.stream()
             .filter(t -> category == null || getPrimaryTag(t).equals(category))
             .collect(Collectors.toList());
-            
-        if (categoryTransactions.size() < 3) {
+        
+        if (categoryTransactions.isEmpty()) {
             return Collections.emptyList();
         }
         
@@ -796,8 +845,8 @@ public class StatisticsServiceImpl implements StatisticsService {
                 intervalDate,
                 category,
                 totalAmount,
-                transactionCount,
-                averageAmount
+                averageAmount,
+                averageAmount // For now, use averageAmount as the trend
             ));
         }
         

@@ -29,8 +29,12 @@ import java.time.format.DateTimeFormatter;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Button;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.scene.control.TableCell;
 
 public class DashboardController extends BaseController {
+    private static final Logger LOGGER = Logger.getLogger(DashboardController.class.getName());
     @FXML private Label lblCurrentBalance;
     @FXML private PieChart pieSpendingByCategory;
     @FXML private LineChart<String, Number> lineBalanceOverTime;
@@ -61,8 +65,20 @@ public class DashboardController extends BaseController {
         cbPeriod.setValue("This Month");
         updatePeriodDates();
         cbPeriod.setOnAction(e -> updatePeriodDates());
-        dpStart.setOnAction(e -> cbPeriod.setValue("Custom"));
-        dpEnd.setOnAction(e -> cbPeriod.setValue("Custom"));
+        dpStart.setOnAction(e -> {
+            if (cbPeriod.getValue().equals("Custom")) updatePeriodDates();
+        });
+        dpEnd.setOnAction(e -> {
+            if (cbPeriod.getValue().equals("Custom")) updatePeriodDates();
+        });
+        // Enable/disable date pickers based on period
+        cbPeriod.valueProperty().addListener((obs, oldVal, newVal) -> {
+            boolean custom = "Custom".equals(newVal);
+            dpStart.setDisable(!custom);
+            dpEnd.setDisable(!custom);
+        });
+        dpStart.setDisable(true);
+        dpEnd.setDisable(true);
         // Display current balance
         updateBalanceLabel();
     }
@@ -90,17 +106,17 @@ public class DashboardController extends BaseController {
                 periodEnd = dpEnd.getValue() != null ? dpEnd.getValue() : now;
                 break;
         }
-        dpStart.setValue(periodStart);
-        dpEnd.setValue(periodEnd);
+        if (!"Custom".equals(period)) {
+            dpStart.setValue(periodStart);
+            dpEnd.setValue(periodEnd);
+        }
         updateBalanceLabel();
         loadData();
     }
 
     @FXML
     private void handleUpdatePeriod() {
-        periodStart = dpStart.getValue();
-        periodEnd = dpEnd.getValue();
-        cbPeriod.setValue("Custom");
+        updatePeriodDates();
         updateBalanceLabel();
         loadData();
     }
@@ -112,52 +128,86 @@ public class DashboardController extends BaseController {
 
     @Override
     protected void loadData() {
-        // Populate pie chart with top expense categories
-        List<CategoryExpense> topCategories = statisticsService.getTopExpenseCategories(periodStart, periodEnd, 6);
-        pieSpendingByCategory.getData().clear();
-        for (CategoryExpense ce : topCategories) {
-            String name = ce.getCategory() != null ? ce.getCategory().getName() : "Other";
-            pieSpendingByCategory.getData().add(new Data(name, ce.getAmount().doubleValue()));
-        }
+        try {
+            // Populate pie chart with top expense categories
+            List<CategoryExpense> topCategories = statisticsService.getTopExpenseCategories(periodStart, periodEnd, 6);
+            // Calculate total expenses for the period
+            BigDecimal totalExpenses = topCategories.stream()
+                .map(CategoryExpense::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Populate line chart with monthly balances (use full history for trend)
-        List<MonthlyBalance> monthlyBalances = statisticsService.getMonthlyBalances(LocalDate.MIN, LocalDate.now());
-        lineBalanceOverTime.getData().clear();
-        XYChart.Series<String, Number> balanceSeries = new XYChart.Series<>();
-        balanceSeries.setName("Balance");
-        for (MonthlyBalance mb : monthlyBalances) {
-            String monthLabel = mb.getMonth().toString();
-            balanceSeries.getData().add(new XYChart.Data<>(monthLabel, mb.getBalance()));
-        }
-        lineBalanceOverTime.getData().add(balanceSeries);
-
-        // Populate recent transactions table (for selected period)
-        List<Transaction> allTransactions = transactionService.findAll();
-        allTransactions.removeIf(t -> t.getDate().isBefore(periodStart) || t.getDate().isAfter(periodEnd));
-        allTransactions.sort((a, b) -> b.getDate().compareTo(a.getDate()));
-        List<Transaction> recent = allTransactions.stream().limit(10).toList();
-        ObservableList<Transaction> recentObs = FXCollections.observableArrayList(recent);
-        tableRecentTransactions.setItems(recentObs);
-
-        // Set up columns if not already set
-        colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
-        colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
-        colAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
-
-        // Format date and amount columns
-        colDate.setCellFactory(column -> new TextFieldTableCell<>(new StringConverter<java.time.LocalDate>() {
-            private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            @Override public String toString(java.time.LocalDate d) {
-                return d != null ? d.format(fmt) : "";
+            pieSpendingByCategory.getData().clear();
+            for (CategoryExpense ce : topCategories) {
+                String name = ce.getCategory() != null ? ce.getCategory().getName() : "Other";
+                double percent = totalExpenses.compareTo(BigDecimal.ZERO) == 0
+                    ? 0
+                    : ce.getAmount().divide(totalExpenses, 4, java.math.RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
+                String label = String.format("%s (%.1f%%)", name, percent);
+                pieSpendingByCategory.getData().add(new PieChart.Data(label, ce.getAmount().doubleValue()));
             }
-            @Override public java.time.LocalDate fromString(String s) { return null; }
-        }));
-        colAmount.setCellFactory(column -> new TextFieldTableCell<>(new StringConverter<java.math.BigDecimal>() {
-            @Override public String toString(java.math.BigDecimal bd) {
-                return bd != null ? CurrencyUtils.formatAmount(bd, "EUR") : "";
+
+            // Populate line chart with monthly balances (use full history for trend)
+            // Use only the last 24 months for the balance chart
+            LocalDate start = LocalDate.now().minusMonths(24);
+            List<MonthlyBalance> monthlyBalances = statisticsService.getMonthlyBalances(start, LocalDate.now());
+            // Debug: print number of transactions in the database
+            int transactionCount = transactionService.findAll().size();
+            System.out.println("Total transactions in DB: " + transactionCount);
+            lineBalanceOverTime.getData().clear();
+            XYChart.Series<String, Number> balanceSeries = new XYChart.Series<>();
+            balanceSeries.setName("Balance");
+            int maxDataPoints = 24; // Show last 24 months
+            int startIndex = Math.max(0, monthlyBalances.size() - maxDataPoints);
+            for (int i = startIndex; i < monthlyBalances.size(); i++) {
+                MonthlyBalance mb = monthlyBalances.get(i);
+                String monthLabel = mb.getMonth().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
+                System.out.println("Month: " + monthLabel + ", Balance: " + mb.getBalance());
+                balanceSeries.getData().add(new XYChart.Data<>(monthLabel, mb.getBalance()));
             }
-            @Override public java.math.BigDecimal fromString(String s) { return null; }
-        }));
+            lineBalanceOverTime.getData().add(balanceSeries);
+
+            // Populate recent transactions table (for selected period)
+            // Use a more efficient query to get only the transactions we need
+            List<Transaction> recent = transactionService.findTransactionsInPeriod(periodStart, periodEnd, 10);
+            ObservableList<Transaction> recentObs = FXCollections.observableArrayList(recent);
+            tableRecentTransactions.setItems(recentObs);
+
+            // Set up columns if not already set
+            if (colDate.getCellValueFactory() == null) {
+                colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
+                colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
+                colAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
+
+                // Format date and amount columns
+                colDate.setCellFactory(column -> new TextFieldTableCell<>(new StringConverter<java.time.LocalDate>() {
+                    private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                    @Override public String toString(java.time.LocalDate d) {
+                        return d != null ? d.format(fmt) : "";
+                    }
+                    @Override public java.time.LocalDate fromString(String s) { return null; }
+                }));
+                colAmount.setCellFactory(column -> new TableCell<Transaction, BigDecimal>() {
+                    @Override
+                    protected void updateItem(BigDecimal amount, boolean empty) {
+                        super.updateItem(amount, empty);
+                        if (empty || amount == null) {
+                            setText(null);
+                        } else {
+                            Transaction transaction = getTableRow().getItem();
+                            if (transaction != null) {
+                                String formattedAmount = CurrencyUtils.formatAmount(amount, "EUR");
+                                setText(transaction.isIncome() ? formattedAmount : "-" + formattedAmount);
+                            } else {
+                                setText(CurrencyUtils.formatAmount(amount, "EUR"));
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error loading dashboard data", e);
+            showError("Data Loading Error", "Failed to load dashboard data: " + e.getMessage());
+        }
     }
 
     @FXML

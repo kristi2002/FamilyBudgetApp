@@ -1,392 +1,238 @@
-2025-05-26 04:20:16.344944+02:00 jdbc[13]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 04:20:42.603126+02:00 jdbc[14]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 04:21:08.445285+02:00 jdbc[16]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:20:01.433881+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:29:56.452026+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:30:11.771450+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:30:23.705171+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:30:47.632175+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:31:06.858607+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:31:17.286531+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:31:41.568329+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:32:30.667477+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:32:48.501249+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:33:18.144923+02:00 jdbc[4]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:33:50.212932+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:34:27.635665+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:56:31.596604+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 05:56:51.181655+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:16:41.034667+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:19:48.584897+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:20:46.146736+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:21:09.740499+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:21:20.065146+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:21:38.980099+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:23:30.808070+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:26:35.165720+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:28:35.832021+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:31:41.978659+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:36:11.495667+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:36:55.004007+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:38:45.955804+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:39:05.981543+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:42:52.331655+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:48:59.710630+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 06:49:13.898616+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 07:00:54.496845+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 07:06:45.551414+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 07:07:49.162740+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 09:35:37.672917+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 09:35:49.137821+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 09:36:11.655316+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 09:36:49.193429+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 09:37:53.996737+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 09:38:51.509056+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 09:40:43.685091+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 09:41:13.523366+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 09:41:53.408192+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 10:10:13.149791+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 10:12:01.512166+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 14:31:32.769562+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "FULL_PATH" not found; SQL statement:
-alter table if exists tags add constraint UK_nv9nkejk03fn1lhqpo196ysem unique (full_path) [42122-224]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+2025-05-28 16:46:45.530452+02:00 database: flush
+org.h2.message.DbException: Out of memory. [90108-224]
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.message.DbException.convert(DbException.java:401)
+	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
+	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
+	at org.h2.mvstore.FileStore.writeInBackground(FileStore.java:1842)
+	at org.h2.mvstore.FileStore$BackgroundWriterThread.run(FileStore.java:2248)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientConnectionException: Out of memory. [90108-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	at org.h2.message.DbException.get(DbException.java:223)
-	at org.h2.message.DbException.get(DbException.java:199)
-	at org.h2.table.Table.getColumn(Table.java:759)
-	at org.h2.table.IndexColumn.mapColumns(IndexColumn.java:184)
-	at org.h2.command.ddl.AlterTableAddConstraint.tryUpdate(AlterTableAddConstraint.java:182)
-	at org.h2.command.ddl.AlterTableAddConstraint.update(AlterTableAddConstraint.java:74)
-	at org.h2.command.ddl.AlterTable.update(AlterTable.java:46)
+	... 6 more
+Caused by: java.lang.OutOfMemoryError: Java heap space
+	at java.base/java.util.concurrent.ConcurrentHashMap$ValuesView.iterator(ConcurrentHashMap.java:4743)
+	at org.h2.mvstore.MVStore.hasUnsavedChanges(MVStore.java:908)
+	at org.h2.mvstore.MVStore.store(MVStore.java:796)
+	at org.h2.mvstore.MVStore.tryCommit(MVStore.java:744)
+	at org.h2.mvstore.MVStore.tryCommit(MVStore.java:737)
+	at org.h2.mvstore.FileStore.writeInBackground(FileStore.java:1835)
+	... 1 more
+2025-05-28 16:46:45.549458+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientConnectionException: Out of memory.; SQL statement:
+COMMIT [90108-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.engine.Database.throwLastBackgroundException(Database.java:1817)
+	at org.h2.engine.SessionLocal.beforeCommitOrRollback(SessionLocal.java:764)
+	at org.h2.engine.SessionLocal.commit(SessionLocal.java:679)
+	at org.h2.command.dml.TransactionCommand.update(TransactionCommand.java:46)
 	at org.h2.command.CommandContainer.update(CommandContainer.java:169)
 	at org.h2.command.Command.executeUpdate(Command.java:256)
-	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:262)
-	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:231)
-	at org.hibernate.tool.schema.internal.exec.GenerationTargetToDatabase.accept(GenerationTargetToDatabase.java:80)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.applySqlString(AbstractSchemaMigrator.java:574)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.applySqlStrings(AbstractSchemaMigrator.java:514)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.applyUniqueKeys(AbstractSchemaMigrator.java:410)
-	at org.hibernate.tool.schema.internal.GroupedSchemaMigratorImpl.performTablesMigration(GroupedSchemaMigratorImpl.java:98)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.performMigration(AbstractSchemaMigrator.java:232)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.doMigration(AbstractSchemaMigrator.java:117)
-	at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.performDatabaseAction(SchemaManagementToolCoordinator.java:286)
-	at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.lambda$process$5(SchemaManagementToolCoordinator.java:145)
-	at java.base/java.util.HashMap.forEach(HashMap.java:1429)
-	at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.process(SchemaManagementToolCoordinator.java:142)
-	at org.hibernate.boot.internal.SessionFactoryObserverForSchemaExport.sessionFactoryCreated(SessionFactoryObserverForSchemaExport.java:37)
-	at org.hibernate.internal.SessionFactoryObserverChain.sessionFactoryCreated(SessionFactoryObserverChain.java:35)
-	at org.hibernate.internal.SessionFactoryImpl.<init>(SessionFactoryImpl.java:295)
-	at org.hibernate.boot.internal.SessionFactoryBuilderImpl.build(SessionFactoryBuilderImpl.java:450)
-	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1479)
-	at org.hibernate.jpa.HibernatePersistenceProvider.createEntityManagerFactory(HibernatePersistenceProvider.java:55)
-	at jakarta.persistence.Persistence.createEntityManagerFactory(Persistence.java:80)
-	at jakarta.persistence.Persistence.createEntityManagerFactory(Persistence.java:55)
-	at it.unicam.cs.mpgc.jbudget120002.controller.BaseController.<clinit>(BaseController.java:19)
-	at java.base/jdk.internal.misc.Unsafe.ensureClassInitialized0(Native Method)
-	at java.base/jdk.internal.misc.Unsafe.ensureClassInitialized(Unsafe.java:1160)
-	at java.base/jdk.internal.reflect.MethodHandleAccessorFactory.ensureClassInitialized(MethodHandleAccessorFactory.java:300)
-	at java.base/jdk.internal.reflect.MethodHandleAccessorFactory.newConstructorAccessor(MethodHandleAccessorFactory.java:103)
-	at java.base/jdk.internal.reflect.ReflectionFactory.newConstructorAccessor(ReflectionFactory.java:200)
-	at java.base/java.lang.reflect.Constructor.acquireConstructorAccessor(Constructor.java:549)
-	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
-	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$ValueElement.processAttribute(FXMLLoader.java:941)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$InstanceDeclarationElement.processAttribute(FXMLLoader.java:983)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$Element.processStartElement(FXMLLoader.java:230)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$ValueElement.processStartElement(FXMLLoader.java:757)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.processStartElement(FXMLLoader.java:2858)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2654)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2568)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.load(FXMLLoader.java:2536)
-	at it.unicam.cs.mpgc.jbudget120002.view.MainApp.start(MainApp.java:17)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$9(LauncherImpl.java:839)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:483)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:456)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:455)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.win.WinApplication._runLoop(Native Method)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.win.WinApplication.lambda$runLoop$3(WinApplication.java:184)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-05-26 14:31:34.303256+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "T1_0.FULL_PATH" not found; SQL statement:
-select t1_0.id,t1_0.full_path,t1_0.name,t1_0.parent_id from tags t1_0 where t1_0.parent_id is null order by t1_0.name [42122-224]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.jdbc.JdbcConnection.commit(JdbcConnection.java:492)
+	at org.h2.jdbc.JdbcConnection.setAutoCommit(JdbcConnection.java:442)
+	at org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl$PooledConnections.releaseConnection(DriverManagerConnectionProviderImpl.java:398)
+	at org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl$PooledConnections.add(DriverManagerConnectionProviderImpl.java:389)
+	at org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl$PoolState.closeConnection(DriverManagerConnectionProviderImpl.java:655)
+	at org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl.closeConnection(DriverManagerConnectionProviderImpl.java:268)
+	at org.hibernate.internal.NonContextualJdbcConnectionAccess.releaseConnection(NonContextualJdbcConnectionAccess.java:49)
+	at org.hibernate.resource.jdbc.internal.LogicalConnectionManagedImpl.releaseConnection(LogicalConnectionManagedImpl.java:224)
+	at org.hibernate.resource.jdbc.internal.LogicalConnectionManagedImpl.close(LogicalConnectionManagedImpl.java:258)
+	at org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl.close(JdbcCoordinatorImpl.java:161)
+	at org.hibernate.internal.AbstractSharedSessionContract.close(AbstractSharedSessionContract.java:408)
+	at org.hibernate.internal.SessionImpl.closeWithoutOpenChecks(SessionImpl.java:423)
+	at org.hibernate.internal.SessionImpl.close(SessionImpl.java:408)
+	at it.unicam.cs.mpgc.jbudget120002.controller.BaseController.cleanup(BaseController.java:155)
+	at it.unicam.cs.mpgc.jbudget120002.controller.BaseController.finalize(BaseController.java:176)
+	at java.base/java.lang.System$2.invokeFinalize(System.java:2384)
+	at java.base/java.lang.ref.Finalizer.runFinalizer(Finalizer.java:96)
+	at java.base/java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:174)
+Caused by: org.h2.message.DbException: Out of memory. [90108-224]
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.message.DbException.convert(DbException.java:401)
+	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
+	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
+	at org.h2.mvstore.FileStore.writeInBackground(FileStore.java:1842)
+	at org.h2.mvstore.FileStore$BackgroundWriterThread.run(FileStore.java:2248)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientConnectionException: Out of memory. [90108-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	at org.h2.message.DbException.get(DbException.java:223)
-	at org.h2.message.DbException.get(DbException.java:199)
-	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:244)
-	at org.h2.expression.ExpressionColumn.optimizeOther(ExpressionColumn.java:226)
-	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:213)
-	at org.h2.command.query.Select.prepareExpressions(Select.java:1170)
-	at org.h2.command.query.Query.prepare(Query.java:218)
-	at org.h2.command.Parser.prepareCommand(Parser.java:489)
-	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:639)
-	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:559)
-	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1166)
-	at org.h2.jdbc.JdbcPreparedStatement.<init>(JdbcPreparedStatement.java:93)
-	at org.h2.jdbc.JdbcConnection.prepareStatement(JdbcConnection.java:316)
-	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:150)
-	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:177)
-	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl.prepareQueryStatement(StatementPreparerImpl.java:152)
-	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.lambda$list$0(JdbcSelectExecutorStandardImpl.java:102)
-	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:227)
-	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.getResultSet(DeferredResultSetAccess.java:164)
-	at org.hibernate.sql.results.jdbc.internal.JdbcValuesResultSetImpl.advanceNext(JdbcValuesResultSetImpl.java:218)
-	at org.hibernate.sql.results.jdbc.internal.JdbcValuesResultSetImpl.processNext(JdbcValuesResultSetImpl.java:98)
-	at org.hibernate.sql.results.jdbc.internal.AbstractJdbcValues.next(AbstractJdbcValues.java:19)
-	at org.hibernate.sql.results.internal.RowProcessingStateStandardImpl.next(RowProcessingStateStandardImpl.java:66)
-	at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:200)
-	at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:33)
-	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:361)
-	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:168)
-	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.list(JdbcSelectExecutorStandardImpl.java:93)
-	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:31)
-	at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.lambda$new$0(ConcreteSqmSelectQueryPlan.java:109)
-	at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.withCacheableSqmInterpretation(ConcreteSqmSelectQueryPlan.java:305)
-	at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.performList(ConcreteSqmSelectQueryPlan.java:246)
-	at org.hibernate.query.sqm.internal.QuerySqmImpl.doList(QuerySqmImpl.java:509)
-	at org.hibernate.query.spi.AbstractSelectionQuery.list(AbstractSelectionQuery.java:427)
-	at org.hibernate.query.Query.getResultList(Query.java:120)
-	at it.unicam.cs.mpgc.jbudget120002.service.TagServiceImpl.findRootTags(TagServiceImpl.java:53)
-	at it.unicam.cs.mpgc.jbudget120002.controller.TransactionsController.setupTagsUI(TransactionsController.java:154)
-	at it.unicam.cs.mpgc.jbudget120002.controller.TransactionsController.setupUI(TransactionsController.java:81)
-	at it.unicam.cs.mpgc.jbudget120002.controller.BaseController.initialize(BaseController.java:49)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2675)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2568)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$IncludeElement.constructValue(FXMLLoader.java:1160)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$ValueElement.processStartElement(FXMLLoader.java:759)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.processStartElement(FXMLLoader.java:2858)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2654)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2568)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.load(FXMLLoader.java:2536)
-	at it.unicam.cs.mpgc.jbudget120002.view.MainApp.start(MainApp.java:17)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$9(LauncherImpl.java:839)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:483)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:456)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:455)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.win.WinApplication._runLoop(Native Method)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.win.WinApplication.lambda$runLoop$3(WinApplication.java:184)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-05-26 14:33:49.738711+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "FULL_PATH" not found; SQL statement:
-alter table if exists tags add constraint UK_nv9nkejk03fn1lhqpo196ysem unique (full_path) [42122-224]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	... 6 more
+Caused by: java.lang.OutOfMemoryError: Java heap space
+	at java.base/java.util.concurrent.ConcurrentHashMap$ValuesView.iterator(ConcurrentHashMap.java:4743)
+	at org.h2.mvstore.MVStore.hasUnsavedChanges(MVStore.java:908)
+	at org.h2.mvstore.MVStore.store(MVStore.java:796)
+	at org.h2.mvstore.MVStore.tryCommit(MVStore.java:744)
+	at org.h2.mvstore.MVStore.tryCommit(MVStore.java:737)
+	at org.h2.mvstore.FileStore.writeInBackground(FileStore.java:1835)
+	... 1 more
+2025-05-28 16:46:45.563456+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientConnectionException: Out of memory.; SQL statement:
+COMMIT [90108-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	at org.h2.message.DbException.get(DbException.java:223)
-	at org.h2.message.DbException.get(DbException.java:199)
-	at org.h2.table.Table.getColumn(Table.java:759)
-	at org.h2.table.IndexColumn.mapColumns(IndexColumn.java:184)
-	at org.h2.command.ddl.AlterTableAddConstraint.tryUpdate(AlterTableAddConstraint.java:182)
-	at org.h2.command.ddl.AlterTableAddConstraint.update(AlterTableAddConstraint.java:74)
-	at org.h2.command.ddl.AlterTable.update(AlterTable.java:46)
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.engine.Database.throwLastBackgroundException(Database.java:1817)
+	at org.h2.engine.SessionLocal.beforeCommitOrRollback(SessionLocal.java:764)
+	at org.h2.engine.SessionLocal.commit(SessionLocal.java:679)
+	at org.h2.command.dml.TransactionCommand.update(TransactionCommand.java:46)
 	at org.h2.command.CommandContainer.update(CommandContainer.java:169)
 	at org.h2.command.Command.executeUpdate(Command.java:256)
-	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:262)
-	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:231)
-	at org.hibernate.tool.schema.internal.exec.GenerationTargetToDatabase.accept(GenerationTargetToDatabase.java:80)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.applySqlString(AbstractSchemaMigrator.java:574)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.applySqlStrings(AbstractSchemaMigrator.java:514)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.applyUniqueKeys(AbstractSchemaMigrator.java:410)
-	at org.hibernate.tool.schema.internal.GroupedSchemaMigratorImpl.performTablesMigration(GroupedSchemaMigratorImpl.java:98)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.performMigration(AbstractSchemaMigrator.java:232)
-	at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.doMigration(AbstractSchemaMigrator.java:117)
-	at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.performDatabaseAction(SchemaManagementToolCoordinator.java:286)
-	at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.lambda$process$5(SchemaManagementToolCoordinator.java:145)
-	at java.base/java.util.HashMap.forEach(HashMap.java:1429)
-	at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.process(SchemaManagementToolCoordinator.java:142)
-	at org.hibernate.boot.internal.SessionFactoryObserverForSchemaExport.sessionFactoryCreated(SessionFactoryObserverForSchemaExport.java:37)
-	at org.hibernate.internal.SessionFactoryObserverChain.sessionFactoryCreated(SessionFactoryObserverChain.java:35)
-	at org.hibernate.internal.SessionFactoryImpl.<init>(SessionFactoryImpl.java:295)
-	at org.hibernate.boot.internal.SessionFactoryBuilderImpl.build(SessionFactoryBuilderImpl.java:450)
-	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1479)
-	at org.hibernate.jpa.HibernatePersistenceProvider.createEntityManagerFactory(HibernatePersistenceProvider.java:55)
-	at jakarta.persistence.Persistence.createEntityManagerFactory(Persistence.java:80)
-	at jakarta.persistence.Persistence.createEntityManagerFactory(Persistence.java:55)
-	at it.unicam.cs.mpgc.jbudget120002.controller.BaseController.<clinit>(BaseController.java:19)
-	at java.base/jdk.internal.misc.Unsafe.ensureClassInitialized0(Native Method)
-	at java.base/jdk.internal.misc.Unsafe.ensureClassInitialized(Unsafe.java:1160)
-	at java.base/jdk.internal.reflect.MethodHandleAccessorFactory.ensureClassInitialized(MethodHandleAccessorFactory.java:300)
-	at java.base/jdk.internal.reflect.MethodHandleAccessorFactory.newConstructorAccessor(MethodHandleAccessorFactory.java:103)
-	at java.base/jdk.internal.reflect.ReflectionFactory.newConstructorAccessor(ReflectionFactory.java:200)
-	at java.base/java.lang.reflect.Constructor.acquireConstructorAccessor(Constructor.java:549)
-	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
-	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$ValueElement.processAttribute(FXMLLoader.java:941)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$InstanceDeclarationElement.processAttribute(FXMLLoader.java:983)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$Element.processStartElement(FXMLLoader.java:230)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$ValueElement.processStartElement(FXMLLoader.java:757)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.processStartElement(FXMLLoader.java:2858)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2654)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2568)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.load(FXMLLoader.java:2536)
-	at it.unicam.cs.mpgc.jbudget120002.view.MainApp.start(MainApp.java:17)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$9(LauncherImpl.java:839)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:483)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:456)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:455)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.win.WinApplication._runLoop(Native Method)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.win.WinApplication.lambda$runLoop$3(WinApplication.java:184)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-05-26 14:33:51.386634+02:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "T1_0.FULL_PATH" not found; SQL statement:
-select t1_0.id,t1_0.full_path,t1_0.name,t1_0.parent_id from tags t1_0 where t1_0.parent_id is null order by t1_0.full_path [42122-224]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.jdbc.JdbcConnection.commit(JdbcConnection.java:492)
+	at org.h2.jdbc.JdbcConnection.setAutoCommit(JdbcConnection.java:442)
+	at org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl$PooledConnections.releaseConnection(DriverManagerConnectionProviderImpl.java:398)
+	at org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl$PooledConnections.add(DriverManagerConnectionProviderImpl.java:389)
+	at org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl$PoolState.closeConnection(DriverManagerConnectionProviderImpl.java:655)
+	at org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl.closeConnection(DriverManagerConnectionProviderImpl.java:268)
+	at org.hibernate.internal.NonContextualJdbcConnectionAccess.releaseConnection(NonContextualJdbcConnectionAccess.java:49)
+	at org.hibernate.resource.jdbc.internal.LogicalConnectionManagedImpl.releaseConnection(LogicalConnectionManagedImpl.java:224)
+	at org.hibernate.resource.jdbc.internal.LogicalConnectionManagedImpl.close(LogicalConnectionManagedImpl.java:258)
+	at org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl.close(JdbcCoordinatorImpl.java:161)
+	at org.hibernate.internal.AbstractSharedSessionContract.close(AbstractSharedSessionContract.java:408)
+	at org.hibernate.internal.SessionImpl.closeWithoutOpenChecks(SessionImpl.java:423)
+	at org.hibernate.internal.SessionImpl.close(SessionImpl.java:408)
+	at it.unicam.cs.mpgc.jbudget120002.controller.BaseController.cleanup(BaseController.java:155)
+	at it.unicam.cs.mpgc.jbudget120002.controller.BaseController.finalize(BaseController.java:176)
+	at java.base/java.lang.System$2.invokeFinalize(System.java:2384)
+	at java.base/java.lang.ref.Finalizer.runFinalizer(Finalizer.java:96)
+	at java.base/java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:174)
+Caused by: org.h2.message.DbException: Out of memory. [90108-224]
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.message.DbException.convert(DbException.java:401)
+	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
+	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
+	at org.h2.mvstore.FileStore.writeInBackground(FileStore.java:1842)
+	at org.h2.mvstore.FileStore$BackgroundWriterThread.run(FileStore.java:2248)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientConnectionException: Out of memory. [90108-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	at org.h2.message.DbException.get(DbException.java:223)
-	at org.h2.message.DbException.get(DbException.java:199)
-	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:244)
-	at org.h2.expression.ExpressionColumn.optimizeOther(ExpressionColumn.java:226)
-	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:213)
-	at org.h2.command.query.Select.prepareExpressions(Select.java:1170)
-	at org.h2.command.query.Query.prepare(Query.java:218)
-	at org.h2.command.Parser.prepareCommand(Parser.java:489)
-	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:639)
-	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:559)
-	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1166)
-	at org.h2.jdbc.JdbcPreparedStatement.<init>(JdbcPreparedStatement.java:93)
-	at org.h2.jdbc.JdbcConnection.prepareStatement(JdbcConnection.java:316)
-	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:150)
-	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:177)
-	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl.prepareQueryStatement(StatementPreparerImpl.java:152)
-	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.lambda$list$0(JdbcSelectExecutorStandardImpl.java:102)
-	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:227)
-	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.getResultSet(DeferredResultSetAccess.java:164)
-	at org.hibernate.sql.results.jdbc.internal.JdbcValuesResultSetImpl.advanceNext(JdbcValuesResultSetImpl.java:218)
-	at org.hibernate.sql.results.jdbc.internal.JdbcValuesResultSetImpl.processNext(JdbcValuesResultSetImpl.java:98)
-	at org.hibernate.sql.results.jdbc.internal.AbstractJdbcValues.next(AbstractJdbcValues.java:19)
-	at org.hibernate.sql.results.internal.RowProcessingStateStandardImpl.next(RowProcessingStateStandardImpl.java:66)
-	at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:200)
-	at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:33)
-	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:361)
-	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:168)
-	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.list(JdbcSelectExecutorStandardImpl.java:93)
-	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:31)
-	at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.lambda$new$0(ConcreteSqmSelectQueryPlan.java:109)
-	at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.withCacheableSqmInterpretation(ConcreteSqmSelectQueryPlan.java:305)
-	at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.performList(ConcreteSqmSelectQueryPlan.java:246)
-	at org.hibernate.query.sqm.internal.QuerySqmImpl.doList(QuerySqmImpl.java:509)
-	at org.hibernate.query.spi.AbstractSelectionQuery.list(AbstractSelectionQuery.java:427)
-	at org.hibernate.query.Query.getResultList(Query.java:120)
-	at it.unicam.cs.mpgc.jbudget120002.service.TagServiceImpl.findRootTags(TagServiceImpl.java:52)
-	at it.unicam.cs.mpgc.jbudget120002.controller.TransactionsController.setupTagsUI(TransactionsController.java:154)
-	at it.unicam.cs.mpgc.jbudget120002.controller.TransactionsController.setupUI(TransactionsController.java:81)
-	at it.unicam.cs.mpgc.jbudget120002.controller.BaseController.initialize(BaseController.java:49)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2675)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2568)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$IncludeElement.constructValue(FXMLLoader.java:1160)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader$ValueElement.processStartElement(FXMLLoader.java:759)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.processStartElement(FXMLLoader.java:2858)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2654)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.loadImpl(FXMLLoader.java:2568)
-	at javafx.fxml@22.0.2/javafx.fxml.FXMLLoader.load(FXMLLoader.java:2536)
-	at it.unicam.cs.mpgc.jbudget120002.view.MainApp.start(MainApp.java:17)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$9(LauncherImpl.java:839)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:483)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:456)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at javafx.graphics@22.0.2/com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:455)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.win.WinApplication._runLoop(Native Method)
-	at javafx.graphics@22.0.2/com.sun.glass.ui.win.WinApplication.lambda$runLoop$3(WinApplication.java:184)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-05-26 23:12:09.900298+02:00 jdbc[7]: exception
+	... 6 more
+Caused by: java.lang.OutOfMemoryError: Java heap space
+	at java.base/java.util.concurrent.ConcurrentHashMap$ValuesView.iterator(ConcurrentHashMap.java:4743)
+	at org.h2.mvstore.MVStore.hasUnsavedChanges(MVStore.java:908)
+	at org.h2.mvstore.MVStore.store(MVStore.java:796)
+	at org.h2.mvstore.MVStore.tryCommit(MVStore.java:744)
+	at org.h2.mvstore.MVStore.tryCommit(MVStore.java:737)
+	at org.h2.mvstore.FileStore.writeInBackground(FileStore.java:1835)
+	... 1 more
+2025-05-28 16:51:32.468332+02:00 jdbc[9]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 23:12:14.959432+02:00 jdbc[7]: exception
+2025-05-28 16:51:39.960873+02:00 jdbc[9]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 23:12:18.044000+02:00 jdbc[7]: exception
+2025-05-28 16:54:45.667761+02:00 jdbc[9]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 23:12:27.231384+02:00 jdbc[7]: exception
+2025-05-28 16:55:08.146610+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 23:12:47.183808+02:00 jdbc[7]: exception
+2025-05-28 16:59:09.372499+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-26 23:14:11.294498+02:00 jdbc[3]: exception
+2025-05-28 17:06:40.789962+02:00 jdbc[9]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 02:00:25.977292+02:00 jdbc[3]: exception
+2025-05-28 17:06:45.581938+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 03:23:13.422645+02:00 jdbc[3]: exception
+2025-05-28 17:08:32.329346+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 03:49:52.956974+02:00 jdbc[3]: exception
+2025-05-28 17:08:42.452550+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 03:50:05.510595+02:00 jdbc[3]: exception
+2025-05-29 13:53:29.583911+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 05:04:33.374634+02:00 jdbc[4]: exception
+2025-05-29 13:54:19.633129+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 05:08:26.818846+02:00 jdbc[4]: exception
+2025-05-29 14:00:23.553121+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:31:20.604377+02:00 jdbc[4]: exception
+2025-05-29 14:05:46.154895+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:31:58.457627+02:00 jdbc[4]: exception
+2025-05-29 14:30:45.544969+02:00 jdbc[7]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:35:44.018782+02:00 jdbc[4]: exception
+2025-05-29 14:39:39.844842+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:35:57.476322+02:00 jdbc[4]: exception
+2025-05-29 14:39:52.702675+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:36:15.961732+02:00 jdbc[4]: exception
+2025-05-29 14:40:12.426205+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:37:46.397740+02:00 jdbc[4]: exception
+2025-05-29 14:40:55.908648+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:38:56.044560+02:00 jdbc[4]: exception
+2025-05-29 14:41:09.253684+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:42:19.680053+02:00 jdbc[4]: exception
+2025-05-29 14:41:26.151363+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:42:51.797254+02:00 jdbc[4]: exception
+2025-05-29 14:44:33.065611+02:00 jdbc[9]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:44:01.390924+02:00 jdbc[4]: exception
+2025-05-29 14:45:07.775537+02:00 jdbc[9]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
-2025-05-28 12:44:33.672147+02:00 jdbc[4]: exception
+2025-05-29 14:45:21.348027+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:45:32.374479+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:45:41.004801+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:45:51.034458+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:45:57.105715+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:46:01.939175+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:46:10.712968+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:46:15.374588+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:46:22.716705+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:46:32.634731+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:46:58.935139+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:47:27.726896+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:48:11.261665+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:48:33.715737+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:53:04.899821+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:53:27.038424+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:53:51.855600+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 14:59:15.171442+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:03:53.373601+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:04:06.299854+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:04:15.736624+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:04:23.449328+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:04:31.720622+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:04:42.376604+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:15:10.799043+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:15:25.091206+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:15:29.409408+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:15:34.109749+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:15:47.270426+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:15:54.824345+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:16:17.284148+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:16:28.600470+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:16:39.237414+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:16:51.425582+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:17:13.989647+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:17:26.346418+02:00 jdbc[9]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:35:03.102512+02:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2025-05-29 15:37:01.975817+02:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
