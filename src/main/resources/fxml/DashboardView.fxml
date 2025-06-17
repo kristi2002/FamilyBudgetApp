@@ -19,15 +19,7 @@
     <Label text="" style="-fx-padding: 0 0 10 0;"/>
     <Label fx:id="lblCurrentBalance" text="Current Balance: €0.00" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
     <HBox spacing="20">
-        <PieChart fx:id="pieSpendingByCategory" title="Spending by Category" prefWidth="350"/>
-        <LineChart fx:id="lineBalanceOverTime" title="Balance Over Time" prefWidth="350">
-            <xAxis>
-                <CategoryAxis label="Month"/>
-            </xAxis>
-            <yAxis>
-                <NumberAxis label="Amount"/>
-            </yAxis>
-        </LineChart>
+        <PieChart fx:id="pieSpendingByCategory" title="Spending by Category" prefWidth="700"/>
     </HBox>
     <Label text="Recent Transactions" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
     <TableView fx:id="tableRecentTransactions" prefHeight="200">

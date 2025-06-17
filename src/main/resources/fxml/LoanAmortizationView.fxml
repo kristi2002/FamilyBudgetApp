@@ -10,6 +10,8 @@
         <Insets top="16" right="16" bottom="16" left="16"/>
     </padding>
     <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Loan Name:" />
+        <TextField fx:id="tfLoanName" promptText="Loan Name or Description" />
         <Label text="Amount:" />
         <TextField fx:id="tfAmount" promptText="Loan Amount" />
         <Label text="Interest Rate (%):" />

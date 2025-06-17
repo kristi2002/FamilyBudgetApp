@@ -723,14 +723,20 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public SpendingPattern getSpendingPatterns(LocalDate startDate, LocalDate endDate, Tag category) {
         List<Transaction> transactions = transactionService.findByDateRange(startDate, endDate);
-        List<Transaction> categoryTransactions = transactions.stream()
-            .filter(t -> category == null || getPrimaryTag(t).equals(category))
-            .collect(Collectors.toList());
-            
+        List<Transaction> categoryTransactions;
+        if (category == null) {
+            // All Categories: include all expenses in the period
+            categoryTransactions = transactions.stream()
+                .filter(t -> !t.isIncome())
+                .collect(Collectors.toList());
+        } else {
+            categoryTransactions = transactions.stream()
+                .filter(t -> !t.isIncome() && getPrimaryTag(t) != null && getPrimaryTag(t).equals(category))
+                .collect(Collectors.toList());
+        }
         if (categoryTransactions.size() < 1) {
             return null; // Need at least 1 transaction for meaningful analysis
         }
-        
         // Calculate average transaction amount
         BigDecimal totalAmount = categoryTransactions.stream()
             .map(Transaction::getAmount)
@@ -740,22 +746,18 @@ public class StatisticsServiceImpl implements StatisticsService {
             2,
             java.math.RoundingMode.HALF_UP
         );
-        
         // Calculate frequency (transactions per day)
         long daysBetween = ChronoUnit.DAYS.between(startDate, endDate) + 1;
         BigDecimal frequency = BigDecimal.valueOf(categoryTransactions.size())
             .divide(BigDecimal.valueOf(daysBetween), 4, java.math.RoundingMode.HALF_UP);
-        
         // Calculate day of week distribution
         List<LocalDate> dayOfWeekDistribution = categoryTransactions.stream()
             .map(Transaction::getDate)
             .collect(Collectors.toList());
-        
         // Calculate hour of day distribution
         List<LocalDate> hourOfDayDistribution = categoryTransactions.stream()
             .map(t -> t.getDate().atStartOfDay().toLocalDate())
             .collect(Collectors.toList());
-        
         // Find most common day and hour
         int mostCommonDay = dayOfWeekDistribution.stream()
             .collect(Collectors.groupingBy(
@@ -766,7 +768,6 @@ public class StatisticsServiceImpl implements StatisticsService {
             .max(Map.Entry.comparingByValue())
             .map(Map.Entry::getKey)
             .orElse(1);
-            
         int mostCommonHour = hourOfDayDistribution.stream()
             .collect(Collectors.groupingBy(
                 d -> d.atStartOfDay().getHour(),
@@ -776,7 +777,6 @@ public class StatisticsServiceImpl implements StatisticsService {
             .max(Map.Entry.comparingByValue())
             .map(Map.Entry::getKey)
             .orElse(12);
-        
         return new SpendingPattern(
             category,
             averageAmount,

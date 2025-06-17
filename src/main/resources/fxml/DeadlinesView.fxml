@@ -16,7 +16,9 @@
                     <DatePicker fx:id="dpMonth" promptText="Select Month"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label fx:id="lblTotalDue" style="-fx-font-weight: bold;"/>
-                    <ComboBox fx:id="cbCategoryEdit" promptText="Category" />
+                    <Button fx:id="btnAdd" text="Add" />
+                    <Button fx:id="btnEdit" text="Edit" />
+                    <Button fx:id="btnDelete" text="Delete" />
                     <Button text="Mark Paid" onAction="#handleMarkPaid"/>
                     <Button text="Mark Unpaid" onAction="#handleMarkUnpaid"/>
                     <ComboBox fx:id="cbCategoryFilter" promptText="Filter by Category" />
@@ -27,9 +29,11 @@
                         <TableColumn fx:id="colDesc" text="Description" prefWidth="300"/>
                         <TableColumn fx:id="colAmount" text="Amount" prefWidth="100"/>
                         <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
-                        <TableColumn fx:id="colTags" text="Tags" prefWidth="200"/>
                         <TableColumn fx:id="colCategory" text="Category" prefWidth="120"/>
                     </columns>
+                    <placeholder>
+                        <Label text="No deadlines for this month." />
+                    </placeholder>
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                     </columnResizePolicy>

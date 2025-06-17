@@ -309,10 +309,16 @@ public class BudgetServiceImpl implements BudgetService {
      * Income transactions are counted as positive, expenses as negative.
      */
     private BigDecimal calculateActualAmount(Budget budget, LocalDate start, LocalDate end) {
-        return budget.getTags().stream()
-            .flatMap(tag -> transactionService.findByTag(tag.getId()).stream())
+        Set<Long> tagIds = new HashSet<>();
+        for (Tag tag : budget.getTags()) {
+            tagIds.add(tag.getId());
+            tagService.findTagAndDescendants(tag).forEach(child -> tagIds.add(child.getId()));
+        }
+        return tagIds.stream()
+            .flatMap(tagId -> transactionService.findByTag(tagId).stream())
             .filter(t -> !t.getDate().isBefore(start) && !t.getDate().isAfter(end))
-            .map(t -> t.isIncome() ? t.getAmount() : t.getAmount().negate())
+            .filter(t -> !t.isIncome()) // Only expenses
+            .map(t -> t.getAmount().abs()) // Use absolute value for expenses
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 

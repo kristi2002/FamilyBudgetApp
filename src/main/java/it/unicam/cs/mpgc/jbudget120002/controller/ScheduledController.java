@@ -5,6 +5,7 @@ import it.unicam.cs.mpgc.jbudget120002.model.Tag;
 import it.unicam.cs.mpgc.jbudget120002.service.ScheduledTransactionService;
 import it.unicam.cs.mpgc.jbudget120002.service.TagService;
 import it.unicam.cs.mpgc.jbudget120002.service.UserSettingsService;
+import it.unicam.cs.mpgc.jbudget120002.service.DeadlineService;
 import it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils;
 import it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils;
 import javafx.beans.property.SimpleStringProperty;
@@ -14,7 +15,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.Dialog;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -204,6 +210,38 @@ public class ScheduledController extends BaseController {
             );
             
             transactions.add(scheduled);
+            // Create deadlines for all occurrences if not income
+            if (!scheduled.isIncome()) {
+                var currentDate = new Object() { LocalDate date = scheduled.getStartDate(); };
+                LocalDate endDate = scheduled.getEndDate() != null ? scheduled.getEndDate() : currentDate.date.plusYears(1);
+                DeadlineService deadlineService = serviceFactory.getDeadlineService();
+                String category = scheduled.getCategory();
+                if (category == null || category.isEmpty()) {
+                    // Use the first tag's name as category if available
+                    if (!scheduled.getTags().isEmpty()) {
+                        category = scheduled.getTags().iterator().next().getName();
+                    }
+                }
+                while (!currentDate.date.isAfter(endDate)) {
+                    deadlineService.create(
+                        new it.unicam.cs.mpgc.jbudget120002.model.Deadline(
+                            scheduled.getDescription(),
+                            currentDate.date,
+                            scheduled.getAmount().doubleValue(),
+                            false, // isPaid
+                            null, // relatedTransaction
+                            category
+                        )
+                    );
+                    // Calculate next occurrence based on pattern
+                    currentDate.date = switch (scheduled.getRecurrencePattern()) {
+                        case DAILY -> currentDate.date.plusDays(scheduled.getRecurrenceValue());
+                        case WEEKLY -> currentDate.date.plusWeeks(scheduled.getRecurrenceValue());
+                        case MONTHLY -> currentDate.date.plusMonths(scheduled.getRecurrenceValue());
+                        case YEARLY -> currentDate.date.plusYears(scheduled.getRecurrenceValue());
+                    };
+                }
+            }
             clearForm();
         } catch (NumberFormatException e) {
             showError("Invalid Input", "Please enter valid numbers for amount and recurrence value.");
@@ -217,12 +255,160 @@ public class ScheduledController extends BaseController {
         ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
             try {
+                // Delete all related deadlines first
+                if (!selected.isIncome()) {
+                    DeadlineService deadlineService = serviceFactory.getDeadlineService();
+                    var currentDate = new Object() { LocalDate date = selected.getStartDate(); };
+                    LocalDate endDate = selected.getEndDate() != null ? selected.getEndDate() : currentDate.date.plusYears(1);
+                    
+                    while (!currentDate.date.isAfter(endDate)) {
+                        deadlineService.findAll().stream()
+                            .filter(d -> d.getDescription().equals(selected.getDescription()) 
+                                && d.getDueDate().equals(currentDate.date))
+                            .forEach(d -> deadlineService.delete(d.getId()));
+                            
+                        currentDate.date = switch (selected.getRecurrencePattern()) {
+                            case DAILY -> currentDate.date.plusDays(selected.getRecurrenceValue());
+                            case WEEKLY -> currentDate.date.plusWeeks(selected.getRecurrenceValue());
+                            case MONTHLY -> currentDate.date.plusMonths(selected.getRecurrenceValue());
+                            case YEARLY -> currentDate.date.plusYears(selected.getRecurrenceValue());
+                        };
+                    }
+                }
+                
                 scheduledService.deleteScheduledTransaction(selected.getId());
                 transactions.remove(selected);
             } catch (Exception e) {
                 showError("Error", "Failed to delete scheduled transaction: " + e.getMessage());
             }
         }
+    }
+
+    @FXML
+    private void handleEditScheduled() {
+        ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("No Selection", "Please select a scheduled transaction to edit.");
+            return;
+        }
+
+        // Show edit dialog
+        Dialog<ScheduledTransaction> dialog = new Dialog<>();
+        dialog.setTitle("Edit Scheduled Transaction");
+        dialog.setHeaderText(null);
+
+        // Create the custom dialog content
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+        TextField tfDesc = new TextField(selected.getDescription());
+        TextField tfAmount = new TextField(selected.getAmount().toString());
+        DatePicker dpStartDate = new DatePicker(selected.getStartDate());
+        DatePicker dpEndDate = new DatePicker(selected.getEndDate());
+        CheckBox cbIncome = new CheckBox("Income");
+        cbIncome.setSelected(selected.isIncome());
+        ComboBox<ScheduledTransaction.RecurrencePattern> cbPattern = 
+            new ComboBox<>(FXCollections.observableArrayList(ScheduledTransaction.RecurrencePattern.values()));
+        cbPattern.setValue(selected.getRecurrencePattern());
+        TextField tfRecurrenceValue = new TextField(String.valueOf(selected.getRecurrenceValue()));
+
+        grid.add(new Label("Description:"), 0, 0);
+        grid.add(tfDesc, 1, 0);
+        grid.add(new Label("Amount:"), 0, 1);
+        grid.add(tfAmount, 1, 1);
+        grid.add(new Label("Start Date:"), 0, 2);
+        grid.add(dpStartDate, 1, 2);
+        grid.add(new Label("End Date:"), 0, 3);
+        grid.add(dpEndDate, 1, 3);
+        grid.add(cbIncome, 1, 4);
+        grid.add(new Label("Pattern:"), 0, 5);
+        grid.add(cbPattern, 1, 5);
+        grid.add(new Label("Recurrence Value:"), 0, 6);
+        grid.add(tfRecurrenceValue, 1, 6);
+
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                try {
+                    BigDecimal amount = new BigDecimal(tfAmount.getText());
+                    int recurrenceValue = Integer.parseInt(tfRecurrenceValue.getText());
+                    
+                    // Update the scheduled transaction
+                    scheduledService.updateScheduledTransaction(
+                        selected.getId(),
+                        tfDesc.getText(),
+                        amount,
+                        cbIncome.isSelected(),
+                        dpStartDate.getValue(),
+                        dpEndDate.getValue(),
+                        cbPattern.getValue(),
+                        recurrenceValue,
+                        selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+                    );
+
+                    // Update related deadlines
+                    if (!selected.isIncome()) {
+                        DeadlineService deadlineService = serviceFactory.getDeadlineService();
+                        
+                        // Delete old deadlines
+                        var oldDate = new Object() { LocalDate date = selected.getStartDate(); };
+                        LocalDate oldEndDate = selected.getEndDate() != null ? selected.getEndDate() : oldDate.date.plusYears(1);
+                        while (!oldDate.date.isAfter(oldEndDate)) {
+                            deadlineService.findAll().stream()
+                                .filter(d -> d.getDescription().equals(selected.getDescription()) 
+                                    && d.getDueDate().equals(oldDate.date))
+                                .forEach(d -> deadlineService.delete(d.getId()));
+                                
+                            oldDate.date = switch (selected.getRecurrencePattern()) {
+                                case DAILY -> oldDate.date.plusDays(selected.getRecurrenceValue());
+                                case WEEKLY -> oldDate.date.plusWeeks(selected.getRecurrenceValue());
+                                case MONTHLY -> oldDate.date.plusMonths(selected.getRecurrenceValue());
+                                case YEARLY -> oldDate.date.plusYears(selected.getRecurrenceValue());
+                            };
+                        }
+                        
+                        // Create new deadlines
+                        LocalDate newDate = dpStartDate.getValue();
+                        LocalDate newEndDate = dpEndDate.getValue() != null ? dpEndDate.getValue() : newDate.plusYears(1);
+                        while (!newDate.isAfter(newEndDate)) {
+                            deadlineService.create(
+                                new it.unicam.cs.mpgc.jbudget120002.model.Deadline(
+                                    tfDesc.getText(),
+                                    newDate,
+                                    amount.doubleValue(),
+                                    false,
+                                    null,
+                                    selected.getCategory()
+                                )
+                            );
+                            
+                            newDate = switch (cbPattern.getValue()) {
+                                case DAILY -> newDate.plusDays(recurrenceValue);
+                                case WEEKLY -> newDate.plusWeeks(recurrenceValue);
+                                case MONTHLY -> newDate.plusMonths(recurrenceValue);
+                                case YEARLY -> newDate.plusYears(recurrenceValue);
+                            };
+                        }
+                    }
+                    
+                    return selected;
+                } catch (NumberFormatException e) {
+                    showError("Invalid Input", "Please enter valid numbers for amount and recurrence value.");
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(result -> {
+            refreshData();
+        });
     }
 
     private void clearForm() {

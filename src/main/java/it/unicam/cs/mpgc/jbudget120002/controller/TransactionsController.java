@@ -308,6 +308,11 @@ public class TransactionsController extends BaseController {
             showError("Invalid Amount", "Amount cannot be empty. Please enter a value.");
             return;
         }
+        LocalDate selectedDate = dpDate.getValue();
+        if (selectedDate != null && selectedDate.isAfter(LocalDate.now())) {
+            showError("Invalid Date", "Cannot create a transaction with a future date.");
+            return;
+        }
         try {
             BigDecimal amount = new BigDecimal(amountText.trim());
             Transaction transaction = transactionService.createTransaction(

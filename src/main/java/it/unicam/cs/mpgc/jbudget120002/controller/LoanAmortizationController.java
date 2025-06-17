@@ -29,6 +29,7 @@ public class LoanAmortizationController {
     @FXML private TableColumn<Installment, BigDecimal> colInterest;
     @FXML private TableColumn<Installment, BigDecimal> colTotal;
     @FXML private Button btnSaveAsScheduled;
+    @FXML private TextField tfLoanName;
 
     private final LoanService loanService = new LoanService();
     private final ObservableList<Installment> schedule = FXCollections.observableArrayList();
@@ -88,6 +89,8 @@ public class LoanAmortizationController {
 
     private void generateSchedule() {
         try {
+            String loanName = tfLoanName.getText();
+            if (loanName == null || loanName.trim().isEmpty()) loanName = "Loan";
             BigDecimal amount = new BigDecimal(tfAmount.getText());
             double rate = Double.parseDouble(tfInterestRate.getText());
             int term = Integer.parseInt(tfTerm.getText());
@@ -104,9 +107,11 @@ public class LoanAmortizationController {
             showError("No schedule to save.");
             return;
         }
+        String loanName = tfLoanName.getText();
+        if (loanName == null || loanName.trim().isEmpty()) loanName = "Loan";
         for (Installment inst : schedule) {
             ScheduledTransaction st = scheduledTransactionService.createScheduledTransaction(
-                "Loan Installment #" + inst.getNumber(),
+                loanName + " Installment #" + inst.getNumber(),
                 inst.getTotalPayment(),
                 false, // isIncome
                 inst.getDueDate(),

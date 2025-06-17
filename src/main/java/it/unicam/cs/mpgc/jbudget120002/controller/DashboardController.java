@@ -37,7 +37,6 @@ public class DashboardController extends BaseController {
     private static final Logger LOGGER = Logger.getLogger(DashboardController.class.getName());
     @FXML private Label lblCurrentBalance;
     @FXML private PieChart pieSpendingByCategory;
-    @FXML private LineChart<String, Number> lineBalanceOverTime;
     @FXML private TableView<Transaction> tableRecentTransactions;
     @FXML private TableColumn<Transaction, java.time.LocalDate> colDate;
     @FXML private TableColumn<Transaction, String> colDesc;
@@ -145,26 +144,6 @@ public class DashboardController extends BaseController {
                 String label = String.format("%s (%.1f%%)", name, percent);
                 pieSpendingByCategory.getData().add(new PieChart.Data(label, ce.getAmount().doubleValue()));
             }
-
-            // Populate line chart with monthly balances (use full history for trend)
-            // Use only the last 24 months for the balance chart
-            LocalDate start = LocalDate.now().minusMonths(24);
-            List<MonthlyBalance> monthlyBalances = statisticsService.getMonthlyBalances(start, LocalDate.now());
-            // Debug: print number of transactions in the database
-            int transactionCount = transactionService.findAll().size();
-            System.out.println("Total transactions in DB: " + transactionCount);
-            lineBalanceOverTime.getData().clear();
-            XYChart.Series<String, Number> balanceSeries = new XYChart.Series<>();
-            balanceSeries.setName("Balance");
-            int maxDataPoints = 24; // Show last 24 months
-            int startIndex = Math.max(0, monthlyBalances.size() - maxDataPoints);
-            for (int i = startIndex; i < monthlyBalances.size(); i++) {
-                MonthlyBalance mb = monthlyBalances.get(i);
-                String monthLabel = mb.getMonth().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
-                System.out.println("Month: " + monthLabel + ", Balance: " + mb.getBalance());
-                balanceSeries.getData().add(new XYChart.Data<>(monthLabel, mb.getBalance()));
-            }
-            lineBalanceOverTime.getData().add(balanceSeries);
 
             // Populate recent transactions table (for selected period)
             // Use a more efficient query to get only the transactions we need

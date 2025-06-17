@@ -27,9 +27,13 @@ public class DeadlinesCalendarController {
 
     private YearMonth currentMonth;
     private ServiceFactory serviceFactory;
+    private java.util.function.Consumer<LocalDate> dateSelectCallback;
+    private static java.util.function.Consumer<LocalDate> staticDateSelectCallback;
+    private static DeadlinesCalendarController lastInstance;
 
     @FXML
     public void initialize() {
+        lastInstance = this;
         currentMonth = YearMonth.now();
         updateCalendar();
         btnPrevMonth.setOnAction(e -> changeMonth(-1));
@@ -84,6 +88,12 @@ public class DeadlinesCalendarController {
                 cellBox.getChildren().add(deadlineLabel);
                 // Add click handler for popup
                 dayCell.setOnMouseClicked(e -> {
+                    if (dateSelectCallback != null) {
+                        dateSelectCallback.accept(thisDate);
+                    }
+                    if (staticDateSelectCallback != null) {
+                        staticDateSelectCallback.accept(thisDate);
+                    }
                     Dialog<Void> dialog = new Dialog<>();
                     dialog.setTitle("Deadlines for " + thisDate);
                     VBox content = new VBox(10);
@@ -131,6 +141,24 @@ public class DeadlinesCalendarController {
                 col = 0;
                 row++;
             }
+        }
+    }
+
+    public void refreshCalendar() {
+        updateCalendar();
+    }
+
+    public void setDateSelectCallback(java.util.function.Consumer<LocalDate> callback) {
+        this.dateSelectCallback = callback;
+    }
+
+    public static void setGlobalDateSelectCallback(java.util.function.Consumer<LocalDate> callback) {
+        staticDateSelectCallback = callback;
+    }
+
+    public static void globalRefresh() {
+        if (lastInstance != null) {
+            lastInstance.updateCalendar();
         }
     }
 } 

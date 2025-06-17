@@ -59,4 +59,5 @@ public class Deadline {
         this.relatedTransaction = relatedTransaction;
     }
     public void setCategory(String category) { this.category = category; }
+    public void setId(Long id) { this.id = id; }
 }
