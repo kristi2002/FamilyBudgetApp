@@ -6,8 +6,8 @@ import it.unicam.cs.mpgc.jbudget120002.model.UserSettings;
 import it.unicam.cs.mpgc.jbudget120002.service.TagService;
 import it.unicam.cs.mpgc.jbudget120002.service.TransactionService;
 import it.unicam.cs.mpgc.jbudget120002.service.UserSettingsService;
+import it.unicam.cs.mpgc.jbudget120002.service.ScheduledTransactionService;
 import it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils;
-import it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,6 +19,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,15 +47,10 @@ public class TransactionsController extends BaseController {
     @FXML private TextField tfDesc;
     @FXML private TextField tfAmount;
     @FXML private CheckBox cbIncome;
-    @FXML private ComboBox<Tag> cbTags;
-    @FXML private FlowPane flowSelectedTags;
     
     // Advanced filtering controls
     @FXML private DatePicker dpStartDate;
     @FXML private DatePicker dpEndDate;
-    @FXML private ComboBox<String> cbCurrency;
-    @FXML private CheckBox cbIncludeChildTags;
-    @FXML private CheckBox cbMatchAllTags;
     @FXML private TextField tfSearch;
     @FXML private Button btnClearFilters;
     @FXML private Button btnSave;
@@ -74,27 +70,30 @@ public class TransactionsController extends BaseController {
     @FXML private TableColumn<Transaction, String> colTags;
     @FXML private TableColumn<Transaction, Boolean> colScheduled;
 
+    @FXML private CheckBox cbIncludeSubcategories;
+    private boolean isEditMode = false;
+
+    // Add new category filter fields
+    @FXML private ComboBox<Tag> cbCategory;
+
+    @FXML private ComboBox<Tag> cbTags;
+    @FXML private FlowPane flowSelectedTags;
+    private Set<Tag> selectedTags;
+
     private TransactionService transactionService;
     private TagService tagService;
     private UserSettingsService settingsService;
+    private ScheduledTransactionService scheduledTransactionService;
     private ObservableList<Transaction> transactions;
-    private Set<Tag> selectedTags;
-    private String currentCurrency;
-    private boolean isEditMode = false;
 
     @Override
     protected void initializeServices() {
         transactionService = serviceFactory.getTransactionService();
         tagService = serviceFactory.getTagService();
         settingsService = serviceFactory.getUserSettingsService();
+        scheduledTransactionService = serviceFactory.getScheduledTransactionService();
         transactions = FXCollections.observableArrayList();
         selectedTags = new HashSet<>();
-        
-        // Load currency setting
-        settingsService.findFirst().ifPresent(settings -> 
-            currentCurrency = settings.getCurrency()
-        );
-        if (currentCurrency == null) currentCurrency = "EUR";
     }
 
     @Override
@@ -102,6 +101,7 @@ public class TransactionsController extends BaseController {
         setupDatePickers();
         setupTable();
         setupTagsUI();
+        setupCategoryFilter();
         setupFilters();
         setupContextMenu();
         btnSave = new Button("Save Changes");
@@ -112,6 +112,32 @@ public class TransactionsController extends BaseController {
         btnClearFilters.setOnAction(e -> handleClearFilters());
         btnClearForm.setOnAction(e -> handleClearForm());
         updateButtonStates();
+
+        // Update amount column to always show EUR
+        colAmount.setCellFactory(column -> new TableCell<Transaction, BigDecimal>() {
+            @Override
+            protected void updateItem(BigDecimal amount, boolean empty) {
+                super.updateItem(amount, empty);
+                if (empty || amount == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    Transaction transaction = getTableRow().getItem();
+                    if (transaction != null) {
+                        String formattedAmount = String.format("€%.2f", amount);
+                        if (transaction.isIncome()) {
+                            setText(formattedAmount);
+                            getStyleClass().removeAll("negative");
+                            if (!getStyleClass().contains("positive")) getStyleClass().add("positive");
+                        } else {
+                            setText("-" + formattedAmount);
+                            getStyleClass().removeAll("positive");
+                            if (!getStyleClass().contains("negative")) getStyleClass().add("negative");
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private void setupDatePickers() {
@@ -140,6 +166,17 @@ public class TransactionsController extends BaseController {
         dpStartDate.setConverter(dateConverter);
         dpEndDate.setConverter(dateConverter);
         
+        // Disable future dates in dpDate
+        dpDate.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item != null && item.isAfter(LocalDate.now())) {
+                    setDisable(true);
+                }
+            }
+        });
+        
         // Add listeners for date range changes
         dpStartDate.valueProperty().addListener((obs, oldVal, newVal) -> refreshData());
         dpEndDate.valueProperty().addListener((obs, oldVal, newVal) -> refreshData());
@@ -158,30 +195,6 @@ public class TransactionsController extends BaseController {
         colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
         
         colAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
-        colAmount.setCellFactory(column -> new TableCell<Transaction, BigDecimal>() {
-            @Override
-            protected void updateItem(BigDecimal amount, boolean empty) {
-                super.updateItem(amount, empty);
-                if (empty || amount == null) {
-                    setText(null);
-                    setStyle("");
-                } else {
-                    Transaction transaction = getTableRow().getItem();
-                    if (transaction != null) {
-                        String formattedAmount = CurrencyUtils.formatAmount(amount, currentCurrency);
-                        if (transaction.isIncome()) {
-                            setText(formattedAmount);
-                            getStyleClass().removeAll("negative");
-                            if (!getStyleClass().contains("positive")) getStyleClass().add("positive");
-                        } else {
-                            setText("-" + formattedAmount);
-                            getStyleClass().removeAll("positive");
-                            if (!getStyleClass().contains("negative")) getStyleClass().add("negative");
-                        }
-                    }
-                }
-            }
-        });
         
         colTags.setCellValueFactory(cellData -> {
             String tags = cellData.getValue().getTags().stream()
@@ -212,31 +225,15 @@ public class TransactionsController extends BaseController {
         table.setItems(transactions);
     }
 
-    private void setupTagsUI() {
-        cbTags.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
-        cbTags.setOnAction(e -> {
-            Tag selected = cbTags.getValue();
-            if (selected != null) {
-                selectedTags.add(selected);
-                updateSelectedTagsList();
-                cbTags.setValue(null);
-            }
-        });
+    private void setupCategoryFilter() {
+        cbCategory.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+        cbCategory.setOnAction(e -> refreshData());
+        cbIncludeSubcategories.selectedProperty().addListener((obs, oldVal, newVal) -> refreshData());
     }
 
     private void setupFilters() {
-        cbCurrency.setItems(FXCollections.observableArrayList("EUR", "USD", "GBP"));
-        cbCurrency.setValue(currentCurrency);
-        cbCurrency.setOnAction(e -> {
-            currentCurrency = cbCurrency.getValue();
-            refreshData();
-        });
-        
-        cbIncludeChildTags.setSelected(true);
-        cbMatchAllTags.setSelected(false);
-        
-        cbIncludeChildTags.selectedProperty().addListener((obs, oldVal, newVal) -> refreshData());
-        cbMatchAllTags.selectedProperty().addListener((obs, oldVal, newVal) -> refreshData());
+        cbIncludeSubcategories.setSelected(true);
+        cbIncludeSubcategories.selectedProperty().addListener((obs, oldVal, newVal) -> refreshData());
     }
 
     private void setupContextMenu() {
@@ -251,39 +248,61 @@ public class TransactionsController extends BaseController {
         table.setContextMenu(contextMenu);
     }
 
+    private void setupTagsUI() {
+        cbTags.setItems(FXCollections.observableArrayList(tagService.findAll()));
+        cbTags.setOnAction(e -> {
+            Tag selected = cbTags.getValue();
+            if (selected != null) {
+                selectedTags.add(selected);
+                updateSelectedTagsList();
+                cbTags.setValue(null);
+            }
+        });
+    }
+
+    private void updateSelectedTagsList() {
+        flowSelectedTags.getChildren().clear();
+        for (Tag tag : selectedTags) {
+            HBox tagBox = new HBox(5);
+            tagBox.setStyle("-fx-background-color: #f0f0f0; -fx-padding: 3 5; -fx-background-radius: 3;");
+            Label tagLabel = new Label(tag.getName());
+            Button removeBtn = new Button("×");
+            removeBtn.setStyle("-fx-padding: 0 3; -fx-background-radius: 2; -fx-min-width: 16;");
+            removeBtn.setOnAction(e -> {
+                selectedTags.remove(tag);
+                updateSelectedTagsList();
+            });
+            tagBox.getChildren().addAll(tagLabel, removeBtn);
+            flowSelectedTags.getChildren().add(tagBox);
+        }
+    }
+
     @Override
     protected void loadData() {
         refreshData();
     }
 
     public void refreshData() {
-        refreshTagComboBox();
+        LocalDate startDate = dpStartDate.getValue();
+        LocalDate endDate = dpEndDate.getValue();
+        String searchText = tfSearch.getText().trim();
+        Tag selectedCategory = cbCategory.getValue();
+        boolean includeSubcategories = cbIncludeSubcategories.isSelected();
+
         List<Transaction> filteredTransactions;
-        if (selectedTags.isEmpty()) {
-            filteredTransactions = transactionService.findByDateRange(
-                dpStartDate.getValue(),
-                dpEndDate.getValue()
-            );
+        if (selectedCategory != null) {
+            filteredTransactions = transactionService.findByTag(selectedCategory, includeSubcategories);
         } else {
-            filteredTransactions = transactionService.findByTags(
-                selectedTags,
-                cbMatchAllTags.isSelected()
-            );
-            // Apply date filter
-            filteredTransactions = filteredTransactions.stream()
-                .filter(t -> !t.getDate().isBefore(dpStartDate.getValue())
-                    && !t.getDate().isAfter(dpEndDate.getValue()))
-                .collect(Collectors.toList());
+            filteredTransactions = transactionService.findAll();
         }
-        // Apply search filter
-        String searchText = tfSearch.getText();
-        if (searchText != null && !searchText.trim().isEmpty()) {
-            String lower = searchText.toLowerCase();
-            filteredTransactions = filteredTransactions.stream()
-                .filter(t -> t.getDescription().toLowerCase().contains(lower)
-                    || t.getAmount().toPlainString().contains(lower))
-                .collect(Collectors.toList());
-        }
+
+        // Apply date and search filters
+        filteredTransactions = filteredTransactions.stream()
+            .filter(t -> (startDate == null || !t.getDate().isBefore(startDate)) &&
+                        (endDate == null || !t.getDate().isAfter(endDate)) &&
+                        (searchText.isEmpty() || t.getDescription().toLowerCase().contains(searchText.toLowerCase())))
+            .collect(Collectors.toList());
+
         transactions.setAll(filteredTransactions);
         updateStatistics();
     }
@@ -301,17 +320,13 @@ public class TransactionsController extends BaseController {
         
         BigDecimal balance = totalIncome.subtract(totalExpense);
         
-        lblTotalIncome.setText(CurrencyUtils.formatAmount(totalIncome, currentCurrency));
-        lblTotalExpense.setText(CurrencyUtils.formatAmount(totalExpense, currentCurrency));
-        lblBalance.setText(CurrencyUtils.formatAmount(balance, currentCurrency));
+        lblTotalIncome.setText(String.format("€%.2f", totalIncome));
+        lblTotalExpense.setText(String.format("€%.2f", totalExpense));
+        lblBalance.setText(String.format("€%.2f", balance));
     }
 
     @FXML
     private void handleAddTransaction() {
-        if (isEditMode) {
-            showError("Invalid Action", "Please save or cancel the current edit before adding a new transaction.");
-            return;
-        }
         String amountText = tfAmount.getText();
         if (amountText == null || amountText.trim().isEmpty()) {
             showError("Invalid Amount", "Amount cannot be empty. Please enter a value.");
@@ -319,11 +334,11 @@ public class TransactionsController extends BaseController {
         }
         LocalDate selectedDate = dpDate.getValue();
         if (selectedDate != null && selectedDate.isAfter(LocalDate.now())) {
-            showError("Invalid Date", "Cannot create a transaction with a future date.");
+            showError("Invalid Date", "Cannot save a transaction with a future date.");
             return;
         }
         try {
-            BigDecimal amount = new BigDecimal(amountText.trim());
+            BigDecimal amount = new BigDecimal(amountText);
             Transaction transaction = transactionService.createTransaction(
                 dpDate.getValue(),
                 tfDesc.getText(),
@@ -333,11 +348,10 @@ public class TransactionsController extends BaseController {
             );
             transactions.add(0, transaction);
             clearForm();
-            refreshData();
         } catch (NumberFormatException e) {
             showError("Invalid Amount", "Please enter a valid number for the amount.");
         } catch (Exception e) {
-            showError("Error", "Failed to add transaction: " + e.getMessage());
+            showError("Error", "Failed to create transaction: " + e.getMessage());
         }
     }
 
@@ -345,7 +359,6 @@ public class TransactionsController extends BaseController {
     private void handleEditTransaction() {
         Transaction selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            isEditMode = true;
             dpDate.setValue(selected.getDate());
             tfDesc.setText(selected.getDescription());
             tfAmount.setText(selected.getAmount().toString());
@@ -373,73 +386,53 @@ public class TransactionsController extends BaseController {
 
     @FXML
     private void handleClearFilters() {
-        // Find earliest and latest transaction dates
-        List<Transaction> all = transactionService.findAll();
-        LocalDate minDate = all.stream().map(Transaction::getDate).min(LocalDate::compareTo).orElse(LocalDate.now().minusYears(10));
-        LocalDate maxDate = all.stream().map(Transaction::getDate).max(LocalDate::compareTo).orElse(LocalDate.now().plusYears(10));
-        dpStartDate.setValue(minDate);
-        dpEndDate.setValue(maxDate);
-        selectedTags.clear();
-        updateSelectedTagsList();
+        dpStartDate.setValue(null);
+        dpEndDate.setValue(null);
         tfSearch.clear();
-        cbIncludeChildTags.setSelected(true);
-        cbMatchAllTags.setSelected(false);
+        cbCategory.setValue(null);
+        cbIncludeSubcategories.setSelected(true);
         refreshData();
     }
 
     @FXML
     private void handleSaveTransaction() {
-        Transaction selected = table.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showError("No Selection", "Please select a transaction to edit.");
-            return;
-        }
-
         String amountText = tfAmount.getText();
         if (amountText == null || amountText.trim().isEmpty()) {
             showError("Invalid Amount", "Amount cannot be empty. Please enter a value.");
             return;
         }
-
+        LocalDate selectedDate = dpDate.getValue();
+        if (selectedDate != null && selectedDate.isAfter(LocalDate.now())) {
+            showError("Invalid Date", "Cannot save a transaction with a future date.");
+            return;
+        }
+        Transaction selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("No Selection", "Please select a transaction to edit.");
+            return;
+        }
         try {
-            BigDecimal amount = new BigDecimal(amountText.trim());
-            LocalDate newDate = dpDate.getValue();
-            
-            // Check if the new date is outside the current filter range
-            boolean needsDateRangeUpdate = newDate.isBefore(dpStartDate.getValue()) || 
-                                         newDate.isAfter(dpEndDate.getValue());
-            
+            BigDecimal amount = new BigDecimal(amountText);
             transactionService.updateTransaction(
                 selected.getId(),
-                newDate,
+                dpDate.getValue(),
                 tfDesc.getText(),
                 amount,
                 cbIncome.isSelected(),
                 selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
             );
-            
-            // If the new date is outside the current range, update the date range to include it
-            if (needsDateRangeUpdate) {
-                LocalDate start = dpStartDate.getValue();
-                LocalDate end = dpEndDate.getValue();
-                if (newDate.isBefore(start)) {
-                    dpStartDate.setValue(newDate);
-                } else if (newDate.isAfter(end)) {
-                    dpEndDate.setValue(newDate);
-                }
-            }
-            
-            // Clear selected tags before refreshing data
-            selectedTags.clear();
-            updateSelectedTagsList();
             refreshData();
             clearForm();
         } catch (NumberFormatException e) {
             showError("Invalid Amount", "Please enter a valid number for the amount.");
         } catch (Exception e) {
-            e.printStackTrace(); // Print stack trace for debugging
             showError("Error", "Failed to update transaction: " + e.getMessage());
         }
+    }
+
+    @FXML
+    private void handleClearForm() {
+        clearForm();
     }
 
     private void clearForm() {
@@ -451,33 +444,6 @@ public class TransactionsController extends BaseController {
         selectedTags.clear();
         updateSelectedTagsList();
         updateButtonStates();
-    }
-
-    private void updateSelectedTagsList() {
-        flowSelectedTags.getChildren().clear();
-        for (Tag tag : selectedTags) {
-            HBox tagBox = new HBox(5);
-            tagBox.setStyle("-fx-background-color: #f0f0f0; -fx-padding: 3 5; -fx-background-radius: 3;");
-            Label tagLabel = new Label(tag.getName());
-            Button removeBtn = new Button("×");
-            removeBtn.setStyle("-fx-padding: 0 3; -fx-background-radius: 2; -fx-min-width: 16;");
-            removeBtn.setOnAction(e -> {
-                selectedTags.remove(tag);
-                updateSelectedTagsList();
-                refreshData();
-            });
-            tagBox.getChildren().addAll(tagLabel, removeBtn);
-            flowSelectedTags.getChildren().add(tagBox);
-        }
-    }
-
-    @FXML
-    private void handleClearForm() {
-        clearForm();
-    }
-
-    private void refreshTagComboBox() {
-        cbTags.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
     }
 
     private void updateButtonStates() {
@@ -503,5 +469,18 @@ public class TransactionsController extends BaseController {
             updateSelectedTagsList();
         }
         clearForm();
+    }
+
+    @FXML
+    private void handleGenerateScheduled() {
+        List<it.unicam.cs.mpgc.jbudget120002.model.ScheduledTransaction> scheduled = scheduledTransactionService.findAll();
+        for (var st : scheduled) {
+            scheduledTransactionService.generateTransactions(st.getId(), LocalDate.now());
+        }
+        refreshData();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Scheduled transactions generated up to today.", ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.setTitle("Generation Complete");
+        alert.showAndWait();
     }
 }

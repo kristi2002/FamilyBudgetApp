@@ -15,7 +15,6 @@ import it.unicam.cs.mpgc.jbudget120002.model.CategoryExpense;
 import javafx.scene.chart.PieChart.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils;
 import java.util.List;
 import it.unicam.cs.mpgc.jbudget120002.model.MonthlyBalance;
 import javafx.scene.chart.XYChart;
@@ -122,7 +121,7 @@ public class DashboardController extends BaseController {
 
     private void updateBalanceLabel() {
         BigDecimal balance = transactionService.calculateBalance(periodStart, periodEnd);
-        lblCurrentBalance.setText("Current Balance: " + CurrencyUtils.formatAmount(balance, "EUR"));
+        lblCurrentBalance.setText("Current Balance: " + String.format("€%.2f", balance));
     }
 
     @Override
@@ -174,7 +173,7 @@ public class DashboardController extends BaseController {
                         } else {
                             Transaction transaction = getTableRow().getItem();
                             if (transaction != null) {
-                                String formattedAmount = it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils.formatAmount(amount, "EUR");
+                                String formattedAmount = String.format("€%.2f", amount);
                                 if (transaction.isIncome()) {
                                     setText(formattedAmount);
                                     getStyleClass().removeAll("negative");
@@ -185,7 +184,7 @@ public class DashboardController extends BaseController {
                                     if (!getStyleClass().contains("negative")) getStyleClass().add("negative");
                                 }
                             } else {
-                                setText(it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils.formatAmount(amount, "EUR"));
+                                setText(String.format("€%.2f", amount));
                                 setStyle("");
                             }
                         }

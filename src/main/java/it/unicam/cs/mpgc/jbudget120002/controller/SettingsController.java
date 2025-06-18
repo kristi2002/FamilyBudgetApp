@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
  */
 public class SettingsController extends BaseController {
 
-    @FXML private ComboBox<String> cbCurrency;
     @FXML private ComboBox<String> cbLocale;
     @FXML private ComboBox<String> cbTheme;
     @FXML private Button btnSave;
@@ -63,9 +62,6 @@ public class SettingsController extends BaseController {
 
     @Override
     protected void setupUI() {
-        // Initialize currency options
-        cbCurrency.getItems().addAll("EUR", "USD", "GBP", "JPY", "CHF");
-        
         // Initialize locale options (simplified for example)
         cbLocale.getItems().addAll("en-US", "it-IT", "de-DE", "fr-FR", "es-ES");
         
@@ -82,7 +78,6 @@ public class SettingsController extends BaseController {
     private void loadCurrentSettings() {
         Optional<UserSettings> settings = settingsService.findFirst();
         settings.ifPresent(s -> {
-            cbCurrency.setValue(s.getCurrency());
             cbLocale.setValue(s.getLocale());
             cbTheme.setValue(s.getTheme());
             tfDatabasePath.setText(s.getDatabasePath());
@@ -104,7 +99,6 @@ public class SettingsController extends BaseController {
     private void handleSave() {
         try {
             UserSettings settings = settingsService.findFirst().orElse(new UserSettings());
-            settings.setCurrency(cbCurrency.getValue());
             settings.setLocale(cbLocale.getValue());
             settings.setTheme(cbTheme.getValue());
             settings.setDatabasePath(tfDatabasePath.getText());

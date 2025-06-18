@@ -8,7 +8,6 @@ public class ServiceFactory {
     private final EntityManager entityManager;
     private TransactionService transactionService;
     private TagService tagService;
-    private ExchangeRateService exchangeRateService;
     private UserSettingsService userSettingsService;
     private ScheduledTransactionService scheduledTransactionService;
     private StatisticsService statisticsService;
@@ -22,7 +21,7 @@ public class ServiceFactory {
 
     public TransactionService getTransactionService() {
         if (transactionService == null) {
-            transactionService = new TransactionServiceImpl(entityManager, getTagService(), getExchangeRateService());
+            transactionService = new TransactionServiceImpl(entityManager, getTagService());
         }
         return transactionService;
     }
@@ -32,13 +31,6 @@ public class ServiceFactory {
             tagService = new TagServiceImpl(entityManager);
         }
         return tagService;
-    }
-
-    public ExchangeRateService getExchangeRateService() {
-        if (exchangeRateService == null) {
-            exchangeRateService = new ExchangeRateServiceImpl(entityManager);
-        }
-        return exchangeRateService;
     }
 
     public UserSettingsService getUserSettingsService() {

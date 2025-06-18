@@ -61,7 +61,6 @@ public class DeadlinesController extends BaseController {
         btnAdd.setOnAction(e -> handleAdd());
         btnEdit.setOnAction(e -> handleEdit());
         btnDelete.setOnAction(e -> handleDelete());
-        DeadlinesCalendarController.setGlobalDateSelectCallback(this::filterByDate);
         colDueDate.setCellFactory(column -> new TableCell<Deadline, LocalDate>() {
             @Override
             protected void updateItem(LocalDate date, boolean empty) {
@@ -167,7 +166,6 @@ public class DeadlinesController extends BaseController {
         dialog.showAndWait().ifPresent(deadline -> {
             deadlineService.create(deadline);
             refreshData();
-            refreshCalendarTab();
         });
     }
 
@@ -183,7 +181,6 @@ public class DeadlinesController extends BaseController {
             updated.setId(selected.getId());
             deadlineService.update(updated);
             refreshData();
-            refreshCalendarTab();
         });
     }
 
@@ -196,7 +193,6 @@ public class DeadlinesController extends BaseController {
         if (confirm("Delete Deadline", "Are you sure you want to delete this deadline?")) {
             deadlineService.delete(selected.getId());
             refreshData();
-            refreshCalendarTab();
         }
     }
 
@@ -205,19 +201,6 @@ public class DeadlinesController extends BaseController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         return alert.showAndWait().filter(btn -> btn == ButtonType.YES).isPresent();
-    }
-
-    private void filterByDate(LocalDate date) {
-        if (date == null) {
-            tableDeadlines.setItems(deadlines);
-            return;
-        }
-        ObservableList<Deadline> filtered = deadlines.filtered(d -> date.equals(d.getDueDate()));
-        tableDeadlines.setItems(filtered);
-    }
-
-    private void refreshCalendarTab() {
-        DeadlinesCalendarController.globalRefresh();
     }
 
     // Simple dialog for adding/editing deadlines

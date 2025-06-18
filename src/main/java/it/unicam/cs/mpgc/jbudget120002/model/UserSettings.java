@@ -27,9 +27,6 @@ public class UserSettings {
     private Long id;
 
     @Column(nullable = false)
-    private String currency = "EUR";
-
-    @Column(nullable = false)
     private String locale = "it-IT";
 
     @Column(nullable = false)
@@ -53,14 +50,12 @@ public class UserSettings {
 
     public UserSettings() {}
 
-    public UserSettings(String currency, String locale, String theme) {
-        this.currency = currency;
+    public UserSettings(String locale, String theme) {
         this.locale = locale;
         this.theme = theme;
     }
 
     public Long getId() { return id; }
-    public String getCurrency() { return currency; }
     public String getLocale() { return locale; }
     public String getTheme() { return theme; }
     public String getDatabasePath() { return databasePath; }
@@ -69,9 +64,6 @@ public class UserSettings {
     public String getSyncPath() { return syncPath; }
     public ConflictResolutionStrategy getConflictStrategy() { return conflictStrategy; }
 
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
     public void setLocale(String locale) {
         this.locale = locale;
     }

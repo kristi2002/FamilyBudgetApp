@@ -17,9 +17,9 @@
             <DatePicker fx:id="dpStartDate"/>
             <Label text="To:"/>
             <DatePicker fx:id="dpEndDate"/>
-            <ComboBox fx:id="cbCurrency"/>
-            <CheckBox fx:id="cbIncludeChildTags" text="Include Child Tags"/>
-            <CheckBox fx:id="cbMatchAllTags" text="Match All Tags"/>
+            <Label text="Category:"/>
+            <ComboBox fx:id="cbCategory" promptText="Select Category"/>
+            <CheckBox fx:id="cbIncludeSubcategories" text="Include Subcategories" selected="true"/>
             <TextField fx:id="tfSearch" promptText="Search description or amount"/>
             <Button fx:id="btnClearFilters" text="Clear Filters" onAction="#handleClearFilters"/>
         </HBox>
@@ -35,38 +35,33 @@
         <Label fx:id="lblBalance"/>
     </HBox>
 
-    <!-- Transaction Form -->
-    <GridPane hgap="10" vgap="5">
-        <columnConstraints>
-            <ColumnConstraints hgrow="NEVER"/>
-            <ColumnConstraints hgrow="SOMETIMES"/>
-        </columnConstraints>
-        
-        <Label text="Date:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-        <DatePicker fx:id="dpDate" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-        
-        <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <TextField fx:id="tfDesc" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-        
-        <Label text="Amount:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-        <TextField fx:id="tfAmount" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-        
-        <Label text="Income:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <CheckBox fx:id="cbIncome" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-        
-        <Label text="Tags:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="4">
-            <ComboBox fx:id="cbTags"/>
-            <FlowPane fx:id="flowSelectedTags" hgap="5" vgap="5"/>
-        </VBox>
-        
-        <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
-            <Button text="Add Transaction" onAction="#handleAddTransaction"/>
-            <Button fx:id="btnSave" text="Save Changes" onAction="#handleSaveTransaction"/>
-            <Button fx:id="btnCancel" text="Cancel" onAction="#handleCancelEdit"/>
-            <Button fx:id="btnClearForm" text="Clear" onAction="#handleClearForm"/>
-        </HBox>
-    </GridPane>
+    <!-- Transaction Form Section -->
+    <TitledPane text="Transaction Form" expanded="true">
+        <GridPane hgap="10" vgap="10">
+            <Label text="Date:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <DatePicker fx:id="dpDate" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+            
+            <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="tfDesc" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            
+            <Label text="Amount:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="tfAmount" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            
+            <CheckBox fx:id="cbIncome" text="Income" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            
+            <Label text="Tags:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                <ComboBox fx:id="cbTags" promptText="Select Tag"/>
+                <FlowPane fx:id="flowSelectedTags" hgap="5" vgap="5"/>
+            </VBox>
+            
+            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                <Button fx:id="btnSave" text="Save" onAction="#handleSaveTransaction"/>
+                <Button fx:id="btnCancel" text="Cancel" onAction="#handleCancelEdit"/>
+                <Button fx:id="btnClearForm" text="Clear Form" onAction="#handleClearForm"/>
+            </HBox>
+        </GridPane>
+    </TitledPane>
 
     <!-- Transactions Table -->
     <TableView fx:id="table" VBox.vgrow="ALWAYS">
@@ -78,4 +73,9 @@
             <TableColumn fx:id="colTags" text="Tags"/>
         </columns>
     </TableView>
+
+    <!-- Generate Scheduled Transactions Button at Bottom Right -->
+    <HBox alignment="BOTTOM_RIGHT">
+        <Button fx:id="btnGenerateScheduled" text="Generate Scheduled Transactions" onAction="#handleGenerateScheduled"/>
+    </HBox>
 </VBox>

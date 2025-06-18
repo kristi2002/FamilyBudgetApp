@@ -18,7 +18,7 @@
     </VBox>
     <Label text="" style="-fx-padding: 0 0 10 0;"/>
     <Label fx:id="lblCurrentBalance" text="Current Balance: €0.00" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-    <HBox spacing="20">
+    <HBox spacing="20" alignment="CENTER">
         <PieChart fx:id="pieSpendingByCategory" title="Spending by Category" prefWidth="700"/>
     </HBox>
     <Label text="Recent Transactions" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>

@@ -3,7 +3,6 @@ package it.unicam.cs.mpgc.jbudget120002.controller;
 import it.unicam.cs.mpgc.jbudget120002.model.Tag;
 import it.unicam.cs.mpgc.jbudget120002.model.Transaction;
 import it.unicam.cs.mpgc.jbudget120002.service.TagService;
-import it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -289,7 +288,7 @@ public class TagController {
         BigDecimal totalAmount = transactions.stream()
             .map(Transaction::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-        totalAmountLabel.setText(CurrencyUtils.formatAmount(totalAmount, "EUR"));
+        totalAmountLabel.setText(String.format("€%.2f", totalAmount));
     }
 
     private void hideTagDetails() {

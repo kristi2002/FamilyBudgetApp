@@ -10,6 +10,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Entity class representing a budget period in the Family Budget App.
+ * This class manages budget allocations, spending limits, and tracking for
+ * specific time periods, supporting both one-time and recurring budgets.
+ *
+ * Responsibilities:
+ * - Define budget periods and their timeframes
+ * - Track expected income and expenses
+ * - Manage category-specific budget allocations
+ * - Monitor spending limits and actual expenses
+ * - Support recurring budget patterns
+ * - Track historical spending data
+ *
+ * Usage:
+ * Used by BudgetService to manage budget periods and by StatisticsService
+ * to analyze spending patterns and budget utilization.
+ */
 @Entity
 @Table(name = "budget_periods")
 public class BudgetPeriod {

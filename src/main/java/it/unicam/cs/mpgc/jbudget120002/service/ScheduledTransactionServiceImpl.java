@@ -137,8 +137,37 @@ public class ScheduledTransactionServiceImpl implements ScheduledTransactionServ
         try {
             ScheduledTransaction scheduled = findById(scheduledId).orElse(null);
             if (scheduled != null) {
-                scheduled.generateTransactions(until);
-                entityManager.merge(scheduled);
+                LocalDate currentDate = scheduled.getStartDate();
+                LocalDate effectiveEndDate = scheduled.getEndDate() != null ? scheduled.getEndDate() : until;
+                while (!currentDate.isAfter(effectiveEndDate) && !currentDate.isAfter(until)) {
+                    // Check if a transaction for this date already exists
+                    TypedQuery<Transaction> query = entityManager.createQuery(
+                        "SELECT t FROM Transaction t WHERE t.scheduledTransaction.id = :scheduledId AND t.date = :date",
+                        Transaction.class);
+                    query.setParameter("scheduledId", scheduled.getId());
+                    query.setParameter("date", currentDate);
+                    boolean exists = !query.getResultList().isEmpty();
+                    if (!exists) {
+                        Transaction transaction = new Transaction(
+                            currentDate,
+                            scheduled.getDescription(),
+                            scheduled.getAmount(),
+                            scheduled.isIncome()
+                        );
+                        transaction.setScheduledTransaction(scheduled);
+                        for (Tag tag : scheduled.getTags()) {
+                            transaction.addTag(tag);
+                        }
+                        entityManager.persist(transaction);
+                    }
+                    // Calculate next occurrence
+                    switch (scheduled.getRecurrencePattern()) {
+                        case DAILY -> currentDate = currentDate.plusDays(scheduled.getRecurrenceValue());
+                        case WEEKLY -> currentDate = currentDate.plusWeeks(scheduled.getRecurrenceValue());
+                        case MONTHLY -> currentDate = currentDate.plusMonths(scheduled.getRecurrenceValue());
+                        case YEARLY -> currentDate = currentDate.plusYears(scheduled.getRecurrenceValue());
+                    }
+                }
             }
             entityManager.getTransaction().commit();
         } catch (Exception e) {

@@ -62,9 +62,6 @@ public class Transaction {
     @Column(name = "interest_amount")
     private BigDecimal interestAmount;
 
-    @Column(name = "currency", nullable = false)
-    private String currency = "EUR"; // Default currency
-
     // Default constructor for JPA
     protected Transaction() {}
 
@@ -73,11 +70,6 @@ public class Transaction {
         this.description = description;
         this.amount = amount;
         this.isIncome = isIncome;
-    }
-
-    public Transaction(LocalDate date, String description, BigDecimal amount, boolean isIncome, String currency) {
-        this(date, description, amount, isIncome);
-        this.currency = currency;
     }
 
     // Getters
@@ -91,14 +83,12 @@ public class Transaction {
     public LoanAmortizationPlan getLoanPlan() { return loanPlan; }
     public BigDecimal getPrincipalAmount() { return principalAmount; }
     public BigDecimal getInterestAmount() { return interestAmount; }
-    public String getCurrency() { return currency; }
 
     // Setters
     public void setDate(LocalDate date) { this.date = date; }
     public void setDescription(String description) { this.description = description; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public void setIncome(boolean income) { isIncome = income; }
-    public void setCurrency(String currency) { this.currency = currency; }
     
     // Tag Management
     public void addTag(Tag tag) {

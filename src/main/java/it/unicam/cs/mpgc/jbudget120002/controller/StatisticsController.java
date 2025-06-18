@@ -2,7 +2,6 @@ package it.unicam.cs.mpgc.jbudget120002.controller;
 
 import it.unicam.cs.mpgc.jbudget120002.model.*;
 import it.unicam.cs.mpgc.jbudget120002.service.*;
-import it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils;
 import it.unicam.cs.mpgc.jbudget120002.model.StatisticsModels.*;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -267,9 +266,9 @@ public class StatisticsController extends BaseController {
             (currentBalance.doubleValue() / currentIncome.doubleValue()) * 100;
         
         // Update current period labels
-        lblCurrentIncome.setText("Income: " + CurrencyUtils.formatAmount(currentIncome));
-        lblCurrentExpenses.setText("Expenses: " + CurrencyUtils.formatAmount(currentExpenses));
-        lblCurrentBalance.setText("Balance: " + CurrencyUtils.formatAmount(currentBalance));
+        lblCurrentIncome.setText("Income: " + String.format("€%.2f", currentIncome));
+        lblCurrentExpenses.setText("Expenses: " + String.format("€%.2f", currentExpenses));
+        lblCurrentBalance.setText("Balance: " + String.format("€%.2f", currentBalance));
         lblCurrentSavings.setText(String.format("Savings Rate: %.1f%%", currentSavingsRate));
     }
 

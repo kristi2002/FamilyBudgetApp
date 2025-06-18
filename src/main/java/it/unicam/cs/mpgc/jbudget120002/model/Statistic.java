@@ -6,7 +6,27 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class for generating and managing financial statistics in the Family Budget App.
+ * This class provides data structures and methods for analyzing spending patterns,
+ * tracking monthly balances, and comparing category expenses across different time periods.
+ *
+ * Responsibilities:
+ * - Track category-wise expenses and percentages
+ * - Monitor monthly income, expenses, and balances
+ * - Compare spending patterns across time periods
+ * - Support financial analysis and reporting
+ *
+ * Usage:
+ * Used by StatisticsService to generate reports and insights about
+ * spending patterns and financial health.
+ */
 public class Statistic {
+    /**
+     * Record representing expense data for a specific category.
+     * Tracks the total amount spent in a category and its percentage
+     * of the total expenses.
+     */
     public record CategoryExpense(
         String category,
         BigDecimal amount,
@@ -17,6 +37,10 @@ public class Statistic {
         public double getPercentage() { return percentage; }
     }
     
+    /**
+     * Record representing monthly financial summary.
+     * Tracks income, expenses, and resulting balance for each month.
+     */
     public record MonthlyBalance(
         LocalDate month,
         BigDecimal income,
@@ -29,6 +53,10 @@ public class Statistic {
         public BigDecimal getBalance() { return balance; }
     }
     
+    /**
+     * Record representing category-wise spending comparison between two time periods.
+     * Tracks spending amounts and percentage changes for each category.
+     */
     public record CategoryComparison(
         Tag category,
         BigDecimal previousPeriodAmount,

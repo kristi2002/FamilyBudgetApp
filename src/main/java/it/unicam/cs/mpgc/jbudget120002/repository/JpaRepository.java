@@ -6,6 +6,22 @@ import jakarta.persistence.Persistence;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Abstract base repository class implementing common JPA operations for the Family Budget App.
+ * This class provides a generic implementation of the Repository interface using JPA,
+ * handling basic CRUD operations and transaction management.
+ *
+ * Responsibilities:
+ * - Implement basic CRUD operations using JPA
+ * - Manage entity persistence and retrieval
+ * - Handle transaction boundaries
+ * - Provide reflection-based entity ID management
+ * - Support generic entity operations
+ *
+ * Usage:
+ * Extended by specific repository implementations to provide
+ * type-safe database operations for different entities.
+ */
 public abstract class JpaRepository<T, ID> implements Repository<T, ID> {
     protected final EntityManager em;
     private final Class<T> entityClass;

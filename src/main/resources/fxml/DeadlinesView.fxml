@@ -6,7 +6,7 @@
 <TabPane xmlns:fx="http://javafx.com/fxml"
          fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.DeadlinesController">
     <tabs>
-        <Tab text="List" closable="false">
+        <Tab text="Deadlines" closable="false">
             <VBox spacing="10" VBox.vgrow="ALWAYS">
                 <padding>
                     <Insets top="10" right="10" bottom="10" left="10"/>
@@ -39,9 +39,6 @@
                     </columnResizePolicy>
                 </TableView>
             </VBox>
-        </Tab>
-        <Tab text="Calendar" closable="false">
-            <fx:include fx:id="deadlinesCalendarController" source="DeadlinesCalendarView.fxml" />
         </Tab>
     </tabs>
 </TabPane>

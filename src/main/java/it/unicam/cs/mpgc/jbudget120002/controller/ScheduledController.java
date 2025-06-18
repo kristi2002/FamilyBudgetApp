@@ -7,7 +7,6 @@ import it.unicam.cs.mpgc.jbudget120002.service.TagService;
 import it.unicam.cs.mpgc.jbudget120002.service.UserSettingsService;
 import it.unicam.cs.mpgc.jbudget120002.service.DeadlineService;
 import it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils;
-import it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -26,6 +25,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.List;
 
 /**
  * Controller class managing scheduled and recurring transactions in the Family Budget App.
@@ -60,13 +60,13 @@ public class ScheduledController extends BaseController {
     @FXML private TableColumn<ScheduledTransaction, BigDecimal> colAmount;
     @FXML private TableColumn<ScheduledTransaction, String> colTags;
     @FXML private TableColumn<ScheduledTransaction, String> colPattern;
+    @FXML private Button btnGenerateScheduled;
 
     private ScheduledTransactionService scheduledService;
     private TagService tagService;
     private UserSettingsService settingsService;
     private ObservableList<ScheduledTransaction> transactions;
     private Set<Tag> selectedTags;
-    private String currentCurrency;
 
     @Override
     protected void initializeServices() {
@@ -75,12 +75,6 @@ public class ScheduledController extends BaseController {
         settingsService = serviceFactory.getUserSettingsService();
         transactions = FXCollections.observableArrayList();
         selectedTags = new HashSet<>();
-        
-        // Load currency setting
-        settingsService.findFirst().ifPresent(settings -> 
-            currentCurrency = settings.getCurrency()
-        );
-        if (currentCurrency == null) currentCurrency = "EUR";
     }
 
     @Override
@@ -138,7 +132,7 @@ public class ScheduledController extends BaseController {
                 if (empty || amount == null) {
                     setText(null);
                 } else {
-                    setText(CurrencyUtils.formatAmount(amount, currentCurrency));
+                    setText(String.format("€%.2f", amount));
                 }
             }
         });
@@ -154,7 +148,7 @@ public class ScheduledController extends BaseController {
             new SimpleStringProperty(cellData.getValue().getRecurrencePattern().toString()));
 
         // Setup amount field prompt text with currency symbol
-        tfAmount.setPromptText("Amount (" + CurrencyUtils.getSymbol(currentCurrency) + ")");
+        tfAmount.setPromptText("Amount (€)");
 
         // Setup tags combobox
         cbTags.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
@@ -441,6 +435,19 @@ public class ScheduledController extends BaseController {
         dialog.showAndWait().ifPresent(result -> {
             refreshData();
         });
+    }
+
+    @FXML
+    private void handleGenerateScheduled() {
+        List<ScheduledTransaction> scheduled = scheduledService.findAll();
+        for (var st : scheduled) {
+            scheduledService.generateTransactions(st.getId(), LocalDate.now());
+        }
+        refreshData();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Scheduled transactions generated up to today.", ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.setTitle("Generation Complete");
+        alert.showAndWait();
     }
 
     private void clearForm() {

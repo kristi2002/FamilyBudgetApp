@@ -9,9 +9,6 @@ public interface TransactionService {
     Transaction createTransaction(LocalDate date, String description, BigDecimal amount, 
         boolean isIncome, Set<Long> tagIds);
     
-    Transaction createTransaction(LocalDate date, String description, BigDecimal amount, 
-        boolean isIncome, Set<Long> tagIds, String currency);
-    
     void deleteTransaction(Long id);
     
     List<Transaction> findAll();
@@ -23,13 +20,8 @@ public interface TransactionService {
     void updateTransaction(Long id, LocalDate date, String description, 
         BigDecimal amount, boolean isIncome, Set<Long> tagIds);
     
-    void updateTransaction(Long id, LocalDate date, String description, 
-        BigDecimal amount, boolean isIncome, Set<Long> tagIds, String currency);
-    
     BigDecimal calculateBalance(LocalDate start, LocalDate end);
     
-    BigDecimal calculateBalance(LocalDate start, LocalDate end, String targetCurrency);
-
     List<Transaction> findByTag(Long tagId);
 
     List<Transaction> findByTagAndDateRange(Long tagId, LocalDate startDate, LocalDate endDate);
@@ -40,11 +32,7 @@ public interface TransactionService {
 
     BigDecimal calculateIncomeForPeriod(LocalDate startDate, LocalDate endDate);
     
-    BigDecimal calculateIncomeForPeriod(LocalDate startDate, LocalDate endDate, String targetCurrency);
-
     BigDecimal calculateExpensesForPeriod(LocalDate startDate, LocalDate endDate);
-    
-    BigDecimal calculateExpensesForPeriod(LocalDate startDate, LocalDate endDate, String targetCurrency);
 
     List<Transaction> findByTag(Tag tag, boolean includeChildren);
 
@@ -52,13 +40,7 @@ public interface TransactionService {
 
     Map<Tag, BigDecimal> calculateTagTotals(LocalDate startDate, LocalDate endDate, boolean includeChildren);
     
-    Map<Tag, BigDecimal> calculateTagTotals(LocalDate startDate, LocalDate endDate, 
-        boolean includeChildren, String targetCurrency);
-
     Map<Tag, TransactionStatistics> calculateTagStatistics(LocalDate startDate, LocalDate endDate, boolean includeChildren);
-    
-    Map<Tag, TransactionStatistics> calculateTagStatistics(LocalDate startDate, LocalDate endDate, 
-        boolean includeChildren, String targetCurrency);
 
     /**
      * Find all transactions between two dates (inclusive)
@@ -67,17 +49,12 @@ public interface TransactionService {
 
     BigDecimal calculateAmountForTagInPeriod(Tag tag, LocalDate startDate, LocalDate endDate);
     
-    BigDecimal calculateAmountForTagInPeriod(Tag tag, LocalDate startDate, LocalDate endDate, 
-        String targetCurrency);
-
     /**
      * Calculate the net worth as of a specific date
      * @param asOfDate the date to calculate net worth for
      * @return the net worth (total income minus total expenses) up to the given date
      */
     BigDecimal calculateNetWorth(LocalDate asOfDate);
-    
-    BigDecimal calculateNetWorth(LocalDate asOfDate, String targetCurrency);
 
     List<Transaction> findTransactionsInPeriod(LocalDate startDate, LocalDate endDate, int limit);
 }
