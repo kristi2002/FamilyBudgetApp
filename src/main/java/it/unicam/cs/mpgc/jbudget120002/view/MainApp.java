@@ -23,6 +23,8 @@ public class MainApp extends Application {
                             .getResource("fxml/MainView.fxml")
             );
             Scene scene = new Scene(loader.load(), 1024, 768);
+            // Add global stylesheet for positive/negative coloring
+            scene.getStylesheets().add(getClass().getResource("/css/statistics.css").toExternalForm());
             stage.setTitle("Family Budget Manager");
             stage.setScene(scene);
             stage.setMinWidth(800);

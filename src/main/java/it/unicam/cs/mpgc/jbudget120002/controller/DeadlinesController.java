@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.GridPane;
+import it.unicam.cs.mpgc.jbudget120002.model.Tag;
+import it.unicam.cs.mpgc.jbudget120002.service.TagService;
+import it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils;
 
 public class DeadlinesController extends BaseController {
     @FXML private DatePicker dpMonth;
@@ -35,11 +38,13 @@ public class DeadlinesController extends BaseController {
 
     private DeadlineService deadlineService;
     private ObservableList<Deadline> deadlines;
+    private TagService tagService;
 
     @Override
     protected void initializeServices() {
         deadlineService = serviceFactory.getDeadlineService();
         deadlines = FXCollections.observableArrayList();
+        tagService = serviceFactory.getTagService();
     }
 
     @Override
@@ -57,6 +62,13 @@ public class DeadlinesController extends BaseController {
         btnEdit.setOnAction(e -> handleEdit());
         btnDelete.setOnAction(e -> handleDelete());
         DeadlinesCalendarController.setGlobalDateSelectCallback(this::filterByDate);
+        colDueDate.setCellFactory(column -> new TableCell<Deadline, LocalDate>() {
+            @Override
+            protected void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setText(empty || date == null ? null : DateTimeUtils.formatDate(date));
+            }
+        });
     }
 
     @Override
@@ -72,13 +84,14 @@ public class DeadlinesController extends BaseController {
                 .filter(d -> !d.getDueDate().isBefore(start) && !d.getDueDate().isAfter(end))
                 .toList();
             deadlines.setAll(monthlyDeadlines);
-            List<String> categories = monthlyDeadlines.stream()
+            List<String> categories = new ArrayList<>(monthlyDeadlines.stream()
                 .map(Deadline::getCategory)
                 .filter(c -> c != null && !c.isEmpty())
                 .distinct()
-                .toList();
+                .toList());
+            categories.add(0, "All Categories");
             cbCategoryFilter.getItems().setAll(categories);
-            cbCategoryFilter.setValue(null);
+            cbCategoryFilter.setValue("All Categories");
         }
         updateTotalDue();
         updateNotifications();
@@ -138,7 +151,7 @@ public class DeadlinesController extends BaseController {
 
     private void filterByCategory() {
         String selectedCategory = cbCategoryFilter.getValue();
-        if (selectedCategory == null || selectedCategory.isEmpty()) {
+        if (selectedCategory == null || selectedCategory.isEmpty() || "All Categories".equals(selectedCategory)) {
             tableDeadlines.setItems(deadlines);
         } else {
             ObservableList<Deadline> filtered = deadlines.filtered(d ->
@@ -149,7 +162,7 @@ public class DeadlinesController extends BaseController {
     }
 
     private void handleAdd() {
-        DeadlineDialog dialog = new DeadlineDialog(null);
+        DeadlineDialog dialog = new DeadlineDialog(null, tagService);
         dialog.setTitle("Add Deadline");
         dialog.showAndWait().ifPresent(deadline -> {
             deadlineService.create(deadline);
@@ -164,7 +177,7 @@ public class DeadlinesController extends BaseController {
             showError("No Selection", "Please select a deadline to edit.");
             return;
         }
-        DeadlineDialog dialog = new DeadlineDialog(selected);
+        DeadlineDialog dialog = new DeadlineDialog(selected, tagService);
         dialog.setTitle("Edit Deadline");
         dialog.showAndWait().ifPresent(updated -> {
             updated.setId(selected.getId());
@@ -213,9 +226,9 @@ public class DeadlinesController extends BaseController {
         private final DatePicker dpDueDate = new DatePicker();
         private final TextField tfAmount = new TextField();
         private final CheckBox cbPaid = new CheckBox("Paid");
-        private final TextField tfCategory = new TextField();
+        private final ComboBox<Tag> cbCategory = new ComboBox<>();
 
-        public DeadlineDialog(Deadline deadline) {
+        public DeadlineDialog(Deadline deadline, TagService tagService) {
             setTitle(deadline == null ? "Add Deadline" : "Edit Deadline");
             setHeaderText(null);
             getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -230,28 +243,40 @@ public class DeadlinesController extends BaseController {
             grid.add(tfAmount, 1, 2);
             grid.add(cbPaid, 1, 3);
             grid.add(new Label("Category:"), 0, 4);
-            grid.add(tfCategory, 1, 4);
+            grid.add(cbCategory, 1, 4);
             getDialogPane().setContent(grid);
+            // Populate categories
+            cbCategory.setItems(FXCollections.observableArrayList(tagService.findAll()));
+            cbCategory.setConverter(new javafx.util.StringConverter<Tag>() {
+                @Override
+                public String toString(Tag tag) { return tag != null ? tag.getName() : ""; }
+                @Override
+                public Tag fromString(String string) { return null; }
+            });
             if (deadline != null) {
                 tfDescription.setText(deadline.getDescription());
                 dpDueDate.setValue(deadline.getDueDate());
                 tfAmount.setText(String.valueOf(deadline.getAmount()));
                 cbPaid.setSelected(deadline.isPaid());
-                tfCategory.setText(deadline.getCategory());
-            }
-            setResultConverter(btn -> {
-                if (btn == ButtonType.OK) {
-                    Deadline d = new Deadline();
-                    d.setDescription(tfDescription.getText());
-                    d.setDueDate(dpDueDate.getValue());
-                    try {
-                        d.setAmount(Double.parseDouble(tfAmount.getText()));
-                    } catch (Exception e) {
-                        d.setAmount(0);
+                // Try to select the tag by name
+                for (Tag tag : cbCategory.getItems()) {
+                    if (tag.getName().equals(deadline.getCategory())) {
+                        cbCategory.setValue(tag);
+                        break;
                     }
-                    d.setPaid(cbPaid.isSelected());
-                    d.setCategory(tfCategory.getText());
-                    return d;
+                }
+            }
+            setResultConverter(dialogButton -> {
+                if (dialogButton == ButtonType.OK) {
+                    String category = cbCategory.getValue() != null ? cbCategory.getValue().getName() : "";
+                    return new Deadline(
+                        tfDescription.getText(),
+                        dpDueDate.getValue(),
+                        Double.parseDouble(tfAmount.getText()),
+                        cbPaid.isSelected(),
+                        null,
+                        category
+                    );
                 }
                 return null;
             });

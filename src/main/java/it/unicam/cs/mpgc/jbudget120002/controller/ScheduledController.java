@@ -114,11 +114,7 @@ public class ScheduledController extends BaseController {
             @Override
             protected void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                if (empty || date == null) {
-                    setText(null);
-                } else {
-                    setText(DateTimeUtils.formatDate(date));
-                }
+                setText(empty || date == null ? null : DateTimeUtils.formatDate(date));
             }
         });
 
@@ -127,11 +123,7 @@ public class ScheduledController extends BaseController {
             @Override
             protected void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                if (empty || date == null) {
-                    setText(null);
-                } else {
-                    setText(DateTimeUtils.formatDate(date));
-                }
+                setText(empty || date == null ? null : DateTimeUtils.formatDate(date));
             }
         });
 
@@ -292,6 +284,11 @@ public class ScheduledController extends BaseController {
             return;
         }
 
+        // Pre-fill selectedTags with the tags from the selected transaction
+        selectedTags.clear();
+        selectedTags.addAll(selected.getTags());
+        updateSelectedTagsList();
+
         // Show edit dialog
         Dialog<ScheduledTransaction> dialog = new Dialog<>();
         dialog.setTitle("Edit Scheduled Transaction");
@@ -314,6 +311,38 @@ public class ScheduledController extends BaseController {
         cbPattern.setValue(selected.getRecurrencePattern());
         TextField tfRecurrenceValue = new TextField(String.valueOf(selected.getRecurrenceValue()));
 
+        // Tag editing controls
+        ComboBox<Tag> cbEditTags = new ComboBox<>(FXCollections.observableArrayList(tagService.findRootTags()));
+        cbEditTags.setPromptText("Select Tag");
+        FlowPane flowEditSelectedTags = new FlowPane(5, 5);
+        Set<Tag> editSelectedTags = new HashSet<>(selectedTags);
+        final Runnable[] updateEditSelectedTagsList = new Runnable[1];
+        updateEditSelectedTagsList[0] = () -> {
+            flowEditSelectedTags.getChildren().clear();
+            for (Tag tag : editSelectedTags) {
+                HBox tagBox = new HBox(5);
+                tagBox.setStyle("-fx-background-color: #f0f0f0; -fx-padding: 3 5; -fx-background-radius: 3;");
+                Label tagLabel = new Label(tag.getName());
+                Button removeBtn = new Button("×");
+                removeBtn.setStyle("-fx-padding: 0 3; -fx-background-radius: 2; -fx-min-width: 16;");
+                removeBtn.setOnAction(e -> {
+                    editSelectedTags.remove(tag);
+                    updateEditSelectedTagsList[0].run();
+                });
+                tagBox.getChildren().addAll(tagLabel, removeBtn);
+                flowEditSelectedTags.getChildren().add(tagBox);
+            }
+        };
+        updateEditSelectedTagsList[0].run();
+        cbEditTags.setOnAction(e -> {
+            Tag selectedTag = cbEditTags.getValue();
+            if (selectedTag != null && !editSelectedTags.contains(selectedTag)) {
+                editSelectedTags.add(selectedTag);
+                updateEditSelectedTagsList[0].run();
+                cbEditTags.setValue(null);
+            }
+        });
+
         grid.add(new Label("Description:"), 0, 0);
         grid.add(tfDesc, 1, 0);
         grid.add(new Label("Amount:"), 0, 1);
@@ -327,6 +356,9 @@ public class ScheduledController extends BaseController {
         grid.add(cbPattern, 1, 5);
         grid.add(new Label("Recurrence Value:"), 0, 6);
         grid.add(tfRecurrenceValue, 1, 6);
+        grid.add(new Label("Tags:"), 0, 7);
+        grid.add(cbEditTags, 1, 7);
+        grid.add(flowEditSelectedTags, 1, 8);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -349,7 +381,7 @@ public class ScheduledController extends BaseController {
                         dpEndDate.getValue(),
                         cbPattern.getValue(),
                         recurrenceValue,
-                        selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+                        editSelectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
                     );
 
                     // Update related deadlines

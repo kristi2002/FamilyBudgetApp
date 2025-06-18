@@ -96,6 +96,21 @@ public class BudgetsController extends BaseController {
         });
 
         table.setItems(budgets);
+
+        colStartDate.setCellFactory(column -> new TableCell<BudgetTableItem, LocalDate>() {
+            @Override
+            protected void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setText(empty || date == null ? null : it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils.formatDate(date));
+            }
+        });
+        colEndDate.setCellFactory(column -> new TableCell<BudgetTableItem, LocalDate>() {
+            @Override
+            protected void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setText(empty || date == null ? null : it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils.formatDate(date));
+            }
+        });
     }
 
     @Override

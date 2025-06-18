@@ -159,9 +159,8 @@ public class DashboardController extends BaseController {
 
                 // Format date and amount columns
                 colDate.setCellFactory(column -> new TextFieldTableCell<>(new StringConverter<java.time.LocalDate>() {
-                    private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                     @Override public String toString(java.time.LocalDate d) {
-                        return d != null ? d.format(fmt) : "";
+                        return d != null ? it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils.formatDate(d) : "";
                     }
                     @Override public java.time.LocalDate fromString(String s) { return null; }
                 }));
@@ -171,13 +170,23 @@ public class DashboardController extends BaseController {
                         super.updateItem(amount, empty);
                         if (empty || amount == null) {
                             setText(null);
+                            setStyle("");
                         } else {
                             Transaction transaction = getTableRow().getItem();
                             if (transaction != null) {
-                                String formattedAmount = CurrencyUtils.formatAmount(amount, "EUR");
-                                setText(transaction.isIncome() ? formattedAmount : "-" + formattedAmount);
+                                String formattedAmount = it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils.formatAmount(amount, "EUR");
+                                if (transaction.isIncome()) {
+                                    setText(formattedAmount);
+                                    getStyleClass().removeAll("negative");
+                                    if (!getStyleClass().contains("positive")) getStyleClass().add("positive");
+                                } else {
+                                    setText("-" + formattedAmount);
+                                    getStyleClass().removeAll("positive");
+                                    if (!getStyleClass().contains("negative")) getStyleClass().add("negative");
+                                }
                             } else {
-                                setText(CurrencyUtils.formatAmount(amount, "EUR"));
+                                setText(it.unicam.cs.mpgc.jbudget120002.util.CurrencyUtils.formatAmount(amount, "EUR"));
+                                setStyle("");
                             }
                         }
                     }

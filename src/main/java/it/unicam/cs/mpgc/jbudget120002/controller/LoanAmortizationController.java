@@ -47,11 +47,10 @@ public class LoanAmortizationController {
 
         // Format columns
         colDueDate.setCellFactory(column -> new TableCell<Installment, LocalDate>() {
-            private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             @Override
             protected void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                setText(empty || date == null ? null : fmt.format(date));
+                setText(empty || date == null ? null : it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils.formatDate(date));
             }
         });
         colPrincipal.setCellFactory(column -> new TableCell<Installment, BigDecimal>() {
@@ -79,7 +78,7 @@ public class LoanAmortizationController {
         tableSchedule.setItems(schedule);
 
         btnGenerate.setOnAction(e -> generateSchedule());
-        btnSaveAsScheduled.setOnAction(e -> saveAsScheduledTransactions());
+        btnSaveAsScheduled.setOnAction(e -> showFutureFeatureAlert());
     }
 
     public void setServiceFactory(ServiceFactory serviceFactory) {
@@ -102,27 +101,10 @@ public class LoanAmortizationController {
         }
     }
 
-    private void saveAsScheduledTransactions() {
-        if (schedule.isEmpty()) {
-            showError("No schedule to save.");
-            return;
-        }
-        String loanName = tfLoanName.getText();
-        if (loanName == null || loanName.trim().isEmpty()) loanName = "Loan";
-        for (Installment inst : schedule) {
-            ScheduledTransaction st = scheduledTransactionService.createScheduledTransaction(
-                loanName + " Installment #" + inst.getNumber(),
-                inst.getTotalPayment(),
-                false, // isIncome
-                inst.getDueDate(),
-                null, // endDate
-                ScheduledTransaction.RecurrencePattern.MONTHLY,
-                1,
-                Collections.emptySet()
-            );
-            st.setCategory("Loan");
-        }
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Installments saved as scheduled transactions!", ButtonType.OK);
+    private void showFutureFeatureAlert() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "This feature will be implemented in a future update.", ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.setTitle("Feature Coming Soon");
         alert.showAndWait();
     }
 

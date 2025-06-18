@@ -29,16 +29,31 @@ public abstract class JpaRepository<T, ID> implements Repository<T, ID> {
     @Override
     public void save(T entity) {
         EntityTransaction tx = em.getTransaction();
-        tx.begin();
-        em.persist(entity);
-        tx.commit();
+        boolean isNew = !tx.isActive();
+        if (isNew) tx.begin();
+        if (em.contains(entity) || getEntityId(entity) != null) {
+            em.merge(entity);
+        } else {
+            em.persist(entity);
+        }
+        if (isNew) tx.commit();
+    }
+
+    // Helper method to get the ID of the entity using reflection
+    private Object getEntityId(T entity) {
+        try {
+            return entity.getClass().getMethod("getId").invoke(entity);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
     public void delete(T entity) {
         EntityTransaction tx = em.getTransaction();
-        tx.begin();
+        boolean isNew = !tx.isActive();
+        if (isNew) tx.begin();
         em.remove(em.contains(entity) ? entity : em.merge(entity));
-        tx.commit();
+        if (isNew) tx.commit();
     }
 }

@@ -21,6 +21,7 @@
                 <TextField fx:id="tfRecurrenceValue" promptText="Recurrence Value" prefWidth="100"/>
                 <ComboBox fx:id="cbTags" promptText="Select Tag"/>
                 <Button text="Add" onAction="#handleAddScheduled"/>
+                <Button text="Edit" onAction="#handleEditScheduled"/>
                 <Button text="Delete" onAction="#handleDeleteScheduled"/>
             </HBox>
             

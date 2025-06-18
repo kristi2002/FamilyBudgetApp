@@ -164,11 +164,20 @@ public class TransactionsController extends BaseController {
                 super.updateItem(amount, empty);
                 if (empty || amount == null) {
                     setText(null);
+                    setStyle("");
                 } else {
                     Transaction transaction = getTableRow().getItem();
                     if (transaction != null) {
                         String formattedAmount = CurrencyUtils.formatAmount(amount, currentCurrency);
-                        setText(transaction.isIncome() ? formattedAmount : "-" + formattedAmount);
+                        if (transaction.isIncome()) {
+                            setText(formattedAmount);
+                            getStyleClass().removeAll("negative");
+                            if (!getStyleClass().contains("positive")) getStyleClass().add("positive");
+                        } else {
+                            setText("-" + formattedAmount);
+                            getStyleClass().removeAll("positive");
+                            if (!getStyleClass().contains("negative")) getStyleClass().add("negative");
+                        }
                     }
                 }
             }
