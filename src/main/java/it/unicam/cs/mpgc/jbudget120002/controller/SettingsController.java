@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 public class SettingsController extends BaseController {
 
     @FXML private ComboBox<String> cbLocale;
-    @FXML private ComboBox<String> cbTheme;
     @FXML private Button btnSave;
     @FXML private TextField tfDatabasePath;
     @FXML private CheckBox cbAutoBackup;
@@ -65,9 +64,6 @@ public class SettingsController extends BaseController {
         // Initialize locale options (simplified for example)
         cbLocale.getItems().addAll("en-US", "it-IT", "de-DE", "fr-FR", "es-ES");
         
-        // Initialize theme options
-        cbTheme.getItems().addAll("Light", "Dark", "System");
-        
         // Initialize conflict resolution strategy options
         cbConflictStrategy.getItems().addAll(ConflictResolutionStrategy.values());
         
@@ -79,7 +75,6 @@ public class SettingsController extends BaseController {
         Optional<UserSettings> settings = settingsService.findFirst();
         settings.ifPresent(s -> {
             cbLocale.setValue(s.getLocale());
-            cbTheme.setValue(s.getTheme());
             tfDatabasePath.setText(s.getDatabasePath());
             cbAutoBackup.setSelected(s.isAutoBackup());
             tfBackupPath.setText(s.getBackupPath());
@@ -100,7 +95,6 @@ public class SettingsController extends BaseController {
         try {
             UserSettings settings = settingsService.findFirst().orElse(new UserSettings());
             settings.setLocale(cbLocale.getValue());
-            settings.setTheme(cbTheme.getValue());
             settings.setDatabasePath(tfDatabasePath.getText());
             settings.setAutoBackup(cbAutoBackup.isSelected());
             settings.setBackupPath(tfBackupPath.getText());

@@ -11,9 +11,12 @@
             <ComboBox fx:id="cbPeriod" prefWidth="120" />
             <DatePicker fx:id="dpStart" />
             <DatePicker fx:id="dpEnd" />
-            <Button fx:id="btnUpdate" text="Update" onAction="#handleUpdatePeriod" />
+            <Button fx:id="btnRefresh" text="Clear Filters" onAction="#handleRefresh">
+                <tooltip>
+                    <Tooltip text="Clear all dashboard filters" />
+                </tooltip>
+            </Button>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="btnRefresh" text="Refresh" onAction="#handleRefresh" />
         </HBox>
     </VBox>
     <Label text="" style="-fx-padding: 0 0 10 0;"/>
@@ -29,4 +32,11 @@
             <TableColumn fx:id="colAmount" text="Amount" prefWidth="120"/>
         </columns>
     </TableView>
+    <HBox alignment="CENTER_RIGHT" style="-fx-padding: 10 12 0 0;">
+        <Button fx:id="btnUpdate" text="Refresh Data" onAction="#handleUpdatePeriod">
+            <tooltip>
+                <Tooltip text="Refresh all dashboard data for the selected period" />
+            </tooltip>
+        </Button>
+    </HBox>
 </VBox> 

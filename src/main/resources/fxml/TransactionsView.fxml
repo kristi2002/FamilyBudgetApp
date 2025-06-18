@@ -47,7 +47,10 @@
             <Label text="Amount:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
             <TextField fx:id="tfAmount" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
             
-            <CheckBox fx:id="cbIncome" text="Income" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            <HBox spacing="8" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                <CheckBox fx:id="cbIncome" style="-fx-font-size: 13px; -fx-padding: 3 8 3 3;"/>
+                <Label text="Income" style="-fx-font-size: 13px;"/>
+            </HBox>
             
             <Label text="Tags:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="4">
@@ -55,7 +58,8 @@
                 <FlowPane fx:id="flowSelectedTags" hgap="5" vgap="5"/>
             </VBox>
             
-            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
+            <HBox fx:id="formButtonBox" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                <Button fx:id="btnAdd" text="Add Transaction" onAction="#handleAddTransaction"/>
                 <Button fx:id="btnSave" text="Save" onAction="#handleSaveTransaction"/>
                 <Button fx:id="btnCancel" text="Cancel" onAction="#handleCancelEdit"/>
                 <Button fx:id="btnClearForm" text="Clear Form" onAction="#handleClearForm"/>
@@ -74,8 +78,6 @@
         </columns>
     </TableView>
 
-    <!-- Generate Scheduled Transactions Button at Bottom Right -->
-    <HBox alignment="BOTTOM_RIGHT">
-        <Button fx:id="btnGenerateScheduled" text="Generate Scheduled Transactions" onAction="#handleGenerateScheduled"/>
-    </HBox>
+    <!-- Help label for scheduled transactions -->
+    <Label text="To generate scheduled transactions, go to the Scheduled Transactions tab." style="-fx-font-size: 11px; -fx-text-fill: #888; -fx-padding: 6 0 0 0;" />
 </VBox>

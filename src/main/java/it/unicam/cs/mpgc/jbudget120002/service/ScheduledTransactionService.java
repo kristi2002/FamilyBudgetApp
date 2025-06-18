@@ -51,4 +51,10 @@ public interface ScheduledTransactionService {
     void generateTransactions(Long scheduledTransactionId, LocalDate asOfDate);
 
     List<ScheduledTransaction> findDeadlinesForMonth(YearMonth month);
+
+    List<ScheduledTransaction> findByTag(Tag tag, boolean includeSubcategories);
+
+    BigDecimal calculateIncomeForPeriod(LocalDate startDate, LocalDate endDate);
+
+    BigDecimal calculateExpensesForPeriod(LocalDate startDate, LocalDate endDate);
 }

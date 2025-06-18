@@ -1,44 +1,36 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<TabPane xmlns:fx="http://javafx.com/fxml"
-         fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.DeadlinesController">
-    <tabs>
-        <Tab text="Deadlines" closable="false">
-            <VBox spacing="10" VBox.vgrow="ALWAYS">
-                <padding>
-                    <Insets top="10" right="10" bottom="10" left="10"/>
-                </padding>
-                <Label fx:id="notificationBanner" text="" />
-                <HBox spacing="5" alignment="CENTER_LEFT" VBox.vgrow="NEVER">
-                    <DatePicker fx:id="dpMonth" promptText="Select Month"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Label fx:id="lblTotalDue" style="-fx-font-weight: bold;"/>
-                    <Button fx:id="btnAdd" text="Add" />
-                    <Button fx:id="btnEdit" text="Edit" />
-                    <Button fx:id="btnDelete" text="Delete" />
-                    <Button text="Mark Paid" onAction="#handleMarkPaid"/>
-                    <Button text="Mark Unpaid" onAction="#handleMarkUnpaid"/>
-                    <ComboBox fx:id="cbCategoryFilter" promptText="Filter by Category" />
-                </HBox>
-                <TableView fx:id="tableDeadlines" VBox.vgrow="ALWAYS">
-                    <columns>
-                        <TableColumn fx:id="colDueDate" text="Due Date" prefWidth="120"/>
-                        <TableColumn fx:id="colDesc" text="Description" prefWidth="300"/>
-                        <TableColumn fx:id="colAmount" text="Amount" prefWidth="100"/>
-                        <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
-                        <TableColumn fx:id="colCategory" text="Category" prefWidth="120"/>
-                    </columns>
-                    <placeholder>
-                        <Label text="No deadlines for this month." />
-                    </placeholder>
-                    <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                    </columnResizePolicy>
-                </TableView>
-            </VBox>
-        </Tab>
-    </tabs>
-</TabPane>
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml" fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.DeadlinesController" VBox.vgrow="ALWAYS">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    <Label fx:id="notificationBanner" text="" />
+    <HBox spacing="5" alignment="CENTER_LEFT" VBox.vgrow="NEVER">
+        <DatePicker fx:id="dpMonth" promptText="Select Month"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="lblTotalDue" style="-fx-font-weight: bold;"/>
+        <Button fx:id="btnAdd" text="Add" />
+        <Button fx:id="btnEdit" text="Edit" />
+        <Button fx:id="btnDelete" text="Delete" />
+        <Button text="Mark Paid" onAction="#handleMarkPaid"/>
+        <Button text="Mark Unpaid" onAction="#handleMarkUnpaid"/>
+        <ComboBox fx:id="cbCategoryFilter" promptText="Filter by Category" />
+    </HBox>
+    <TableView fx:id="tableDeadlines" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colDueDate" text="Due Date" prefWidth="120"/>
+            <TableColumn fx:id="colDesc" text="Description" prefWidth="300"/>
+            <TableColumn fx:id="colAmount" text="Amount" prefWidth="100"/>
+            <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
+            <TableColumn fx:id="colCategory" text="Category" prefWidth="120"/>
+        </columns>
+        <placeholder>
+            <Label text="No deadlines for this month." />
+        </placeholder>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+        </columnResizePolicy>
+    </TableView>
+</VBox>

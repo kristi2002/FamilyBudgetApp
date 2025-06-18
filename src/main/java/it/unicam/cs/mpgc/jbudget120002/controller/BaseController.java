@@ -123,7 +123,7 @@ public abstract class BaseController implements Initializable {
     protected abstract void loadData();
 
     protected void showError(String title, String content) {
-        Alert alert = new Alert(AlertType.ERROR);
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
@@ -131,7 +131,7 @@ public abstract class BaseController implements Initializable {
     }
 
     protected void showInfo(String title, String content) {
-        Alert alert = new Alert(AlertType.INFORMATION);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
@@ -139,7 +139,7 @@ public abstract class BaseController implements Initializable {
     }
 
     protected void showWarning(String title, String content) {
-        Alert alert = new Alert(AlertType.WARNING);
+        Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
@@ -169,11 +169,5 @@ public abstract class BaseController implements Initializable {
                 LOGGER.log(Level.SEVERE, "Error closing EntityManagerFactory", e);
             }
         }
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        cleanup();
-        super.finalize();
     }
 } 

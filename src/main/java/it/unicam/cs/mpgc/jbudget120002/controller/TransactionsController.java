@@ -56,6 +56,7 @@ public class TransactionsController extends BaseController {
     @FXML private Button btnSave;
     @FXML private Button btnClearForm;
     @FXML private Button btnCancel;
+    @FXML private Button btnAdd;
     
     // Statistics labels
     @FXML private Label lblTotalIncome;
@@ -104,10 +105,6 @@ public class TransactionsController extends BaseController {
         setupCategoryFilter();
         setupFilters();
         setupContextMenu();
-        btnSave = new Button("Save Changes");
-        btnSave.setOnAction(e -> handleSaveTransaction());
-        btnCancel = new Button("Cancel");
-        btnCancel.setOnAction(e -> handleCancelEdit());
         tfSearch.textProperty().addListener((obs, oldVal, newVal) -> refreshData());
         btnClearFilters.setOnAction(e -> handleClearFilters());
         btnClearForm.setOnAction(e -> handleClearForm());
@@ -359,6 +356,7 @@ public class TransactionsController extends BaseController {
     private void handleEditTransaction() {
         Transaction selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
+            isEditMode = true;
             dpDate.setValue(selected.getDate());
             tfDesc.setText(selected.getDescription());
             tfAmount.setText(selected.getAmount().toString());
@@ -447,6 +445,8 @@ public class TransactionsController extends BaseController {
     }
 
     private void updateButtonStates() {
+        btnAdd.setVisible(!isEditMode);
+        btnAdd.setManaged(!isEditMode);
         btnSave.setVisible(isEditMode);
         btnSave.setManaged(isEditMode);
         btnCancel.setVisible(isEditMode);
@@ -482,5 +482,21 @@ public class TransactionsController extends BaseController {
         alert.setHeaderText(null);
         alert.setTitle("Generation Complete");
         alert.showAndWait();
+    }
+
+    @FXML
+    private void handleTableSelection() {
+        Transaction selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            isEditMode = true;
+            dpDate.setValue(selected.getDate());
+            tfDesc.setText(selected.getDescription());
+            tfAmount.setText(selected.getAmount().toString());
+            cbIncome.setSelected(selected.isIncome());
+            selectedTags.clear();
+            selectedTags.addAll(selected.getTags());
+            updateSelectedTagsList();
+            updateButtonStates();
+        }
     }
 }

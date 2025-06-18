@@ -76,7 +76,11 @@ public class TagsController extends BaseController {
     }
 
     private void updateParentComboBox() {
-        cbParent.setItems(FXCollections.observableArrayList(tagService.findAll()));
+        List<Tag> allTags = tagService.findAll();
+        Tag noneOption = new Tag("None");
+        noneOption.setId(null);
+        allTags.add(0, noneOption);
+        cbParent.setItems(FXCollections.observableArrayList(allTags));
     }
 
     private void updateTreeView() {
@@ -103,6 +107,9 @@ public class TagsController extends BaseController {
     private void handleAddTag() {
         String name = tfName.getText().trim();
         Tag parent = cbParent.getValue();
+        if (parent != null && "None".equals(parent.getName())) {
+            parent = null;
+        }
 
         if (name.isEmpty()) {
             showWarning("Invalid Input", "Please enter a tag name.");
@@ -149,6 +156,9 @@ public class TagsController extends BaseController {
         if (selected != null) {
             String name = tfName.getText().trim();
             Tag parent = cbParent.getValue();
+            if (parent != null && "None".equals(parent.getName())) {
+                parent = null;
+            }
 
             if (name.isEmpty()) {
                 showWarning("Invalid Input", "Please enter a tag name.");
@@ -167,7 +177,7 @@ public class TagsController extends BaseController {
 
     private void clearForm() {
         tfName.clear();
-        cbParent.setValue(null);
+        cbParent.setValue(cbParent.getItems().isEmpty() ? null : cbParent.getItems().get(0));
     }
 
     @FXML
@@ -175,7 +185,12 @@ public class TagsController extends BaseController {
         Tag selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
             tfName.setText(selected.getName());
-            cbParent.setValue(selected.getParent());
+            Tag parent = selected.getParent();
+            if (parent == null && !cbParent.getItems().isEmpty()) {
+                cbParent.setValue(cbParent.getItems().get(0)); // None
+            } else {
+                cbParent.setValue(parent);
+            }
         }
     }
 } 

@@ -61,12 +61,26 @@ public class ScheduledController extends BaseController {
     @FXML private TableColumn<ScheduledTransaction, String> colTags;
     @FXML private TableColumn<ScheduledTransaction, String> colPattern;
     @FXML private Button btnGenerateScheduled;
+    @FXML private Button btnAdd;
+    @FXML private Button btnSave;
+    @FXML private Button btnCancel;
+    @FXML private Button btnClearForm;
+    @FXML private Button btnClearFilters;
+    @FXML private DatePicker dpFilterStartDate;
+    @FXML private DatePicker dpFilterEndDate;
+    @FXML private ComboBox<Tag> cbCategory;
+    @FXML private CheckBox cbIncludeSubcategories;
+    @FXML private TextField tfSearch;
+    @FXML private Label lblTotalIncome;
+    @FXML private Label lblTotalExpense;
+    @FXML private Label lblBalance;
 
     private ScheduledTransactionService scheduledService;
     private TagService tagService;
     private UserSettingsService settingsService;
     private ObservableList<ScheduledTransaction> transactions;
     private Set<Tag> selectedTags;
+    private boolean isEditMode = false;
 
     @Override
     protected void initializeServices() {
@@ -79,51 +93,51 @@ public class ScheduledController extends BaseController {
 
     @Override
     protected void setupUI() {
-        // Initialize date pickers with custom format
+        setupDatePickers();
+        setupTable();
+        setupTagsUI();
+        setupCategoryFilter();
+        setupFilters();
+        setupContextMenu();
+        setupPatternComboBox();
+        
+        btnSave.setOnAction(e -> handleSaveScheduled());
+        btnCancel.setOnAction(e -> handleCancelEdit());
+        btnClearForm.setOnAction(e -> handleClearForm());
+        btnClearFilters.setOnAction(e -> handleClearFilters());
+        tfSearch.textProperty().addListener((obs, oldVal, newVal) -> refreshData());
+        
+        updateButtonStates();
+    }
+
+    private void setupDatePickers() {
         dpStartDate.setValue(LocalDate.now());
         dpEndDate.setValue(LocalDate.now().plusMonths(1));
+        dpFilterStartDate.valueProperty().addListener((obs, oldVal, newVal) -> refreshData());
+        dpFilterEndDate.valueProperty().addListener((obs, oldVal, newVal) -> refreshData());
+    }
 
-        javafx.util.StringConverter<LocalDate> dateConverter = new javafx.util.StringConverter<LocalDate>() {
-            @Override
-            public String toString(LocalDate date) {
-                return DateTimeUtils.formatDate(date);
-            }
-
-            @Override
-            public LocalDate fromString(String string) {
-                return DateTimeUtils.parseDate(string);
-            }
-        };
-
-        dpStartDate.setConverter(dateConverter);
-        dpEndDate.setConverter(dateConverter);
-
-        // Setup recurrence patterns
-        cbPattern.setItems(FXCollections.observableArrayList(
-            ScheduledTransaction.RecurrencePattern.values()));
-
-        // Setup table columns
+    private void setupTable() {
         colStartDate.setCellValueFactory(new PropertyValueFactory<>("startDate"));
         colStartDate.setCellFactory(column -> new TableCell<ScheduledTransaction, LocalDate>() {
             @Override
             protected void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                setText(empty || date == null ? null : DateTimeUtils.formatDate(date));
+                setText(empty ? null : DateTimeUtils.formatDate(date));
             }
         });
-
+        
         colEndDate.setCellValueFactory(new PropertyValueFactory<>("endDate"));
         colEndDate.setCellFactory(column -> new TableCell<ScheduledTransaction, LocalDate>() {
             @Override
             protected void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                setText(empty || date == null ? null : DateTimeUtils.formatDate(date));
+                setText(empty ? null : DateTimeUtils.formatDate(date));
             }
         });
-
+        
         colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
         
-        // Setup amount column with currency formatting
         colAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
         colAmount.setCellFactory(column -> new TableCell<ScheduledTransaction, BigDecimal>() {
             @Override
@@ -131,12 +145,32 @@ public class ScheduledController extends BaseController {
                 super.updateItem(amount, empty);
                 if (empty || amount == null) {
                     setText(null);
+                    setStyle("");
                 } else {
-                    setText(String.format("€%.2f", amount));
+                    ScheduledTransaction transaction = getTableRow().getItem();
+                    if (transaction != null) {
+                        String formattedAmount = String.format("€%.2f", amount);
+                        if (transaction.isIncome()) {
+                            setText(formattedAmount);
+                            getStyleClass().removeAll("negative");
+                            if (!getStyleClass().contains("positive")) getStyleClass().add("positive");
+                        } else {
+                            setText("-" + formattedAmount);
+                            getStyleClass().removeAll("positive");
+                            if (!getStyleClass().contains("negative")) getStyleClass().add("negative");
+                        }
+                    }
                 }
             }
         });
-
+        
+        colPattern.setCellValueFactory(cellData -> {
+            ScheduledTransaction st = cellData.getValue();
+            ScheduledTransaction.RecurrencePattern pattern = st.getPattern();
+            String value = (pattern != null ? st.getRecurrenceValue() + " " + pattern.toString() : "");
+            return new SimpleStringProperty(value);
+        });
+        
         colTags.setCellValueFactory(cellData -> {
             String tags = cellData.getValue().getTags().stream()
                 .map(Tag::getName)
@@ -144,14 +178,38 @@ public class ScheduledController extends BaseController {
             return new SimpleStringProperty(tags);
         });
 
-        colPattern.setCellValueFactory(cellData -> 
-            new SimpleStringProperty(cellData.getValue().getRecurrencePattern().toString()));
+        table.setItems(transactions);
+    }
 
-        // Setup amount field prompt text with currency symbol
-        tfAmount.setPromptText("Amount (€)");
+    private void setupPatternComboBox() {
+        cbPattern.getItems().setAll(ScheduledTransaction.RecurrencePattern.values());
+    }
 
-        // Setup tags combobox
-        cbTags.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+    private void setupCategoryFilter() {
+        cbCategory.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+        cbCategory.setOnAction(e -> refreshData());
+        cbIncludeSubcategories.selectedProperty().addListener((obs, oldVal, newVal) -> refreshData());
+    }
+
+    private void setupFilters() {
+        cbIncludeSubcategories.setSelected(true);
+        cbIncludeSubcategories.selectedProperty().addListener((obs, oldVal, newVal) -> refreshData());
+    }
+
+    private void setupContextMenu() {
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem editMenuItem = new MenuItem("Edit");
+        MenuItem deleteMenuItem = new MenuItem("Delete");
+        
+        editMenuItem.setOnAction(e -> handleEditScheduled());
+        deleteMenuItem.setOnAction(e -> handleDeleteScheduled());
+        
+        contextMenu.getItems().addAll(editMenuItem, deleteMenuItem);
+        table.setContextMenu(contextMenu);
+    }
+
+    private void setupTagsUI() {
+        cbTags.setItems(FXCollections.observableArrayList(tagService.findAll()));
         cbTags.setOnAction(e -> {
             Tag selected = cbTags.getValue();
             if (selected != null) {
@@ -160,306 +218,6 @@ public class ScheduledController extends BaseController {
                 cbTags.setValue(null);
             }
         });
-
-        table.setItems(transactions);
-    }
-
-    @Override
-    protected void loadData() {
-        refreshData();
-    }
-
-    public void refreshData() {
-        transactions.setAll(scheduledService.findAll());
-    }
-
-    @FXML
-    private void handleAddScheduled() {
-        try {
-            if (cbPattern.getValue() == null) {
-                showWarning("Invalid Input", "Please select a recurrence pattern.");
-                return;
-            }
-
-            BigDecimal amount = new BigDecimal(tfAmount.getText());
-            int recurrenceValue = Integer.parseInt(tfRecurrenceValue.getText());
-
-            ScheduledTransaction scheduled = scheduledService.createScheduledTransaction(
-                tfDesc.getText(),
-                amount,
-                cbIncome.isSelected(),
-                dpStartDate.getValue(),
-                dpEndDate.getValue(),
-                cbPattern.getValue(),
-                recurrenceValue,
-                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
-            );
-            
-            transactions.add(scheduled);
-            // Create deadlines for all occurrences if not income
-            if (!scheduled.isIncome()) {
-                var currentDate = new Object() { LocalDate date = scheduled.getStartDate(); };
-                LocalDate endDate = scheduled.getEndDate() != null ? scheduled.getEndDate() : currentDate.date.plusYears(1);
-                DeadlineService deadlineService = serviceFactory.getDeadlineService();
-                String category = scheduled.getCategory();
-                if (category == null || category.isEmpty()) {
-                    // Use the first tag's name as category if available
-                    if (!scheduled.getTags().isEmpty()) {
-                        category = scheduled.getTags().iterator().next().getName();
-                    }
-                }
-                while (!currentDate.date.isAfter(endDate)) {
-                    deadlineService.create(
-                        new it.unicam.cs.mpgc.jbudget120002.model.Deadline(
-                            scheduled.getDescription(),
-                            currentDate.date,
-                            scheduled.getAmount().doubleValue(),
-                            false, // isPaid
-                            null, // relatedTransaction
-                            category
-                        )
-                    );
-                    // Calculate next occurrence based on pattern
-                    currentDate.date = switch (scheduled.getRecurrencePattern()) {
-                        case DAILY -> currentDate.date.plusDays(scheduled.getRecurrenceValue());
-                        case WEEKLY -> currentDate.date.plusWeeks(scheduled.getRecurrenceValue());
-                        case MONTHLY -> currentDate.date.plusMonths(scheduled.getRecurrenceValue());
-                        case YEARLY -> currentDate.date.plusYears(scheduled.getRecurrenceValue());
-                    };
-                }
-            }
-            clearForm();
-        } catch (NumberFormatException e) {
-            showError("Invalid Input", "Please enter valid numbers for amount and recurrence value.");
-        } catch (Exception e) {
-            showError("Error", "Failed to add scheduled transaction: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void handleDeleteScheduled() {
-        ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            try {
-                // Delete all related deadlines first
-                if (!selected.isIncome()) {
-                    DeadlineService deadlineService = serviceFactory.getDeadlineService();
-                    var currentDate = new Object() { LocalDate date = selected.getStartDate(); };
-                    LocalDate endDate = selected.getEndDate() != null ? selected.getEndDate() : currentDate.date.plusYears(1);
-                    
-                    while (!currentDate.date.isAfter(endDate)) {
-                        deadlineService.findAll().stream()
-                            .filter(d -> d.getDescription().equals(selected.getDescription()) 
-                                && d.getDueDate().equals(currentDate.date))
-                            .forEach(d -> deadlineService.delete(d.getId()));
-                            
-                        currentDate.date = switch (selected.getRecurrencePattern()) {
-                            case DAILY -> currentDate.date.plusDays(selected.getRecurrenceValue());
-                            case WEEKLY -> currentDate.date.plusWeeks(selected.getRecurrenceValue());
-                            case MONTHLY -> currentDate.date.plusMonths(selected.getRecurrenceValue());
-                            case YEARLY -> currentDate.date.plusYears(selected.getRecurrenceValue());
-                        };
-                    }
-                }
-                
-                scheduledService.deleteScheduledTransaction(selected.getId());
-                transactions.remove(selected);
-            } catch (Exception e) {
-                showError("Error", "Failed to delete scheduled transaction: " + e.getMessage());
-            }
-        }
-    }
-
-    @FXML
-    private void handleEditScheduled() {
-        ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showError("No Selection", "Please select a scheduled transaction to edit.");
-            return;
-        }
-
-        // Pre-fill selectedTags with the tags from the selected transaction
-        selectedTags.clear();
-        selectedTags.addAll(selected.getTags());
-        updateSelectedTagsList();
-
-        // Show edit dialog
-        Dialog<ScheduledTransaction> dialog = new Dialog<>();
-        dialog.setTitle("Edit Scheduled Transaction");
-        dialog.setHeaderText(null);
-
-        // Create the custom dialog content
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
-
-        TextField tfDesc = new TextField(selected.getDescription());
-        TextField tfAmount = new TextField(selected.getAmount().toString());
-        DatePicker dpStartDate = new DatePicker(selected.getStartDate());
-        DatePicker dpEndDate = new DatePicker(selected.getEndDate());
-        CheckBox cbIncome = new CheckBox("Income");
-        cbIncome.setSelected(selected.isIncome());
-        ComboBox<ScheduledTransaction.RecurrencePattern> cbPattern = 
-            new ComboBox<>(FXCollections.observableArrayList(ScheduledTransaction.RecurrencePattern.values()));
-        cbPattern.setValue(selected.getRecurrencePattern());
-        TextField tfRecurrenceValue = new TextField(String.valueOf(selected.getRecurrenceValue()));
-
-        // Tag editing controls
-        ComboBox<Tag> cbEditTags = new ComboBox<>(FXCollections.observableArrayList(tagService.findRootTags()));
-        cbEditTags.setPromptText("Select Tag");
-        FlowPane flowEditSelectedTags = new FlowPane(5, 5);
-        Set<Tag> editSelectedTags = new HashSet<>(selectedTags);
-        final Runnable[] updateEditSelectedTagsList = new Runnable[1];
-        updateEditSelectedTagsList[0] = () -> {
-            flowEditSelectedTags.getChildren().clear();
-            for (Tag tag : editSelectedTags) {
-                HBox tagBox = new HBox(5);
-                tagBox.setStyle("-fx-background-color: #f0f0f0; -fx-padding: 3 5; -fx-background-radius: 3;");
-                Label tagLabel = new Label(tag.getName());
-                Button removeBtn = new Button("×");
-                removeBtn.setStyle("-fx-padding: 0 3; -fx-background-radius: 2; -fx-min-width: 16;");
-                removeBtn.setOnAction(e -> {
-                    editSelectedTags.remove(tag);
-                    updateEditSelectedTagsList[0].run();
-                });
-                tagBox.getChildren().addAll(tagLabel, removeBtn);
-                flowEditSelectedTags.getChildren().add(tagBox);
-            }
-        };
-        updateEditSelectedTagsList[0].run();
-        cbEditTags.setOnAction(e -> {
-            Tag selectedTag = cbEditTags.getValue();
-            if (selectedTag != null && !editSelectedTags.contains(selectedTag)) {
-                editSelectedTags.add(selectedTag);
-                updateEditSelectedTagsList[0].run();
-                cbEditTags.setValue(null);
-            }
-        });
-
-        grid.add(new Label("Description:"), 0, 0);
-        grid.add(tfDesc, 1, 0);
-        grid.add(new Label("Amount:"), 0, 1);
-        grid.add(tfAmount, 1, 1);
-        grid.add(new Label("Start Date:"), 0, 2);
-        grid.add(dpStartDate, 1, 2);
-        grid.add(new Label("End Date:"), 0, 3);
-        grid.add(dpEndDate, 1, 3);
-        grid.add(cbIncome, 1, 4);
-        grid.add(new Label("Pattern:"), 0, 5);
-        grid.add(cbPattern, 1, 5);
-        grid.add(new Label("Recurrence Value:"), 0, 6);
-        grid.add(tfRecurrenceValue, 1, 6);
-        grid.add(new Label("Tags:"), 0, 7);
-        grid.add(cbEditTags, 1, 7);
-        grid.add(flowEditSelectedTags, 1, 8);
-
-        dialog.getDialogPane().setContent(grid);
-
-        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == saveButtonType) {
-                try {
-                    BigDecimal amount = new BigDecimal(tfAmount.getText());
-                    int recurrenceValue = Integer.parseInt(tfRecurrenceValue.getText());
-                    
-                    // Update the scheduled transaction
-                    scheduledService.updateScheduledTransaction(
-                        selected.getId(),
-                        tfDesc.getText(),
-                        amount,
-                        cbIncome.isSelected(),
-                        dpStartDate.getValue(),
-                        dpEndDate.getValue(),
-                        cbPattern.getValue(),
-                        recurrenceValue,
-                        editSelectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
-                    );
-
-                    // Update related deadlines
-                    if (!selected.isIncome()) {
-                        DeadlineService deadlineService = serviceFactory.getDeadlineService();
-                        
-                        // Delete old deadlines
-                        var oldDate = new Object() { LocalDate date = selected.getStartDate(); };
-                        LocalDate oldEndDate = selected.getEndDate() != null ? selected.getEndDate() : oldDate.date.plusYears(1);
-                        while (!oldDate.date.isAfter(oldEndDate)) {
-                            deadlineService.findAll().stream()
-                                .filter(d -> d.getDescription().equals(selected.getDescription()) 
-                                    && d.getDueDate().equals(oldDate.date))
-                                .forEach(d -> deadlineService.delete(d.getId()));
-                                
-                            oldDate.date = switch (selected.getRecurrencePattern()) {
-                                case DAILY -> oldDate.date.plusDays(selected.getRecurrenceValue());
-                                case WEEKLY -> oldDate.date.plusWeeks(selected.getRecurrenceValue());
-                                case MONTHLY -> oldDate.date.plusMonths(selected.getRecurrenceValue());
-                                case YEARLY -> oldDate.date.plusYears(selected.getRecurrenceValue());
-                            };
-                        }
-                        
-                        // Create new deadlines
-                        LocalDate newDate = dpStartDate.getValue();
-                        LocalDate newEndDate = dpEndDate.getValue() != null ? dpEndDate.getValue() : newDate.plusYears(1);
-                        while (!newDate.isAfter(newEndDate)) {
-                            deadlineService.create(
-                                new it.unicam.cs.mpgc.jbudget120002.model.Deadline(
-                                    tfDesc.getText(),
-                                    newDate,
-                                    amount.doubleValue(),
-                                    false,
-                                    null,
-                                    selected.getCategory()
-                                )
-                            );
-                            
-                            newDate = switch (cbPattern.getValue()) {
-                                case DAILY -> newDate.plusDays(recurrenceValue);
-                                case WEEKLY -> newDate.plusWeeks(recurrenceValue);
-                                case MONTHLY -> newDate.plusMonths(recurrenceValue);
-                                case YEARLY -> newDate.plusYears(recurrenceValue);
-                            };
-                        }
-                    }
-                    
-                    return selected;
-                } catch (NumberFormatException e) {
-                    showError("Invalid Input", "Please enter valid numbers for amount and recurrence value.");
-                    return null;
-                }
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(result -> {
-            refreshData();
-        });
-    }
-
-    @FXML
-    private void handleGenerateScheduled() {
-        List<ScheduledTransaction> scheduled = scheduledService.findAll();
-        for (var st : scheduled) {
-            scheduledService.generateTransactions(st.getId(), LocalDate.now());
-        }
-        refreshData();
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Scheduled transactions generated up to today.", ButtonType.OK);
-        alert.setHeaderText(null);
-        alert.setTitle("Generation Complete");
-        alert.showAndWait();
-    }
-
-    private void clearForm() {
-        dpStartDate.setValue(LocalDate.now());
-        dpEndDate.setValue(LocalDate.now().plusMonths(1));
-        tfDesc.clear();
-        tfAmount.clear();
-        cbIncome.setSelected(false);
-        cbPattern.setValue(null);
-        tfRecurrenceValue.clear();
-        selectedTags.clear();
-        updateSelectedTagsList();
     }
 
     private void updateSelectedTagsList() {
@@ -477,5 +235,229 @@ public class ScheduledController extends BaseController {
             tagBox.getChildren().addAll(tagLabel, removeBtn);
             flowSelectedTags.getChildren().add(tagBox);
         }
+    }
+
+    @Override
+    protected void loadData() {
+        refreshData();
+    }
+
+    public void refreshData() {
+        LocalDate startDate = dpFilterStartDate.getValue();
+        LocalDate endDate = dpFilterEndDate.getValue();
+        String searchText = tfSearch.getText().trim();
+        Tag selectedCategory = cbCategory.getValue();
+        boolean includeSubcategories = cbIncludeSubcategories.isSelected();
+
+        List<ScheduledTransaction> filteredTransactions;
+        if (selectedCategory != null) {
+            filteredTransactions = scheduledService.findByTag(selectedCategory, includeSubcategories);
+        } else {
+            filteredTransactions = scheduledService.findAll();
+        }
+
+        // Apply date and search filters
+        filteredTransactions = filteredTransactions.stream()
+            .filter(t -> (startDate == null || !t.getStartDate().isBefore(startDate)) &&
+                        (endDate == null || !t.getEndDate().isAfter(endDate)) &&
+                        (searchText.isEmpty() || t.getDescription().toLowerCase().contains(searchText.toLowerCase())))
+            .collect(Collectors.toList());
+
+        transactions.setAll(filteredTransactions);
+        updateStatistics();
+    }
+
+    private void updateStatistics() {
+        BigDecimal totalIncome = scheduledService.calculateIncomeForPeriod(
+            dpFilterStartDate.getValue(), 
+            dpFilterEndDate.getValue()
+        );
+        
+        BigDecimal totalExpense = scheduledService.calculateExpensesForPeriod(
+            dpFilterStartDate.getValue(), 
+            dpFilterEndDate.getValue()
+        );
+        
+        BigDecimal balance = totalIncome.subtract(totalExpense);
+        
+        lblTotalIncome.setText(String.format("€%.2f", totalIncome));
+        lblTotalExpense.setText(String.format("€%.2f", totalExpense));
+        lblBalance.setText(String.format("€%.2f", balance));
+    }
+
+    @FXML
+    private void handleAddScheduled() {
+        try {
+            ScheduledTransaction.RecurrencePattern pattern = cbPattern.getValue();
+            if (pattern == null) {
+                showWarning("Invalid Input", "No recurrence pattern selected. Defaulting to MONTHLY.");
+                pattern = ScheduledTransaction.RecurrencePattern.MONTHLY;
+                cbPattern.setValue(pattern);
+            }
+
+            BigDecimal amount = new BigDecimal(tfAmount.getText());
+            int recurrenceValue = Integer.parseInt(tfRecurrenceValue.getText());
+
+            ScheduledTransaction scheduled = scheduledService.createScheduledTransaction(
+                tfDesc.getText(),
+                amount,
+                cbIncome.isSelected(),
+                dpStartDate.getValue(),
+                dpEndDate.getValue(),
+                pattern,
+                recurrenceValue,
+                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+            );
+            
+            transactions.add(scheduled);
+            clearForm();
+        } catch (NumberFormatException e) {
+            showError("Invalid Input", "Please enter valid numbers for amount and recurrence value.");
+        } catch (Exception e) {
+            showError("Error", "Failed to add scheduled transaction: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleEditScheduled() {
+        ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            isEditMode = true;
+            dpStartDate.setValue(selected.getStartDate());
+            dpEndDate.setValue(selected.getEndDate());
+            tfDesc.setText(selected.getDescription());
+            tfAmount.setText(selected.getAmount().toString());
+            cbIncome.setSelected(selected.isIncome());
+            cbPattern.setValue(selected.getPattern());
+            tfRecurrenceValue.setText(String.valueOf(selected.getRecurrenceValue()));
+            selectedTags.clear();
+            selectedTags.addAll(selected.getTags());
+            updateSelectedTagsList();
+            updateButtonStates();
+        }
+    }
+
+    @FXML
+    private void handleSaveScheduled() {
+        try {
+            ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
+            if (selected == null) {
+                showError("No Selection", "Please select a scheduled transaction to edit.");
+                return;
+            }
+
+            ScheduledTransaction.RecurrencePattern pattern = cbPattern.getValue();
+            if (pattern == null) {
+                showWarning("Invalid Input", "No recurrence pattern selected. Defaulting to MONTHLY.");
+                pattern = ScheduledTransaction.RecurrencePattern.MONTHLY;
+                cbPattern.setValue(pattern);
+            }
+            BigDecimal amount = new BigDecimal(tfAmount.getText());
+            int recurrenceValue = Integer.parseInt(tfRecurrenceValue.getText());
+
+            scheduledService.updateScheduledTransaction(
+                selected.getId(),
+                tfDesc.getText(),
+                amount,
+                cbIncome.isSelected(),
+                dpStartDate.getValue(),
+                dpEndDate.getValue(),
+                pattern,
+                recurrenceValue,
+                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+            );
+            
+            refreshData();
+            clearForm();
+        } catch (NumberFormatException e) {
+            showError("Invalid Input", "Please enter valid numbers for amount and recurrence value.");
+        } catch (Exception e) {
+            showError("Error", "Failed to update scheduled transaction: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleDeleteScheduled() {
+        ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            try {
+                scheduledService.deleteScheduledTransaction(selected.getId());
+                transactions.remove(selected);
+                refreshData();
+            } catch (Exception e) {
+                showError("Error", "Failed to delete scheduled transaction: " + e.getMessage());
+            }
+        }
+    }
+
+    @FXML
+    private void handleClearFilters() {
+        dpFilterStartDate.setValue(null);
+        dpFilterEndDate.setValue(null);
+        tfSearch.clear();
+        cbCategory.setValue(null);
+        cbIncludeSubcategories.setSelected(true);
+        refreshData();
+    }
+
+    @FXML
+    private void handleClearForm() {
+        clearForm();
+    }
+
+    @FXML
+    private void handleCancelEdit() {
+        ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            dpStartDate.setValue(selected.getStartDate());
+            dpEndDate.setValue(selected.getEndDate());
+            tfDesc.setText(selected.getDescription());
+            tfAmount.setText(selected.getAmount().toString());
+            cbIncome.setSelected(selected.isIncome());
+            cbPattern.setValue(selected.getPattern());
+            tfRecurrenceValue.setText(String.valueOf(selected.getRecurrenceValue()));
+            selectedTags.clear();
+            selectedTags.addAll(selected.getTags());
+            updateSelectedTagsList();
+        }
+        clearForm();
+    }
+
+    private void clearForm() {
+        isEditMode = false;
+        dpStartDate.setValue(LocalDate.now());
+        dpEndDate.setValue(LocalDate.now().plusMonths(1));
+        tfDesc.clear();
+        tfAmount.clear();
+        cbIncome.setSelected(false);
+        cbPattern.setValue(null);
+        tfRecurrenceValue.clear();
+        selectedTags.clear();
+        updateSelectedTagsList();
+        updateButtonStates();
+    }
+
+    private void updateButtonStates() {
+        btnAdd.setVisible(!isEditMode);
+        btnAdd.setManaged(!isEditMode);
+        btnSave.setVisible(isEditMode);
+        btnSave.setManaged(isEditMode);
+        btnCancel.setVisible(isEditMode);
+        btnCancel.setManaged(isEditMode);
+        btnClearForm.setVisible(!isEditMode);
+        btnClearForm.setManaged(!isEditMode);
+    }
+
+    @FXML
+    private void handleGenerateScheduled() {
+        List<ScheduledTransaction> scheduled = scheduledService.findAll();
+        for (var st : scheduled) {
+            scheduledService.generateTransactions(st.getId(), LocalDate.now());
+        }
+        refreshData();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Scheduled transactions generated up to today.", ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.setTitle("Generation Complete");
+        alert.showAndWait();
     }
 } 

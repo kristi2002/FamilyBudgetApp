@@ -26,6 +26,9 @@ public class ScheduledTransactionServiceImpl implements ScheduledTransactionServ
             ScheduledTransaction.RecurrencePattern pattern, int recurrenceValue, Set<Long> tagIds) {
         entityManager.getTransaction().begin();
         try {
+            if (pattern == null) {
+                pattern = ScheduledTransaction.RecurrencePattern.MONTHLY;
+            }
             ScheduledTransaction scheduled = new ScheduledTransaction(
                 description, amount, isIncome, startDate, endDate, pattern, recurrenceValue);
 
@@ -154,6 +157,7 @@ public class ScheduledTransactionServiceImpl implements ScheduledTransactionServ
                             scheduled.getAmount(),
                             scheduled.isIncome()
                         );
+                        transaction.setCurrency("EUR");
                         transaction.setScheduledTransaction(scheduled);
                         for (Tag tag : scheduled.getTags()) {
                             transaction.addTag(tag);
@@ -161,7 +165,7 @@ public class ScheduledTransactionServiceImpl implements ScheduledTransactionServ
                         entityManager.persist(transaction);
                     }
                     // Calculate next occurrence
-                    switch (scheduled.getRecurrencePattern()) {
+                    switch (scheduled.getPattern()) {
                         case DAILY -> currentDate = currentDate.plusDays(scheduled.getRecurrenceValue());
                         case WEEKLY -> currentDate = currentDate.plusWeeks(scheduled.getRecurrenceValue());
                         case MONTHLY -> currentDate = currentDate.plusMonths(scheduled.getRecurrenceValue());
@@ -179,19 +183,19 @@ public class ScheduledTransactionServiceImpl implements ScheduledTransactionServ
     @Override
     public void updateScheduledTransaction(Long id, String description, BigDecimal amount,
             boolean isIncome, LocalDate startDate, LocalDate endDate,
-            ScheduledTransaction.RecurrencePattern pattern, int interval, Set<Long> tagIds) {
+            ScheduledTransaction.RecurrencePattern pattern, int recurrenceValue, Set<Long> tagIds) {
         entityManager.getTransaction().begin();
         try {
-            ScheduledTransaction scheduled = findById(id).orElse(null);
+            ScheduledTransaction scheduled = entityManager.find(ScheduledTransaction.class, id);
             if (scheduled != null) {
                 scheduled.setDescription(description);
                 scheduled.setAmount(amount);
                 scheduled.setIncome(isIncome);
                 scheduled.setStartDate(startDate);
                 scheduled.setEndDate(endDate);
-                scheduled.setRecurrencePattern(pattern);
-                scheduled.setRecurrenceValue(interval);
-
+                scheduled.setPattern(pattern);
+                scheduled.setRecurrenceValue(recurrenceValue);
+                
                 // Update tags
                 scheduled.getTags().clear();
                 for (Long tagId : tagIds) {
@@ -221,8 +225,40 @@ public class ScheduledTransactionServiceImpl implements ScheduledTransactionServ
     }
 
     @Override
-    public void generateTransactions(Long scheduledTransactionId, LocalDate asOfDate) {
-        generateTransactionsUntil(scheduledTransactionId, asOfDate);
+    public void generateTransactions(Long id, LocalDate upToDate) {
+        entityManager.getTransaction().begin();
+        try {
+            ScheduledTransaction scheduled = entityManager.find(ScheduledTransaction.class, id);
+            if (scheduled != null) {
+                LocalDate currentDate = scheduled.getStartDate();
+                while (!currentDate.isAfter(upToDate) && 
+                       (scheduled.getEndDate() == null || !currentDate.isAfter(scheduled.getEndDate()))) {
+                    // Create transaction for this occurrence
+                    Transaction transaction = new Transaction(
+                        currentDate,
+                        scheduled.getDescription(),
+                        scheduled.getAmount(),
+                        scheduled.isIncome()
+                    );
+                    transaction.setCurrency("EUR");
+                    transaction.setScheduledTransaction(scheduled);
+                    scheduled.getTags().forEach(transaction::addTag);
+                    entityManager.persist(transaction);
+                    
+                    // Calculate next occurrence based on pattern
+                    currentDate = switch (scheduled.getPattern()) {
+                        case DAILY -> currentDate.plusDays(scheduled.getRecurrenceValue());
+                        case WEEKLY -> currentDate.plusWeeks(scheduled.getRecurrenceValue());
+                        case MONTHLY -> currentDate.plusMonths(scheduled.getRecurrenceValue());
+                        case YEARLY -> currentDate.plusYears(scheduled.getRecurrenceValue());
+                    };
+                }
+            }
+            entityManager.getTransaction().commit();
+        } catch (Exception e) {
+            entityManager.getTransaction().rollback();
+            throw e;
+        }
     }
 
     @Override
@@ -230,5 +266,49 @@ public class ScheduledTransactionServiceImpl implements ScheduledTransactionServ
         LocalDate start = month.atDay(1);
         LocalDate end = month.atEndOfMonth();
         return findByDateRange(start, end);
+    }
+
+    @Override
+    public List<ScheduledTransaction> findByTag(Tag tag, boolean includeSubcategories) {
+        TypedQuery<ScheduledTransaction> query;
+        if (includeSubcategories) {
+            query = entityManager.createQuery(
+                "SELECT DISTINCT st FROM ScheduledTransaction st " +
+                "JOIN st.tags t " +
+                "WHERE t.id = :tagId OR t.parent.id = :tagId " +
+                "ORDER BY st.startDate DESC", ScheduledTransaction.class);
+        } else {
+            query = entityManager.createQuery(
+                "SELECT DISTINCT st FROM ScheduledTransaction st " +
+                "JOIN st.tags t " +
+                "WHERE t.id = :tagId " +
+                "ORDER BY st.startDate DESC", ScheduledTransaction.class);
+        }
+        query.setParameter("tagId", tag.getId());
+        return query.getResultList();
+    }
+
+    @Override
+    public BigDecimal calculateIncomeForPeriod(LocalDate startDate, LocalDate endDate) {
+        TypedQuery<BigDecimal> query = entityManager.createQuery(
+            "SELECT COALESCE(SUM(st.amount), 0) FROM ScheduledTransaction st " +
+            "WHERE st.isIncome = true " +
+            "AND st.startDate <= :endDate " +
+            "AND (st.endDate IS NULL OR st.endDate >= :startDate)", BigDecimal.class);
+        query.setParameter("startDate", startDate);
+        query.setParameter("endDate", endDate);
+        return query.getSingleResult();
+    }
+
+    @Override
+    public BigDecimal calculateExpensesForPeriod(LocalDate startDate, LocalDate endDate) {
+        TypedQuery<BigDecimal> query = entityManager.createQuery(
+            "SELECT COALESCE(SUM(st.amount), 0) FROM ScheduledTransaction st " +
+            "WHERE st.isIncome = false " +
+            "AND st.startDate <= :endDate " +
+            "AND (st.endDate IS NULL OR st.endDate >= :startDate)", BigDecimal.class);
+        query.setParameter("startDate", startDate);
+        query.setParameter("endDate", endDate);
+        return query.getSingleResult();
     }
 }

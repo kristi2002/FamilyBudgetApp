@@ -60,12 +60,12 @@ public class ScheduledTransaction {
     @Column
     private LocalDate endDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private RecurrencePattern recurrencePattern;
+    @Column(name = "RECURRENCEVALUE", nullable = false)
+    private Integer recurrenceValue = 1;
 
-    @Column(nullable = false)
-    private int recurrenceValue;
+    @Column(name = "RECURRENCEPATTERN", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private RecurrencePattern pattern = RecurrencePattern.MONTHLY;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -90,14 +90,14 @@ public class ScheduledTransaction {
 
     public ScheduledTransaction(String description, BigDecimal amount, boolean isIncome,
                               LocalDate startDate, LocalDate endDate,
-                              RecurrencePattern pattern, int value) {
+                              RecurrencePattern pattern, Integer value) {
         this.description = description;
         this.amount = amount;
         this.isIncome = isIncome;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.recurrencePattern = pattern;
-        this.recurrenceValue = value;
+        this.pattern = (pattern != null) ? pattern : RecurrencePattern.MONTHLY;
+        this.recurrenceValue = (value != null) ? value : 1;
     }
 
     public void generateTransactions(LocalDate until) {
@@ -121,7 +121,7 @@ public class ScheduledTransaction {
             generatedTransactions.add(transaction);
             
             // Calculate next occurrence based on pattern
-            currentDate = switch (recurrencePattern) {
+            currentDate = switch (pattern) {
                 case DAILY -> currentDate.plusDays(recurrenceValue);
                 case WEEKLY -> currentDate.plusWeeks(recurrenceValue);
                 case MONTHLY -> currentDate.plusMonths(recurrenceValue);
@@ -145,8 +145,8 @@ public class ScheduledTransaction {
     public boolean isIncome() { return isIncome; }
     public LocalDate getStartDate() { return startDate; }
     public LocalDate getEndDate() { return endDate; }
-    public RecurrencePattern getRecurrencePattern() { return recurrencePattern; }
-    public int getRecurrenceValue() { return recurrenceValue; }
+    public RecurrencePattern getPattern() { return pattern; }
+    public Integer getRecurrenceValue() { return recurrenceValue; }
     public ProcessingState getProcessingState() { return processingState; }
     public Set<Tag> getTags() { return tags; }
     public List<Transaction> getGeneratedTransactions() { return generatedTransactions; }
@@ -159,8 +159,8 @@ public class ScheduledTransaction {
     public void setIncome(boolean income) { isIncome = income; }
     public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
-    public void setRecurrencePattern(RecurrencePattern pattern) { this.recurrencePattern = pattern; }
-    public void setRecurrenceValue(int value) { this.recurrenceValue = value; }
+    public void setPattern(RecurrencePattern pattern) { this.pattern = (pattern != null) ? pattern : RecurrencePattern.MONTHLY; }
+    public void setRecurrenceValue(Integer value) { this.recurrenceValue = (value != null) ? value : 1; }
     public void setProcessingState(ProcessingState state) { this.processingState = state; }
     public void setTags(Set<Tag> tags) { this.tags = tags; }
     public void setCategory(String category) { this.category = category; }

@@ -4,49 +4,89 @@
 <?import javafx.geometry.Insets?>
 
 <VBox spacing="10" xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/16"
-    fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.ScheduledController">
+      fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.ScheduledController">
     
     <padding>
         <Insets bottom="10" left="10" right="10" top="10"/>
     </padding>
 
-    <!-- Form Section -->
-    <GridPane hgap="10" vgap="10">
-        <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-        <TextField fx:id="tfDesc" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-        
-        <Label text="Amount:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <TextField fx:id="tfAmount" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-        
-        <Label text="Start Date:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-        <DatePicker fx:id="dpStartDate" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-        
-        <Label text="End Date:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <DatePicker fx:id="dpEndDate" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-        
-        <Label text="Recurrence Pattern:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-        <ComboBox fx:id="cbPattern" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-        
-        <Label text="Recurrence Value:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-        <TextField fx:id="tfRecurrenceValue" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
-        
-        <Label text="Tags:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-        <ComboBox fx:id="cbTags" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
-        
-        <CheckBox fx:id="cbIncome" text="Income" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
-        
-        <FlowPane fx:id="flowSelectedTags" hgap="5" vgap="5" GridPane.columnIndex="1" GridPane.rowIndex="8"/>
-    </GridPane>
+    <!-- Filters Section -->
+    <TitledPane text="Filters" expanded="false">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="From:"/>
+            <DatePicker fx:id="dpFilterStartDate"/>
+            <Label text="To:"/>
+            <DatePicker fx:id="dpFilterEndDate"/>
+            <Label text="Category:"/>
+            <ComboBox fx:id="cbCategory" promptText="Select Category"/>
+            <CheckBox fx:id="cbIncludeSubcategories" text="Include Subcategories" selected="true"/>
+            <TextField fx:id="tfSearch" promptText="Search description or amount"/>
+            <Button fx:id="btnClearFilters" text="Clear Filters" onAction="#handleClearFilters"/>
+        </HBox>
+    </TitledPane>
 
-    <!-- Table Section -->
+    <!-- Statistics Section -->
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <Label text="Total Income:"/>
+        <Label fx:id="lblTotalIncome"/>
+        <Label text="Total Expense:"/>
+        <Label fx:id="lblTotalExpense"/>
+        <Label text="Balance:"/>
+        <Label fx:id="lblBalance"/>
+    </HBox>
+
+    <!-- Scheduled Transaction Form Section -->
+    <TitledPane text="Scheduled Transaction Form" expanded="true">
+        <GridPane hgap="10" vgap="10">
+            <Label text="Start Date:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <DatePicker fx:id="dpStartDate" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+            
+            <Label text="End Date:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <DatePicker fx:id="dpEndDate" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            
+            <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="tfDesc" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            
+            <Label text="Amount:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <TextField fx:id="tfAmount" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            
+            <CheckBox fx:id="cbIncome" text="Income" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+            
+            <Label text="Recurrence Pattern:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+            <ComboBox fx:id="cbPattern" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+            
+            <Label text="Recurrence Value:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+            <TextField fx:id="tfRecurrenceValue" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+            
+            <Label text="Tags:" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                <ComboBox fx:id="cbTags" promptText="Select Tag"/>
+                <FlowPane fx:id="flowSelectedTags" hgap="5" vgap="5"/>
+            </VBox>
+            
+            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="8">
+                <Button fx:id="btnAdd" text="Add Scheduled Transaction" onAction="#handleAddScheduled"/>
+                <Button fx:id="btnSave" text="Save" onAction="#handleSaveScheduled"/>
+                <Button fx:id="btnCancel" text="Cancel" onAction="#handleCancelEdit"/>
+                <Button fx:id="btnClearForm" text="Clear Form" onAction="#handleClearForm"/>
+            </HBox>
+        </GridPane>
+    </TitledPane>
+
+    <!-- Scheduled Transactions Table -->
     <TableView fx:id="table" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colStartDate" text="Start Date" prefWidth="100"/>
-            <TableColumn fx:id="colEndDate" text="End Date" prefWidth="100"/>
-            <TableColumn fx:id="colDesc" text="Description" prefWidth="200"/>
-            <TableColumn fx:id="colAmount" text="Amount" prefWidth="100"/>
-            <TableColumn fx:id="colTags" text="Tags" prefWidth="150"/>
-            <TableColumn fx:id="colPattern" text="Pattern" prefWidth="100"/>
+            <TableColumn fx:id="colStartDate" text="Start Date" prefWidth="120"/>
+            <TableColumn fx:id="colEndDate" text="End Date" prefWidth="120"/>
+            <TableColumn fx:id="colDesc" text="Description" prefWidth="220"/>
+            <TableColumn fx:id="colAmount" text="Amount" prefWidth="120"/>
+            <TableColumn fx:id="colPattern" text="Pattern" prefWidth="120"/>
+            <TableColumn fx:id="colTags" text="Tags"/>
         </columns>
     </TableView>
+
+    <!-- Generate Scheduled Transactions Button at Bottom Right -->
+    <HBox alignment="BOTTOM_RIGHT">
+        <Button fx:id="btnGenerateScheduled" text="Generate Scheduled Transactions" onAction="#handleGenerateScheduled"/>
+    </HBox>
 </VBox>

@@ -40,6 +40,9 @@ public class Transaction {
     @Column(nullable = false)
     private boolean isIncome;
 
+    @Column(nullable = false)
+    private String currency = "EUR";
+
     @ManyToMany
     @JoinTable(
         name = "transaction_tags",
@@ -83,12 +86,14 @@ public class Transaction {
     public LoanAmortizationPlan getLoanPlan() { return loanPlan; }
     public BigDecimal getPrincipalAmount() { return principalAmount; }
     public BigDecimal getInterestAmount() { return interestAmount; }
+    public String getCurrency() { return currency; }
 
     // Setters
     public void setDate(LocalDate date) { this.date = date; }
     public void setDescription(String description) { this.description = description; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public void setIncome(boolean income) { isIncome = income; }
+    public void setCurrency(String currency) { this.currency = currency; }
     
     // Tag Management
     public void addTag(Tag tag) {

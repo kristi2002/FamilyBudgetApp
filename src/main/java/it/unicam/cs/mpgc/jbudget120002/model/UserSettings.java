@@ -29,9 +29,6 @@ public class UserSettings {
     @Column(nullable = false)
     private String locale = "it-IT";
 
-    @Column(nullable = false)
-    private String theme = "Light";
-
     @Column(name = "database_path")
     private String databasePath;
 
@@ -50,14 +47,12 @@ public class UserSettings {
 
     public UserSettings() {}
 
-    public UserSettings(String locale, String theme) {
+    public UserSettings(String locale) {
         this.locale = locale;
-        this.theme = theme;
     }
 
     public Long getId() { return id; }
     public String getLocale() { return locale; }
-    public String getTheme() { return theme; }
     public String getDatabasePath() { return databasePath; }
     public boolean isAutoBackup() { return autoBackup; }
     public String getBackupPath() { return backupPath; }
@@ -66,9 +61,6 @@ public class UserSettings {
 
     public void setLocale(String locale) {
         this.locale = locale;
-    }
-    public void setTheme(String theme) {
-        this.theme = theme;
     }
     public void setDatabasePath(String databasePath) {
         this.databasePath = databasePath;

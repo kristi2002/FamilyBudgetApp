@@ -69,7 +69,7 @@ public class ScheduledTransactionsController extends BaseController {
             return new SimpleStringProperty(tags);
         });
         colPattern.setCellValueFactory(cellData -> 
-            new SimpleStringProperty(cellData.getValue().getRecurrencePattern().toString()));
+            new SimpleStringProperty(cellData.getValue().getPattern().toString()));
 
         // Setup tags combobox
         cbTags.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
