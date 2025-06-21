@@ -15,7 +15,7 @@
                         <fx:include fx:id="dashboardView" source="DashboardView.fxml" />
                     </content>
                 </Tab>
-                <Tab fx:id="transactionsTab" text="Transactions" closable="false">
+                <Tab fx:id="transactionsTab" onSelectionChanged="#onTransactionsTabSelected" text="Transactions" closable="false">
                     <content>
                         <fx:include fx:id="transactionsView" source="TransactionsView.fxml" />
                     </content>
@@ -23,11 +23,6 @@
                 <Tab fx:id="statisticsTab" text="Statistics" closable="false">
                     <content>
                         <fx:include fx:id="statisticsView" source="StatisticsView.fxml" />
-                    </content>
-                </Tab>
-                <Tab fx:id="deadlinesTab" text="Deadlines" closable="false">
-                    <content>
-                        <fx:include fx:id="deadlinesView" source="DeadlinesView.fxml" />
                     </content>
                 </Tab>
                 <Tab fx:id="scheduledTab" text="Scheduled Transactions" closable="false">
@@ -45,6 +40,11 @@
                         <fx:include fx:id="loanAmortizationView" source="LoanAmortizationView.fxml" />
                     </content>
                 </Tab>
+                <Tab fx:id="deadlinesTab" text="Deadlines" closable="false">
+                    <content>
+                        <fx:include fx:id="deadlinesView" source="DeadlinesView.fxml" />
+                    </content>
+                </Tab>
                 <Tab fx:id="tagsTab" text="Tags" closable="false">
                     <content>
                         <fx:include fx:id="tagsView" source="TagsView.fxml" />
@@ -53,6 +53,11 @@
                 <Tab fx:id="settingsTab" text="Settings" closable="false">
                     <content>
                         <fx:include fx:id="settingsView" source="SettingsView.fxml" />
+                    </content>
+                </Tab>
+                <Tab fx:id="userManagementTab" text="User Management" closable="false">
+                    <content>
+                        <fx:include fx:id="userManagementView" source="UserManagementView.fxml" />
                     </content>
                 </Tab>
             </tabs>

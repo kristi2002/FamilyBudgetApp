@@ -80,12 +80,18 @@ public class StatisticsController extends BaseController {
     @FXML private ComboBox<String> cbAnalysisInterval;
     @FXML private BarChart<String, Number> patternChart;
 
+    private User currentUser;
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
+
     @Override
     protected void initializeServices() {
-        statisticsService = serviceFactory.getStatisticsService();
-        tagService = serviceFactory.getTagService();
-        budgetService = serviceFactory.getBudgetService();
-        transactionService = serviceFactory.getTransactionService();
+        statisticsService = serviceFactory.getStatisticsService(false);
+        tagService = serviceFactory.getTagService(false);
+        budgetService = serviceFactory.getBudgetService(false);
+        transactionService = serviceFactory.getTransactionService(false);
         
         monthlyStats = FXCollections.observableArrayList();
         categoryStats = FXCollections.observableArrayList();
@@ -246,9 +252,9 @@ public class StatisticsController extends BaseController {
         refreshData();
     }
 
+    @Override
     public void refreshData() {
-        if (dpStartDate.getValue() == null || dpEndDate.getValue() == null) return;
-        
+        if (currentUser == null) return;
         updateSummary();
         updateTables();
         updateCharts();
@@ -257,15 +263,11 @@ public class StatisticsController extends BaseController {
     private void updateSummary() {
         LocalDate start = dpStartDate.getValue();
         LocalDate end = dpEndDate.getValue();
-        
-        // Current period statistics
-        BigDecimal currentIncome = transactionService.calculateIncomeForPeriod(start, end);
-        BigDecimal currentExpenses = transactionService.calculateExpensesForPeriod(start, end);
+        BigDecimal currentIncome = transactionService.calculateIncomeForPeriodForUser(currentUser, start, end);
+        BigDecimal currentExpenses = transactionService.calculateExpensesForPeriodForUser(currentUser, start, end);
         BigDecimal currentBalance = currentIncome.subtract(currentExpenses);
         double currentSavingsRate = currentIncome.doubleValue() == 0 ? 0 :
             (currentBalance.doubleValue() / currentIncome.doubleValue()) * 100;
-        
-        // Update current period labels
         lblCurrentIncome.setText("Income: " + String.format("€%.2f", currentIncome));
         lblCurrentExpenses.setText("Expenses: " + String.format("€%.2f", currentExpenses));
         lblCurrentBalance.setText("Balance: " + String.format("€%.2f", currentBalance));
@@ -273,13 +275,13 @@ public class StatisticsController extends BaseController {
     }
 
     private void updateTables() {
+        if (currentUser == null) return;
         // Update monthly summary
         List<MonthlyStatistic> monthlyData = statisticsService.getMonthlyStatistics(
             dpStartDate.getValue(), 
             dpEndDate.getValue()
         );
         monthlyStats.setAll(monthlyData);
-        
         // Update category analysis
         Tag selectedCategory = cbMainCategory.getValue();
         List<CategoryStatistic> categoryData = statisticsService.getCategoryStatistics(
@@ -289,7 +291,6 @@ public class StatisticsController extends BaseController {
             chkIncludeSubcategories.isSelected()
         );
         categoryStats.setAll(categoryData);
-        
         // Update budget tracking - only if a category is selected
         if (selectedCategory != null) {
             List<BudgetStatistic> budgetData = statisticsService.getBudgetStatistics(

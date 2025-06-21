@@ -1,61 +1,38 @@
 package it.unicam.cs.mpgc.jbudget120002.service;
 
 import it.unicam.cs.mpgc.jbudget120002.model.UserSettings;
+import it.unicam.cs.mpgc.jbudget120002.repository.UserSettingsRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
+
 import java.util.Optional;
 
-public class UserSettingsServiceImpl implements UserSettingsService {
-    private final EntityManager entityManager;
+public class UserSettingsServiceImpl extends BaseService implements UserSettingsService {
+    private final UserSettingsRepository repository;
 
-    public UserSettingsServiceImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
+    public UserSettingsServiceImpl(EntityManager entityManager, UserSettingsRepository repository) {
+        super(entityManager);
+        this.repository = repository;
     }
 
     @Override
     public UserSettings create(UserSettings s) {
-        entityManager.getTransaction().begin();
-        try {
-            entityManager.persist(s);
-            entityManager.getTransaction().commit();
-            return s;
-        } catch (Exception e) {
-            entityManager.getTransaction().rollback();
-            throw e;
-        }
+        executeInTransaction(() -> repository.save(s));
+        return s;
     }
 
     @Override
     public Optional<UserSettings> findFirst() {
-        TypedQuery<UserSettings> q = entityManager.createQuery(
-                "FROM UserSettings u", UserSettings.class);
-        return q.getResultStream().findFirst();
+        return repository.findFirst();
     }
 
     @Override
     public UserSettings update(UserSettings s) {
-        entityManager.getTransaction().begin();
-        try {
-            entityManager.merge(s);
-            entityManager.getTransaction().commit();
-            return s;
-        } catch (Exception e) {
-            entityManager.getTransaction().rollback();
-            throw e;
-        }
+        executeInTransaction(() -> repository.save(s));
+        return s;
     }
 
     @Override
     public void delete(Long id) {
-        entityManager.getTransaction().begin();
-        try {
-            findFirst()
-                .filter(us -> us.getId().equals(id))
-                .ifPresent(entityManager::remove);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            entityManager.getTransaction().rollback();
-            throw e;
-        }
+        executeInTransaction(() -> repository.deleteById(id));
     }
 }

@@ -18,27 +18,40 @@ import jakarta.persistence.EntityManager;
  * and ensure consistent transaction management and error handling.
  */
 public abstract class BaseService {
-    protected final EntityManager entityManager;
+    protected final EntityManager em;
 
-    protected BaseService(EntityManager entityManager) {
-        this.entityManager = entityManager;
+    public BaseService(EntityManager entityManager) {
+        this.em = entityManager;
+    }
+
+    protected void executeInTransaction(Runnable action) {
+        em.getTransaction().begin();
+        try {
+            action.run();
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        }
     }
 
     protected void beginTransaction() {
-        if (!entityManager.getTransaction().isActive()) {
-            entityManager.getTransaction().begin();
+        if (!em.getTransaction().isActive()) {
+            em.getTransaction().begin();
         }
     }
 
     protected void commitTransaction() {
-        if (entityManager.getTransaction().isActive()) {
-            entityManager.getTransaction().commit();
+        if (em.getTransaction().isActive()) {
+            em.getTransaction().commit();
         }
     }
 
     protected void rollbackTransaction() {
-        if (entityManager.getTransaction().isActive()) {
-            entityManager.getTransaction().rollback();
+        if (em.getTransaction().isActive()) {
+            em.getTransaction().rollback();
         }
     }
-} 
+}

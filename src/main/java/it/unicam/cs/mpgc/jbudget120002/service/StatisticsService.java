@@ -51,6 +51,8 @@ public interface StatisticsService {
      * Get top expense categories for a period
      */
     List<CategoryExpense> getTopExpenseCategories(LocalDate startDate, LocalDate endDate, int limit);
+    // User-aware version
+    List<CategoryExpense> getTopExpenseCategories(User user, LocalDate startDate, LocalDate endDate, int limit);
 
     /**
      * Get monthly balances for a period

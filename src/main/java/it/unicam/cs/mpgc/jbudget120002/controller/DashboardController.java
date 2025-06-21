@@ -31,6 +31,7 @@ import javafx.scene.control.Button;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.TableCell;
+import it.unicam.cs.mpgc.jbudget120002.model.User;
 
 public class DashboardController extends BaseController {
     private static final Logger LOGGER = Logger.getLogger(DashboardController.class.getName());
@@ -49,11 +50,20 @@ public class DashboardController extends BaseController {
     private StatisticsService statisticsService;
     private LocalDate periodStart = LocalDate.now().withDayOfMonth(1);
     private LocalDate periodEnd = LocalDate.now();
+    private User currentUser;
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        if (currentUser != null) {
+            updateBalanceLabel();
+            loadData();
+        }
+    }
 
     @Override
     protected void initializeServices() {
-        transactionService = serviceFactory.getTransactionService();
-        statisticsService = serviceFactory.getStatisticsService();
+        transactionService = serviceFactory.getTransactionService(false);
+        statisticsService = serviceFactory.getStatisticsService(false);
     }
 
     @Override
@@ -120,33 +130,43 @@ public class DashboardController extends BaseController {
     }
 
     private void updateBalanceLabel() {
-        BigDecimal balance = transactionService.calculateBalance(periodStart, periodEnd);
+        if (currentUser == null) return;
+        BigDecimal balance = transactionService.calculateBalanceForUser(currentUser, periodStart, periodEnd);
         lblCurrentBalance.setText("Current Balance: " + String.format("€%.2f", balance));
     }
 
     @Override
     protected void loadData() {
+        if (currentUser == null) return;
         try {
-            // Populate pie chart with top expense categories
-            List<CategoryExpense> topCategories = statisticsService.getTopExpenseCategories(periodStart, periodEnd, 6);
+            System.out.println("Dashboard: Loading data for user " + currentUser.getUsername() +
+                " from " + periodStart + " to " + periodEnd);
+
+            List<CategoryExpense> topCategories = statisticsService.getTopExpenseCategories(currentUser, periodStart, periodEnd, 6);
+            System.out.println("Dashboard: Top categories size = " + topCategories.size());
+            for (CategoryExpense ce : topCategories) {
+                System.out.println("Category: " + (ce.getCategory() != null ? ce.getCategory().getName() : "Other") +
+                    ", Amount: " + ce.getAmount());
+            }
+
             // Calculate total expenses for the period
             BigDecimal totalExpenses = topCategories.stream()
                 .map(CategoryExpense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            pieSpendingByCategory.getData().clear();
+            ObservableList<Data> pieChartData = FXCollections.observableArrayList();
             for (CategoryExpense ce : topCategories) {
-                String name = ce.getCategory() != null ? ce.getCategory().getName() : "Other";
+                String name = ce.getCategory() != null ? ce.getCategory().getName() : "Uncategorized";
                 double percent = totalExpenses.compareTo(BigDecimal.ZERO) == 0
                     ? 0
                     : ce.getAmount().divide(totalExpenses, 4, java.math.RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
                 String label = String.format("%s (%.1f%%)", name, percent);
-                pieSpendingByCategory.getData().add(new PieChart.Data(label, ce.getAmount().doubleValue()));
+                pieChartData.add(new PieChart.Data(label, ce.getAmount().doubleValue()));
             }
+            pieSpendingByCategory.setData(pieChartData);
 
             // Populate recent transactions table (for selected period)
-            // Use a more efficient query to get only the transactions we need
-            List<Transaction> recent = transactionService.findTransactionsInPeriod(periodStart, periodEnd, 10);
+            List<Transaction> recent = transactionService.findTransactionsInPeriodForUser(currentUser, periodStart, periodEnd, 10);
             ObservableList<Transaction> recentObs = FXCollections.observableArrayList(recent);
             tableRecentTransactions.setItems(recentObs);
 

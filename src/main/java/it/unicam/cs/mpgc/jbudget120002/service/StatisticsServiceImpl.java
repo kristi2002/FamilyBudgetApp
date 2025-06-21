@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.time.temporal.ChronoUnit;
 import jakarta.persistence.TypedQuery;
+import it.unicam.cs.mpgc.jbudget120002.service.BaseService;
 
 /**
  * Implements the StatisticsService interface to provide comprehensive statistical analysis
@@ -27,15 +28,14 @@ import jakarta.persistence.TypedQuery;
  * Used by controllers to retrieve and display statistical data, trends, and reports
  * for the user interface. Relies on TransactionService and TagService for data access.
  */
-public class StatisticsServiceImpl implements StatisticsService {
-    private final EntityManager entityManager;
+public class StatisticsServiceImpl extends BaseService implements StatisticsService {
     private final TransactionService transactionService;
     private final TagService tagService;
 
     public StatisticsServiceImpl(EntityManager entityManager,
                                TransactionService transactionService,
                                TagService tagService) {
-        this.entityManager = entityManager;
+        super(entityManager);
         this.transactionService = transactionService;
         this.tagService = tagService;
     }
@@ -84,6 +84,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         
         // Calculate statistics for each category
         for (Tag tag : categories) {
+            if (tag == null) continue;
             BigDecimal currentAmount = transactionService.calculateAmountForTagInPeriod(tag, startDate, endDate);
             BigDecimal previousAmount = transactionService.calculateAmountForTagInPeriod(
                 tag,
@@ -212,8 +213,8 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public List<CategoryExpense> getTopExpenseCategories(LocalDate startDate, LocalDate endDate, int limit) {
-        List<Transaction> transactions = transactionService.findByDateRange(startDate, endDate);
+    public List<CategoryExpense> getTopExpenseCategories(User user, LocalDate startDate, LocalDate endDate, int limit) {
+        List<Transaction> transactions = transactionService.findByDateRangeForUser(user, startDate, endDate);
         // Only keep expenses
         transactions = transactions.stream()
             .filter(t -> !t.isIncome())
@@ -233,10 +234,16 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
+    public List<CategoryExpense> getTopExpenseCategories(LocalDate startDate, LocalDate endDate, int limit) {
+        // Fallback: call the user-aware version with null user (or throw if not supported)
+        return getTopExpenseCategories((User) null, startDate, endDate, limit);
+    }
+
+    @Override
     public List<MonthlyBalance> getMonthlyBalances(LocalDate startDate, LocalDate endDate) {
         // Instead of loading all transactions and processing them in memory,
         // use a more efficient SQL query to calculate monthly balances
-        TypedQuery<Object[]> query = entityManager.createQuery(
+        TypedQuery<Object[]> query = em.createQuery(
             "SELECT FUNCTION('YEAR', t.date), FUNCTION('MONTH', t.date), " +
             "SUM(CASE WHEN t.isIncome = true THEN t.amount ELSE 0 END), " +
             "SUM(CASE WHEN t.isIncome = false THEN t.amount ELSE 0 END), " +

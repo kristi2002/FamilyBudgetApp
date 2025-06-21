@@ -59,6 +59,10 @@ public class Transaction {
     @JoinColumn(name = "loan_plan_id")
     private LoanAmortizationPlan loanPlan;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Column(name = "principal_amount")
     private BigDecimal principalAmount;
 
@@ -84,6 +88,7 @@ public class Transaction {
     public Set<Tag> getTags() { return Collections.unmodifiableSet(tags); }
     public ScheduledTransaction getScheduledTransaction() { return scheduledTransaction; }
     public LoanAmortizationPlan getLoanPlan() { return loanPlan; }
+    public User getUser() { return user; }
     public BigDecimal getPrincipalAmount() { return principalAmount; }
     public BigDecimal getInterestAmount() { return interestAmount; }
     public String getCurrency() { return currency; }
@@ -94,6 +99,7 @@ public class Transaction {
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public void setIncome(boolean income) { isIncome = income; }
     public void setCurrency(String currency) { this.currency = currency; }
+    public void setUser(User user) { this.user = user; }
     
     // Tag Management
     public void addTag(Tag tag) {

@@ -13,18 +13,20 @@
         <class>it.unicam.cs.mpgc.jbudget120002.model.Deadline</class>
         <class>it.unicam.cs.mpgc.jbudget120002.model.UserSettings</class>
         <class>it.unicam.cs.mpgc.jbudget120002.model.SyncMetadata</class>
+        <class>it.unicam.cs.mpgc.jbudget120002.model.User</class>
+        <class>it.unicam.cs.mpgc.jbudget120002.model.Group</class>
         
         <properties>
             <!-- Database connection settings -->
             <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:./data/jbudget;MODE=MySQL"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:./data/jbudget_new;MODE=MySQL"/>
             <property name="jakarta.persistence.jdbc.user" value="sa"/>
             <property name="jakarta.persistence.jdbc.password" value=""/>
 
             <!-- Hibernate properties -->
             <property name="hibernate.show_sql" value="false"/>
             <property name="hibernate.format_sql" value="true"/>
-            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
 
             <!-- Connection pool settings -->

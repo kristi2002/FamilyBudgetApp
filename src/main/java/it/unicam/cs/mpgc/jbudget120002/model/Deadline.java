@@ -2,6 +2,7 @@ package it.unicam.cs.mpgc.jbudget120002.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import it.unicam.cs.mpgc.jbudget120002.model.User;
 
 @Entity
 public class Deadline {
@@ -18,6 +19,10 @@ public class Deadline {
 
     @OneToOne
     private Transaction relatedTransaction;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public Deadline() {}
 
@@ -42,6 +47,7 @@ public class Deadline {
     public boolean isPaid() { return isPaid; }
     public Transaction getRelatedTransaction() { return relatedTransaction; }
     public String getCategory() { return category; }
+    public User getUser() { return user; }
 
     public void setDescription(String description) {
         this.description = description;
@@ -60,4 +66,5 @@ public class Deadline {
     }
     public void setCategory(String category) { this.category = category; }
     public void setId(Long id) { this.id = id; }
+    public void setUser(User user) { this.user = user; }
 }

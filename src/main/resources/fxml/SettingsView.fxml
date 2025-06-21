@@ -17,17 +17,14 @@
             <ColumnConstraints hgrow="ALWAYS"/>
         </columnConstraints>
         
-        <Label text="Currency:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-        <ComboBox fx:id="cbCurrency" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity"/>
+        <Label text="Locale:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <ComboBox fx:id="cbLocale" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity"/>
         
-        <Label text="Locale:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <ComboBox fx:id="cbLocale" GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="Infinity"/>
+        <Label text="Database Path:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField fx:id="tfDatabasePath" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
         
-        <Label text="Database Path:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-        <TextField fx:id="tfDatabasePath" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-        
-        <CheckBox fx:id="cbAutoBackup" text="Auto Backup" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
+        <CheckBox fx:id="cbAutoBackup" text="Auto Backup" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
             <TextField fx:id="tfBackupPath" HBox.hgrow="ALWAYS"/>
             <Button text="Browse" onAction="#handleChooseBackupPath"/>
         </HBox>

@@ -72,4 +72,9 @@ public abstract class JpaRepository<T, ID> implements Repository<T, ID> {
         em.remove(em.contains(entity) ? entity : em.merge(entity));
         if (isNew) tx.commit();
     }
+
+    @Override
+    public void deleteById(ID id) {
+        findById(id).ifPresent(this::delete);
+    }
 }

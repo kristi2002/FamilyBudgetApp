@@ -63,6 +63,7 @@
                 <Button fx:id="btnSave" text="Save" onAction="#handleSaveTransaction"/>
                 <Button fx:id="btnCancel" text="Cancel" onAction="#handleCancelEdit"/>
                 <Button fx:id="btnClearForm" text="Clear Form" onAction="#handleClearForm"/>
+                <Button fx:id="btnGenerateScheduled" text="Generate Scheduled" onAction="#handleGenerateScheduled"/>
             </HBox>
         </GridPane>
     </TitledPane>

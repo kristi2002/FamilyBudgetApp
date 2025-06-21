@@ -2,6 +2,7 @@ package it.unicam.cs.mpgc.jbudget120002.controller;
 
 import it.unicam.cs.mpgc.jbudget120002.model.ScheduledTransaction;
 import it.unicam.cs.mpgc.jbudget120002.model.Tag;
+import it.unicam.cs.mpgc.jbudget120002.model.Deadline;
 import it.unicam.cs.mpgc.jbudget120002.service.ScheduledTransactionService;
 import it.unicam.cs.mpgc.jbudget120002.service.TagService;
 import it.unicam.cs.mpgc.jbudget120002.service.UserSettingsService;
@@ -78,28 +79,42 @@ public class ScheduledController extends BaseController {
     private ScheduledTransactionService scheduledService;
     private TagService tagService;
     private UserSettingsService settingsService;
+    private DeadlineService deadlineService;
     private ObservableList<ScheduledTransaction> transactions;
     private Set<Tag> selectedTags;
     private boolean isEditMode = false;
+    private it.unicam.cs.mpgc.jbudget120002.model.User currentUser;
+
+    public void setCurrentUser(it.unicam.cs.mpgc.jbudget120002.model.User user) {
+        this.currentUser = user;
+    }
 
     @Override
     protected void initializeServices() {
-        scheduledService = serviceFactory.getScheduledTransactionService();
-        tagService = serviceFactory.getTagService();
-        settingsService = serviceFactory.getUserSettingsService();
+        scheduledService = serviceFactory.getScheduledTransactionService(false);
+        tagService = serviceFactory.getTagService(false);
+        settingsService = serviceFactory.getUserSettingsService(false);
+        deadlineService = serviceFactory.getDeadlineService(false);
         transactions = FXCollections.observableArrayList();
         selectedTags = new HashSet<>();
     }
 
     @Override
     protected void setupUI() {
-        setupDatePickers();
         setupTable();
-        setupTagsUI();
+        setupDatePickers();
+        setupPatternComboBox();
         setupCategoryFilter();
         setupFilters();
         setupContextMenu();
-        setupPatternComboBox();
+        setupTagsUI();
+        
+        // Setup table selection listener
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                loadScheduledTransactionToForm(newSelection);
+            }
+        });
         
         btnSave.setOnAction(e -> handleSaveScheduled());
         btnCancel.setOnAction(e -> handleCancelEdit());
@@ -108,6 +123,19 @@ public class ScheduledController extends BaseController {
         tfSearch.textProperty().addListener((obs, oldVal, newVal) -> refreshData());
         
         updateButtonStates();
+    }
+
+    private void loadScheduledTransactionToForm(ScheduledTransaction transaction) {
+        dpStartDate.setValue(transaction.getStartDate());
+        dpEndDate.setValue(transaction.getEndDate());
+        tfDesc.setText(transaction.getDescription());
+        tfAmount.setText(transaction.getAmount().toString());
+        cbIncome.setSelected(transaction.isIncome());
+        cbPattern.setValue(transaction.getPattern());
+        tfRecurrenceValue.setText(String.valueOf(transaction.getRecurrenceValue()));
+        selectedTags.clear();
+        selectedTags.addAll(transaction.getTags());
+        updateSelectedTagsList();
     }
 
     private void setupDatePickers() {
@@ -200,11 +228,13 @@ public class ScheduledController extends BaseController {
         ContextMenu contextMenu = new ContextMenu();
         MenuItem editMenuItem = new MenuItem("Edit");
         MenuItem deleteMenuItem = new MenuItem("Delete");
+        MenuItem convertToDeadlineItem = new MenuItem("Convert to Deadline");
         
         editMenuItem.setOnAction(e -> handleEditScheduled());
         deleteMenuItem.setOnAction(e -> handleDeleteScheduled());
+        convertToDeadlineItem.setOnAction(e -> handleConvertToDeadline());
         
-        contextMenu.getItems().addAll(editMenuItem, deleteMenuItem);
+        contextMenu.getItems().addAll(editMenuItem, deleteMenuItem, new SeparatorMenuItem(), convertToDeadlineItem);
         table.setContextMenu(contextMenu);
     }
 
@@ -242,27 +272,27 @@ public class ScheduledController extends BaseController {
         refreshData();
     }
 
+    @Override
     public void refreshData() {
+        if (currentUser == null) return;
+        // TODO: update all queries to use currentUser if needed
         LocalDate startDate = dpFilterStartDate.getValue();
         LocalDate endDate = dpFilterEndDate.getValue();
         String searchText = tfSearch.getText().trim();
         Tag selectedCategory = cbCategory.getValue();
         boolean includeSubcategories = cbIncludeSubcategories.isSelected();
-
         List<ScheduledTransaction> filteredTransactions;
         if (selectedCategory != null) {
             filteredTransactions = scheduledService.findByTag(selectedCategory, includeSubcategories);
         } else {
             filteredTransactions = scheduledService.findAll();
         }
-
         // Apply date and search filters
         filteredTransactions = filteredTransactions.stream()
             .filter(t -> (startDate == null || !t.getStartDate().isBefore(startDate)) &&
                         (endDate == null || !t.getEndDate().isAfter(endDate)) &&
                         (searchText.isEmpty() || t.getDescription().toLowerCase().contains(searchText.toLowerCase())))
             .collect(Collectors.toList());
-
         transactions.setAll(filteredTransactions);
         updateStatistics();
     }
@@ -306,7 +336,8 @@ public class ScheduledController extends BaseController {
                 dpEndDate.getValue(),
                 pattern,
                 recurrenceValue,
-                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet()),
+                currentUser
             );
             
             transactions.add(scheduled);
@@ -339,54 +370,55 @@ public class ScheduledController extends BaseController {
 
     @FXML
     private void handleSaveScheduled() {
+        String desc = tfDesc.getText();
+        BigDecimal amount;
         try {
+            amount = new BigDecimal(tfAmount.getText());
+        } catch (NumberFormatException e) {
+            // Handle error: show alert
+            return;
+        }
+
+        Set<Long> tagIds = selectedTags.stream().map(Tag::getId).collect(Collectors.toSet());
+
+        if (isEditMode) {
             ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
-            if (selected == null) {
-                showError("No Selection", "Please select a scheduled transaction to edit.");
-                return;
+            if (selected != null) {
+                scheduledService.updateScheduledTransaction(
+                    selected.getId(),
+                    desc,
+                    amount,
+                    cbIncome.isSelected(),
+                    dpStartDate.getValue(),
+                    dpEndDate.getValue(),
+                    cbPattern.getValue(),
+                    Integer.parseInt(tfRecurrenceValue.getText()),
+                    tagIds
+                );
             }
-
-            ScheduledTransaction.RecurrencePattern pattern = cbPattern.getValue();
-            if (pattern == null) {
-                showWarning("Invalid Input", "No recurrence pattern selected. Defaulting to MONTHLY.");
-                pattern = ScheduledTransaction.RecurrencePattern.MONTHLY;
-                cbPattern.setValue(pattern);
-            }
-            BigDecimal amount = new BigDecimal(tfAmount.getText());
-            int recurrenceValue = Integer.parseInt(tfRecurrenceValue.getText());
-
-            scheduledService.updateScheduledTransaction(
-                selected.getId(),
-                tfDesc.getText(),
+        } else {
+            scheduledService.createScheduledTransaction(
+                desc,
                 amount,
                 cbIncome.isSelected(),
                 dpStartDate.getValue(),
                 dpEndDate.getValue(),
-                pattern,
-                recurrenceValue,
-                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+                cbPattern.getValue(),
+                Integer.parseInt(tfRecurrenceValue.getText()),
+                tagIds,
+                currentUser
             );
-            
-            refreshData();
-            clearForm();
-        } catch (NumberFormatException e) {
-            showError("Invalid Input", "Please enter valid numbers for amount and recurrence value.");
-        } catch (Exception e) {
-            showError("Error", "Failed to update scheduled transaction: " + e.getMessage());
         }
+        refreshData();
+        clearForm();
     }
 
     @FXML
     private void handleDeleteScheduled() {
         ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            try {
-                scheduledService.deleteScheduledTransaction(selected.getId());
-                transactions.remove(selected);
-                refreshData();
-            } catch (Exception e) {
-                showError("Error", "Failed to delete scheduled transaction: " + e.getMessage());
-            }
+            scheduledService.deleteScheduledTransaction(selected.getId());
+            refreshData();
         }
     }
 
@@ -459,5 +491,67 @@ public class ScheduledController extends BaseController {
         alert.setHeaderText(null);
         alert.setTitle("Generation Complete");
         alert.showAndWait();
+    }
+
+    @FXML
+    private void handleConvertToDeadline() {
+        ScheduledTransaction selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("No Selection", "Please select a scheduled transaction to convert to a deadline.");
+            return;
+        }
+
+        // Create a dialog to get the due date for the deadline
+        Dialog<LocalDate> dialog = new Dialog<>();
+        dialog.setTitle("Convert to Deadline");
+        dialog.setHeaderText("Set the due date for this deadline");
+        dialog.setContentText("The deadline will be created based on the selected scheduled transaction.");
+
+        // Set up the dialog content
+        DatePicker dueDatePicker = new DatePicker();
+        dueDatePicker.setValue(selected.getStartDate()); // Default to start date
+        dueDatePicker.setPromptText("Select due date");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+        grid.add(new Label("Due Date:"), 0, 0);
+        grid.add(dueDatePicker, 1, 0);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Set up buttons
+        ButtonType convertButtonType = new ButtonType("Convert", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(convertButtonType, ButtonType.CANCEL);
+
+        // Set the result converter
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == convertButtonType) {
+                return dueDatePicker.getValue();
+            }
+            return null;
+        });
+
+        // Show dialog and handle result
+        dialog.showAndWait().ifPresent(dueDate -> {
+            try {
+                // Create the deadline
+                Deadline deadline = new Deadline();
+                deadline.setDescription(selected.getDescription());
+                deadline.setAmount(selected.getAmount().doubleValue());
+                deadline.setDueDate(dueDate);
+                deadline.setCategory(selected.getTags().isEmpty() ? "" : selected.getTags().iterator().next().getName());
+                deadline.setPaid(false);
+                deadline.setUser(currentUser);
+
+                deadlineService.create(deadline);
+
+                showInfo("Success", "Scheduled transaction '" + selected.getDescription() + "' has been converted to a deadline with due date " + dueDate + ".");
+
+            } catch (Exception e) {
+                showError("Error", "Failed to convert scheduled transaction to deadline: " + e.getMessage());
+            }
+        });
     }
 } 

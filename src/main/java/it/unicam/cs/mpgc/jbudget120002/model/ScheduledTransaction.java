@@ -45,6 +45,10 @@ public class ScheduledTransaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Column(nullable = false)
     private String description;
 
@@ -140,6 +144,7 @@ public class ScheduledTransaction {
 
     // Getters
     public Long getId() { return id; }
+    public User getUser() { return user; }
     public String getDescription() { return description; }
     public BigDecimal getAmount() { return amount; }
     public boolean isIncome() { return isIncome; }
@@ -154,6 +159,7 @@ public class ScheduledTransaction {
 
     // Setters
     public void setId(Long id) { this.id = id; }
+    public void setUser(User user) { this.user = user; }
     public void setDescription(String description) { this.description = description; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public void setIncome(boolean income) { isIncome = income; }

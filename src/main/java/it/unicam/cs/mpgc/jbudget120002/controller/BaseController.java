@@ -7,6 +7,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import it.unicam.cs.mpgc.jbudget120002.service.ServiceFactory;
+import it.unicam.cs.mpgc.jbudget120002.view.UserSession;
+import javafx.fxml.FXML;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -36,6 +38,8 @@ public abstract class BaseController implements Initializable {
     protected ServiceFactory serviceFactory;
     protected BaseController parentController;
     private boolean isInitialized = false;
+    protected UserSession userSession;
+    protected MainController mainController;
 
     static {
         try {
@@ -91,21 +95,33 @@ public abstract class BaseController implements Initializable {
         return parentController;
     }
 
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
+    }
+
+    public MainController getMainController() {
+        return mainController;
+    }
+
     public void refreshData() {
         try {
-            // Create a new EntityManager if needed
+            // Only create a new EntityManager if the current one is closed
             if (entityManager == null || !entityManager.isOpen()) {
                 LOGGER.info("Creating new EntityManager instance for refresh");
                 entityManager = emf.createEntityManager();
                 serviceFactory = new ServiceFactory(entityManager);
             }
             
-            // Begin transaction
-            entityManager.getTransaction().begin();
+            // Only begin transaction if not already active
+            if (!entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().begin();
+            }
             
             try {
                 loadData();
-                entityManager.getTransaction().commit();
+                if (entityManager.getTransaction().isActive()) {
+                    entityManager.getTransaction().commit();
+                }
             } catch (Exception e) {
                 if (entityManager.getTransaction().isActive()) {
                     entityManager.getTransaction().rollback();
@@ -148,13 +164,18 @@ public abstract class BaseController implements Initializable {
 
     public void cleanup() {
         try {
+            LOGGER.info("Cleaning up controller: " + getClass().getSimpleName());
             if (entityManager != null && entityManager.isOpen()) {
                 if (entityManager.getTransaction().isActive()) {
+                    LOGGER.info("Rolling back active transaction in " + getClass().getSimpleName());
                     entityManager.getTransaction().rollback();
                 }
+                LOGGER.info("Closing EntityManager for " + getClass().getSimpleName());
                 entityManager.close();
                 entityManager = null;
             }
+            // Clear service factory reference
+            serviceFactory = null;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error during cleanup of controller: " + getClass().getSimpleName(), e);
         }

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<StackPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.LoginController"
+           styleClass="login-background">
+
+    <!-- Background with gradient -->
+    <VBox styleClass="background-gradient" />
+
+    <!-- Main content card -->
+    <VBox styleClass="login-card" alignment="CENTER" spacing="40.0">
+
+        <!-- Header Section -->
+        <VBox styleClass="header-section" alignment="CENTER" spacing="20">
+            <!-- App Logo/Icon placeholder -->
+            <VBox styleClass="app-icon" alignment="CENTER">
+                <Text text="💰" style="-fx-font-size: 64px;" />
+            </VBox>
+
+            <!-- Title -->
+            <VBox alignment="CENTER" spacing="8">
+                <Text fx:id="titleText" text="JBudget" styleClass="app-title" />
+                <Text fx:id="subtitleText" text="Your Personal Finance Manager" styleClass="app-subtitle" />
+            </VBox>
+        </VBox>
+
+        <!-- Form Section -->
+        <VBox styleClass="form-section" alignment="CENTER" spacing="30">
+            <!-- Form Container -->
+            <VBox styleClass="form-container" spacing="25" alignment="CENTER">
+                <!-- Username Field -->
+                <VBox styleClass="input-group" spacing="8">
+                    <Label text="Username" styleClass="input-label" />
+                    <TextField fx:id="usernameField" styleClass="input-field" promptText="Enter your username" />
+                </VBox>
+
+                <!-- Password Field -->
+                <VBox styleClass="input-group" spacing="8">
+                    <Label text="Password" styleClass="input-label" />
+                    <PasswordField fx:id="passwordField" styleClass="input-field" promptText="Enter your password" />
+                </VBox>
+
+                <!-- Email Field (hidden in login mode) -->
+                <VBox fx:id="emailGroup" styleClass="input-group" spacing="8" visible="false">
+                    <Label text="Email" styleClass="input-label" />
+                    <TextField fx:id="emailField" styleClass="input-field" promptText="Enter your email" />
+                </VBox>
+
+                <!-- Full Name Field (hidden in login mode) -->
+                <VBox fx:id="fullNameGroup" styleClass="input-group" spacing="8" visible="false">
+                    <Label text="Full Name" styleClass="input-label" />
+                    <TextField fx:id="fullNameField" styleClass="input-field" promptText="Enter your full name" />
+                </VBox>
+
+                <!-- Error Message Container -->
+                <VBox fx:id="errorContainer" styleClass="error-container" visible="false" alignment="CENTER">
+                    <Text fx:id="errorText" styleClass="error-text" />
+                </VBox>
+
+                <!-- Action Button -->
+                <Button fx:id="actionButton" text="Login" onAction="#handleAction" styleClass="action-button" />
+            </VBox>
+
+            <!-- Toggle Mode -->
+            <HBox styleClass="toggle-container" alignment="CENTER" spacing="8">
+                <Text fx:id="toggleText" text="Don't have an account?" styleClass="toggle-text" />
+                <Button fx:id="toggleButton" text="Register" onAction="#toggleMode" styleClass="toggle-button" />
+            </HBox>
+        </VBox>
+    </VBox>
+</StackPane>

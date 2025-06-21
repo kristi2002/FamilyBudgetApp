@@ -20,6 +20,7 @@ import javafx.scene.layout.GridPane;
 import it.unicam.cs.mpgc.jbudget120002.model.Tag;
 import it.unicam.cs.mpgc.jbudget120002.service.TagService;
 import it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils;
+import it.unicam.cs.mpgc.jbudget120002.model.User;
 
 public class DeadlinesController extends BaseController {
     @FXML private DatePicker dpMonth;
@@ -39,12 +40,13 @@ public class DeadlinesController extends BaseController {
     private DeadlineService deadlineService;
     private ObservableList<Deadline> deadlines;
     private TagService tagService;
+    private it.unicam.cs.mpgc.jbudget120002.model.User currentUser;
 
     @Override
     protected void initializeServices() {
-        deadlineService = serviceFactory.getDeadlineService();
+        deadlineService = serviceFactory.getDeadlineService(false);
+        tagService = serviceFactory.getTagService(false);
         deadlines = FXCollections.observableArrayList();
-        tagService = serviceFactory.getTagService();
     }
 
     @Override
@@ -201,6 +203,10 @@ public class DeadlinesController extends BaseController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         return alert.showAndWait().filter(btn -> btn == ButtonType.YES).isPresent();
+    }
+
+    public void setCurrentUser(it.unicam.cs.mpgc.jbudget120002.model.User user) {
+        this.currentUser = user;
     }
 
     // Simple dialog for adding/editing deadlines

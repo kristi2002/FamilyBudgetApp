@@ -55,11 +55,12 @@ public class BudgetsController extends BaseController {
     private TagService tagService;
     private ObservableList<BudgetTableItem> budgets;
     private Set<Tag> selectedTags;
+    private User currentUser;
 
     @Override
     protected void initializeServices() {
-        budgetService = serviceFactory.getBudgetService();
-        tagService = serviceFactory.getTagService();
+        budgetService = serviceFactory.getBudgetService(false);
+        tagService = serviceFactory.getTagService(false);
         budgets = FXCollections.observableArrayList();
         selectedTags = new HashSet<>();
     }
@@ -118,15 +119,24 @@ public class BudgetsController extends BaseController {
         refreshData();
     }
 
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
+
     public void refreshData() {
-        budgets.setAll(budgetService.findAll().stream()
+        if (currentUser == null) {
+            return;
+        }
+        budgets.setAll(budgetService.findAllByUser(currentUser).stream()
             .map(budget -> {
+                BigDecimal spent = budgetService.calculateSpentAmount(budget.getId());
+                BigDecimal remaining = budget.getAmount().subtract(spent);
                 BudgetTableItem item = new BudgetTableItem(
                     budget.getId(),
                     budget.getName(),
                     budget.getAmount(),
-                    budgetService.calculateSpentAmount(budget.getId()),
-                    budgetService.calculateRemainingAmount(budget.getId()),
+                    spent,
+                    remaining,
                     budget.getStartDate(),
                     budget.getEndDate()
                 );
@@ -143,17 +153,22 @@ public class BudgetsController extends BaseController {
                 showError("Error", "Please select at least one category");
                 return;
             }
-            
-            // Use the first selected tag as the category
-            Long categoryId = selectedTags.iterator().next().getId();
-            
-            budgetService.createBudget(
+            if (getMainController().getLoggedInUser().getGroups().isEmpty()) {
+                showError("Error", "You must be a member of a group to create a budget.");
+                return;
+            }
+
+            Budget newBudget = new Budget(
                 tfName.getText(),
-                dpStartDate.getValue(),
-                dpEndDate.getValue(),
                 new BigDecimal(tfAmount.getText()),
-                categoryId
+                dpStartDate.getValue(),
+                dpEndDate.getValue()
             );
+            newBudget.setTags(new HashSet<>(selectedTags));
+            // Associate with the user's first group
+            newBudget.setGroup(getMainController().getLoggedInUser().getGroups().iterator().next());
+            
+            budgetService.save(newBudget);
             refreshData();
             clearForm();
         } catch (Exception e) {
@@ -166,7 +181,7 @@ public class BudgetsController extends BaseController {
         BudgetTableItem selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
             try {
-                budgetService.deleteBudget(selected.getId());
+                budgetService.delete(selected.getId());
                 refreshData();
                 clearForm();
             } catch (Exception e) {
@@ -185,17 +200,19 @@ public class BudgetsController extends BaseController {
                     return;
                 }
                 
-                // Use the first selected tag as the category
-                Long categoryId = selectedTags.iterator().next().getId();
-                
-                budgetService.updateBudget(
-                    selected.getId(),
-                    tfName.getText(),
-                    dpStartDate.getValue(),
-                    dpEndDate.getValue(),
-                    new BigDecimal(tfAmount.getText()),
-                    categoryId
-                );
+                Budget budgetToUpdate = budgetService.findById(selected.getId()).orElse(null);
+                if (budgetToUpdate == null) {
+                    showError("Error", "Budget not found.");
+                    return;
+                }
+
+                budgetToUpdate.setName(tfName.getText());
+                budgetToUpdate.setAmount(new BigDecimal(tfAmount.getText()));
+                budgetToUpdate.setStartDate(dpStartDate.getValue());
+                budgetToUpdate.setEndDate(dpEndDate.getValue());
+                budgetToUpdate.setTags(new HashSet<>(selectedTags));
+
+                budgetService.save(budgetToUpdate);
                 refreshData();
                 clearForm();
             } catch (Exception e) {

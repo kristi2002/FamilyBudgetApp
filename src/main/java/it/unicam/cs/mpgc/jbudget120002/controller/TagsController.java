@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.jbudget120002.controller;
 
 import it.unicam.cs.mpgc.jbudget120002.model.Tag;
+import it.unicam.cs.mpgc.jbudget120002.model.User;
 import it.unicam.cs.mpgc.jbudget120002.service.TagService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -36,10 +37,11 @@ public class TagsController extends BaseController {
 
     private TagService tagService;
     private ObservableList<Tag> tags;
+    private User currentUser;
 
     @Override
     protected void initializeServices() {
-        tagService = serviceFactory.getTagService();
+        tagService = serviceFactory.getTagService(false);
         tags = FXCollections.observableArrayList();
     }
 
@@ -123,6 +125,7 @@ public class TagsController extends BaseController {
             updateParentComboBox();
             updateTreeView();
             clearForm();
+            refreshTransactionTags();
         } catch (Exception e) {
             showError("Error", "Failed to create tag: " + e.getMessage());
         }
@@ -145,6 +148,7 @@ public class TagsController extends BaseController {
             cbParent.getItems().remove(selected);
             updateParentComboBox();
             updateTreeView();
+            refreshTransactionTags();
         } catch (Exception e) {
             showError("Error", "Failed to delete tag: " + e.getMessage());
         }
@@ -169,6 +173,7 @@ public class TagsController extends BaseController {
                 tagService.updateTag(selected.getId(), name, parent != null ? parent.getId() : null);
                 refreshData();
                 clearForm();
+                refreshTransactionTags();
             } catch (Exception e) {
                 showError("Error", "Failed to update tag: " + e.getMessage());
             }
@@ -192,5 +197,18 @@ public class TagsController extends BaseController {
                 cbParent.setValue(parent);
             }
         }
+    }
+
+    private void refreshTransactionTags() {
+        if (mainController != null) {
+            TransactionsController transactionsController = mainController.getTransactionsViewController();
+            if (transactionsController != null) {
+                transactionsController.refreshTags();
+            }
+        }
+    }
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
     }
 } 

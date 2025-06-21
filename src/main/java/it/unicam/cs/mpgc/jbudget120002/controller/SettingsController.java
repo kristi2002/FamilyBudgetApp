@@ -53,10 +53,16 @@ public class SettingsController extends BaseController {
     private UserSettingsService settingsService;
     private SyncService syncService;
 
+    private it.unicam.cs.mpgc.jbudget120002.model.User currentUser;
+
+    public void setCurrentUser(it.unicam.cs.mpgc.jbudget120002.model.User user) {
+        this.currentUser = user;
+    }
+
     @Override
     protected void initializeServices() {
-        settingsService = serviceFactory.getUserSettingsService();
-        syncService = serviceFactory.getSyncService();
+        settingsService = serviceFactory.getUserSettingsService(false);
+        syncService = serviceFactory.getSyncService(false);
     }
 
     @Override

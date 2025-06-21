@@ -49,6 +49,10 @@ public class Budget {
     )
     private Set<Tag> tags = new HashSet<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private Group group;
+
     // Default constructor for JPA
     protected Budget() {}
 
@@ -74,6 +78,7 @@ public class Budget {
     public LocalDate getStartDate() { return startDate; }
     public LocalDate getEndDate() { return endDate; }
     public Set<Tag> getTags() { return tags; }
+    public Group getGroup() { return group; }
 
     // Setters
     public void setId(Long id) { this.id = id; }
@@ -82,4 +87,5 @@ public class Budget {
     public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
     public void setTags(Set<Tag> tags) { this.tags = tags; }
+    public void setGroup(Group group) { this.group = group; }
 } 

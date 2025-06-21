@@ -8,6 +8,8 @@ import it.unicam.cs.mpgc.jbudget120002.service.TransactionService;
 import it.unicam.cs.mpgc.jbudget120002.service.UserSettingsService;
 import it.unicam.cs.mpgc.jbudget120002.service.ScheduledTransactionService;
 import it.unicam.cs.mpgc.jbudget120002.util.DateTimeUtils;
+import it.unicam.cs.mpgc.jbudget120002.model.User;
+import it.unicam.cs.mpgc.jbudget120002.model.ScheduledTransaction;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -42,6 +44,8 @@ import java.util.stream.Collectors;
  * transaction management functionality to users.
  */
 public class TransactionsController extends BaseController {
+    private User currentUser;
+
     // Basic transaction form controls
     @FXML private DatePicker dpDate;
     @FXML private TextField tfDesc;
@@ -57,6 +61,7 @@ public class TransactionsController extends BaseController {
     @FXML private Button btnClearForm;
     @FXML private Button btnCancel;
     @FXML private Button btnAdd;
+    @FXML private Button btnGenerateScheduled;
     
     // Statistics labels
     @FXML private Label lblTotalIncome;
@@ -87,19 +92,23 @@ public class TransactionsController extends BaseController {
     private ScheduledTransactionService scheduledTransactionService;
     private ObservableList<Transaction> transactions;
 
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
+
     @Override
     protected void initializeServices() {
-        transactionService = serviceFactory.getTransactionService();
-        tagService = serviceFactory.getTagService();
-        settingsService = serviceFactory.getUserSettingsService();
-        scheduledTransactionService = serviceFactory.getScheduledTransactionService();
+        transactionService = serviceFactory.getTransactionService(false);
+        tagService = serviceFactory.getTagService(false);
+        settingsService = serviceFactory.getUserSettingsService(false);
+        scheduledTransactionService = serviceFactory.getScheduledTransactionService(false);
         transactions = FXCollections.observableArrayList();
         selectedTags = new HashSet<>();
     }
 
     @Override
     protected void setupUI() {
-        setupDatePickers();
+        //setupDatePickers(); // Will be called from loadData
         setupTable();
         setupTagsUI();
         setupCategoryFilter();
@@ -138,14 +147,6 @@ public class TransactionsController extends BaseController {
     }
 
     private void setupDatePickers() {
-        // Initialize date pickers
-        List<Transaction> all = transactionService.findAll();
-        LocalDate minDate = all.stream().map(Transaction::getDate).min(LocalDate::compareTo).orElse(LocalDate.now().minusYears(10));
-        LocalDate maxDate = all.stream().map(Transaction::getDate).max(LocalDate::compareTo).orElse(LocalDate.now().plusYears(10));
-        dpDate.setValue(LocalDate.now());
-        dpStartDate.setValue(minDate);
-        dpEndDate.setValue(maxDate);
-        
         // Set up date format
         javafx.util.StringConverter<LocalDate> dateConverter = new javafx.util.StringConverter<LocalDate>() {
             @Override
@@ -260,60 +261,80 @@ public class TransactionsController extends BaseController {
     private void updateSelectedTagsList() {
         flowSelectedTags.getChildren().clear();
         for (Tag tag : selectedTags) {
-            HBox tagBox = new HBox(5);
-            tagBox.setStyle("-fx-background-color: #f0f0f0; -fx-padding: 3 5; -fx-background-radius: 3;");
             Label tagLabel = new Label(tag.getName());
-            Button removeBtn = new Button("×");
-            removeBtn.setStyle("-fx-padding: 0 3; -fx-background-radius: 2; -fx-min-width: 16;");
-            removeBtn.setOnAction(e -> {
+            tagLabel.getStyleClass().add("tag-label");
+            tagLabel.setOnMouseClicked(event -> {
                 selectedTags.remove(tag);
                 updateSelectedTagsList();
+                refreshData();
             });
-            tagBox.getChildren().addAll(tagLabel, removeBtn);
-            flowSelectedTags.getChildren().add(tagBox);
+            flowSelectedTags.getChildren().add(tagLabel);
         }
     }
 
     @Override
     protected void loadData() {
+        setupDatePickers();
+        // Initialize date pickers
+        List<Transaction> all = (currentUser == null) ? transactionService.findAll() : transactionService.findAllForUser(currentUser);
+        LocalDate minDate = all.stream().map(Transaction::getDate).min(LocalDate::compareTo).orElse(LocalDate.now().minusYears(10));
+        LocalDate maxDate = all.stream().map(Transaction::getDate).max(LocalDate::compareTo).orElse(LocalDate.now().plusYears(10));
+        dpDate.setValue(LocalDate.now());
+        dpStartDate.setValue(minDate);
+        dpEndDate.setValue(maxDate);
         refreshData();
     }
 
     public void refreshData() {
-        LocalDate startDate = dpStartDate.getValue();
-        LocalDate endDate = dpEndDate.getValue();
-        String searchText = tfSearch.getText().trim();
-        Tag selectedCategory = cbCategory.getValue();
-        boolean includeSubcategories = cbIncludeSubcategories.isSelected();
-
-        List<Transaction> filteredTransactions;
-        if (selectedCategory != null) {
-            filteredTransactions = transactionService.findByTag(selectedCategory, includeSubcategories);
-        } else {
-            filteredTransactions = transactionService.findAll();
-        }
-
-        // Apply date and search filters
-        filteredTransactions = filteredTransactions.stream()
-            .filter(t -> (startDate == null || !t.getDate().isBefore(startDate)) &&
-                        (endDate == null || !t.getDate().isAfter(endDate)) &&
-                        (searchText.isEmpty() || t.getDescription().toLowerCase().contains(searchText.toLowerCase())))
-            .collect(Collectors.toList());
-
-        transactions.setAll(filteredTransactions);
+        if (currentUser == null) return;
+        loadTransactions();
         updateStatistics();
     }
 
-    private void updateStatistics() {
-        BigDecimal totalIncome = transactionService.calculateIncomeForPeriod(
-            dpStartDate.getValue(), 
-            dpEndDate.getValue()
-        );
+    public void refreshTags() {
+        if (tagService != null) {
+            // Preserve selection
+            List<Tag> allTags = tagService.findAll();
+            Tag selectedInCb = cbTags.getValue();
+            Tag selectedInCategory = cbCategory.getValue();
+
+            cbTags.setItems(FXCollections.observableArrayList(allTags));
+            cbCategory.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+
+            if (selectedInCb != null && allTags.contains(selectedInCb)) {
+                cbTags.setValue(selectedInCb);
+            }
+            if (selectedInCategory != null && tagService.findRootTags().contains(selectedInCategory)) {
+                cbCategory.setValue(selectedInCategory);
+            }
+        }
+    }
+
+    private void loadTransactions() {
+        String searchTerm = tfSearch.getText();
+        LocalDate startDate = dpStartDate.getValue();
+        LocalDate endDate = dpEndDate.getValue();
+        Tag category = cbCategory.getValue();
+        boolean includeSubcategories = cbIncludeSubcategories.isSelected();
+
+        List<Transaction> filteredTransactions = transactionService.findTransactions(
+            currentUser, searchTerm, startDate, endDate, category, includeSubcategories);
         
-        BigDecimal totalExpense = transactionService.calculateExpensesForPeriod(
-            dpStartDate.getValue(), 
-            dpEndDate.getValue()
-        );
+        transactions.setAll(filteredTransactions);
+    }
+
+    private void updateStatistics() {
+        // Calculate totals based on the currently filtered transactions
+        BigDecimal totalIncome = BigDecimal.ZERO;
+        BigDecimal totalExpense = BigDecimal.ZERO;
+        
+        for (Transaction transaction : transactions) {
+            if (transaction.isIncome()) {
+                totalIncome = totalIncome.add(transaction.getAmount());
+            } else {
+                totalExpense = totalExpense.add(transaction.getAmount());
+            }
+        }
         
         BigDecimal balance = totalIncome.subtract(totalExpense);
         
@@ -324,6 +345,10 @@ public class TransactionsController extends BaseController {
 
     @FXML
     private void handleAddTransaction() {
+        if (currentUser == null) {
+            showError("No User", "Please log in to create transactions.");
+            return;
+        }
         String amountText = tfAmount.getText();
         if (amountText == null || amountText.trim().isEmpty()) {
             showError("Invalid Amount", "Amount cannot be empty. Please enter a value.");
@@ -337,6 +362,7 @@ public class TransactionsController extends BaseController {
         try {
             BigDecimal amount = new BigDecimal(amountText);
             Transaction transaction = transactionService.createTransaction(
+                currentUser,
                 dpDate.getValue(),
                 tfDesc.getText(),
                 amount,
@@ -453,6 +479,11 @@ public class TransactionsController extends BaseController {
         btnCancel.setManaged(isEditMode);
         btnClearForm.setVisible(!isEditMode);
         btnClearForm.setManaged(!isEditMode);
+        
+        // Debug: Check if btnGenerateScheduled is enabled and visible
+        System.out.println("btnGenerateScheduled - Visible: " + btnGenerateScheduled.isVisible() + 
+                          ", Disabled: " + btnGenerateScheduled.isDisabled() + 
+                          ", Managed: " + btnGenerateScheduled.isManaged());
     }
 
     @FXML
@@ -473,15 +504,67 @@ public class TransactionsController extends BaseController {
 
     @FXML
     private void handleGenerateScheduled() {
-        List<it.unicam.cs.mpgc.jbudget120002.model.ScheduledTransaction> scheduled = scheduledTransactionService.findAll();
-        for (var st : scheduled) {
-            scheduledTransactionService.generateTransactions(st.getId(), LocalDate.now());
+        System.out.println("=== Generate Scheduled Transactions Button Clicked ===");
+        
+        if (currentUser == null) {
+            System.out.println("ERROR: currentUser is null");
+            showError("No User", "Please log in to generate scheduled transactions.");
+            return;
         }
-        refreshData();
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Scheduled transactions generated up to today.", ButtonType.OK);
-        alert.setHeaderText(null);
-        alert.setTitle("Generation Complete");
-        alert.showAndWait();
+        
+        System.out.println("Current user: " + currentUser.getUsername());
+        
+        // Debug: Check if there are any scheduled transactions for the user
+        try {
+            List<ScheduledTransaction> userScheduled = scheduledTransactionService.findByUser(currentUser);
+            System.out.println("Found " + userScheduled.size() + " scheduled transactions for user");
+            
+            if (userScheduled.isEmpty()) {
+                System.out.println("No scheduled transactions found - showing warning");
+                showWarning("No Scheduled Transactions", "You don't have any scheduled transactions to generate. Please create some scheduled transactions first.");
+                return;
+            }
+            
+            // List the scheduled transactions for debugging
+            for (ScheduledTransaction st : userScheduled) {
+                System.out.println("Scheduled transaction: " + st.getDescription() + " - " + st.getAmount() + " - " + st.getStartDate());
+            }
+            
+            LocalDate untilDate = LocalDate.now().plusMonths(1);
+            System.out.println("Generating transactions until: " + untilDate);
+            
+            // Check current transaction count before generation
+            List<Transaction> beforeTransactions = transactionService.findAllForUser(currentUser);
+            System.out.println("Transactions before generation: " + beforeTransactions.size());
+            
+            scheduledTransactionService.generateTransactionsForUser(currentUser, untilDate);
+            System.out.println("Generation completed successfully");
+            
+            // Check transaction count after generation
+            List<Transaction> afterTransactions = transactionService.findAllForUser(currentUser);
+            System.out.println("Transactions after generation: " + afterTransactions.size());
+            System.out.println("New transactions created: " + (afterTransactions.size() - beforeTransactions.size()));
+            
+            // List any new transactions
+            if (afterTransactions.size() > beforeTransactions.size()) {
+                System.out.println("New transactions created:");
+                for (int i = beforeTransactions.size(); i < afterTransactions.size(); i++) {
+                    Transaction t = afterTransactions.get(i);
+                    System.out.println("  - " + t.getDescription() + " - " + t.getAmount() + " - " + t.getDate() + " - Scheduled: " + t.isScheduled());
+                }
+            }
+            
+            refreshData();
+            System.out.println("Data refreshed - current transaction list size: " + transactions.size());
+            
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION, "Generated " + (afterTransactions.size() - beforeTransactions.size()) + " scheduled transactions up to " + untilDate);
+            successAlert.showAndWait();
+            
+        } catch (Exception e) {
+            System.out.println("ERROR during generation: " + e.getMessage());
+            e.printStackTrace();
+            showError("Generation Error", "Failed to generate scheduled transactions: " + e.getMessage());
+        }
     }
 
     @FXML

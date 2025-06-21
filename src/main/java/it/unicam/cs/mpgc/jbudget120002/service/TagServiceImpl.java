@@ -18,7 +18,7 @@ public class TagServiceImpl extends BaseService implements TagService {
             throw new IllegalArgumentException("Tag name cannot be empty");
         }
 
-        entityManager.getTransaction().begin();
+        em.getTransaction().begin();
         try {
             Tag tag = new Tag(name.trim());
             
@@ -28,11 +28,11 @@ public class TagServiceImpl extends BaseService implements TagService {
                 tag.setParent(parent);
             }
             
-            entityManager.persist(tag);
-            entityManager.getTransaction().commit();
+            em.persist(tag);
+            em.getTransaction().commit();
             return tag;
         } catch (Exception e) {
-            entityManager.getTransaction().rollback();
+            em.getTransaction().rollback();
             throw new IllegalArgumentException("Failed to create tag: " + e.getMessage());
         }
     }
@@ -42,12 +42,12 @@ public class TagServiceImpl extends BaseService implements TagService {
         if (id == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(entityManager.find(Tag.class, id));
+        return Optional.ofNullable(em.find(Tag.class, id));
     }
 
     @Override
     public List<Tag> findRootTags() {
-        TypedQuery<Tag> query = entityManager.createQuery(
+        TypedQuery<Tag> query = em.createQuery(
             "SELECT t FROM Tag t WHERE t.parent IS NULL ORDER BY t.fullPath", Tag.class);
         return query.getResultList();
     }
@@ -58,7 +58,7 @@ public class TagServiceImpl extends BaseService implements TagService {
             return Collections.emptyList();
         }
         
-        TypedQuery<Tag> query = entityManager.createQuery(
+        TypedQuery<Tag> query = em.createQuery(
             "SELECT t FROM Tag t WHERE t.parent.id = :parentId ORDER BY t.fullPath", Tag.class);
         query.setParameter("parentId", parentId);
         return query.getResultList();
@@ -73,7 +73,7 @@ public class TagServiceImpl extends BaseService implements TagService {
             throw new IllegalArgumentException("Tag name cannot be empty");
         }
 
-        entityManager.getTransaction().begin();
+        em.getTransaction().begin();
         try {
             Tag tag = findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag not found"));
@@ -98,10 +98,10 @@ public class TagServiceImpl extends BaseService implements TagService {
             }
             
             tag.setName(newName.trim());
-            entityManager.merge(tag);
-            entityManager.getTransaction().commit();
+            em.merge(tag);
+            em.getTransaction().commit();
         } catch (Exception e) {
-            entityManager.getTransaction().rollback();
+            em.getTransaction().rollback();
             throw new IllegalArgumentException("Failed to update tag: " + e.getMessage());
         }
     }
@@ -112,7 +112,7 @@ public class TagServiceImpl extends BaseService implements TagService {
             throw new IllegalArgumentException("Tag ID cannot be null");
         }
 
-        entityManager.getTransaction().begin();
+        em.getTransaction().begin();
         try {
             Tag tag = findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag not found"));
@@ -123,10 +123,10 @@ public class TagServiceImpl extends BaseService implements TagService {
             // Update children's parent to null (this will update their fullPaths)
             tag.getChildren().forEach(child -> child.setParent(null));
             
-            entityManager.remove(tag);
-            entityManager.getTransaction().commit();
+            em.remove(tag);
+            em.getTransaction().commit();
         } catch (Exception e) {
-            entityManager.getTransaction().rollback();
+            em.getTransaction().rollback();
             throw new IllegalArgumentException("Failed to delete tag: " + e.getMessage());
         }
     }
@@ -158,7 +158,7 @@ public class TagServiceImpl extends BaseService implements TagService {
             return Collections.emptyList();
         }
         
-        TypedQuery<Tag> searchQuery = entityManager.createQuery(
+        TypedQuery<Tag> searchQuery = em.createQuery(
             "SELECT t FROM Tag t WHERE LOWER(t.name) LIKE LOWER(:query) OR LOWER(t.fullPath) LIKE LOWER(:query) ORDER BY t.fullPath", Tag.class);
         searchQuery.setParameter("query", "%" + query.trim() + "%");
         return searchQuery.getResultList();
@@ -166,7 +166,7 @@ public class TagServiceImpl extends BaseService implements TagService {
 
     @Override
     public List<Tag> findAll() {
-        return entityManager.createQuery("SELECT t FROM Tag t ORDER BY t.fullPath", Tag.class)
+        return em.createQuery("SELECT t FROM Tag t ORDER BY t.fullPath", Tag.class)
             .getResultList();
     }
 

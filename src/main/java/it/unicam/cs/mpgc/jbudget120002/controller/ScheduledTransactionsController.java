@@ -2,6 +2,7 @@ package it.unicam.cs.mpgc.jbudget120002.controller;
 
 import it.unicam.cs.mpgc.jbudget120002.model.ScheduledTransaction;
 import it.unicam.cs.mpgc.jbudget120002.model.Tag;
+import it.unicam.cs.mpgc.jbudget120002.model.User;
 import it.unicam.cs.mpgc.jbudget120002.service.ScheduledTransactionService;
 import it.unicam.cs.mpgc.jbudget120002.service.TagService;
 import javafx.beans.property.SimpleStringProperty;
@@ -38,11 +39,16 @@ public class ScheduledTransactionsController extends BaseController {
     private TagService tagService;
     private ObservableList<ScheduledTransaction> transactions;
     private Set<Tag> selectedTags;
+    private User currentUser;
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
 
     @Override
     protected void initializeServices() {
-        scheduledService = serviceFactory.getScheduledTransactionService();
-        tagService = serviceFactory.getTagService();
+        scheduledService = serviceFactory.getScheduledTransactionService(false);
+        tagService = serviceFactory.getTagService(false);
         transactions = FXCollections.observableArrayList();
         selectedTags = new HashSet<>();
     }
@@ -140,7 +146,8 @@ public class ScheduledTransactionsController extends BaseController {
                 dpEndDate.getValue(),
                 cbPattern.getValue(),
                 recurrenceValue,
-                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet())
+                selectedTags.stream().map(Tag::getId).collect(Collectors.toSet()),
+                currentUser
             );
             
             transactions.add(scheduled);

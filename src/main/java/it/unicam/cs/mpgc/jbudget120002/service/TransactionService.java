@@ -9,9 +9,17 @@ public interface TransactionService {
     Transaction createTransaction(LocalDate date, String description, BigDecimal amount, 
         boolean isIncome, Set<Long> tagIds);
     
+    // User-aware version for multi-user support
+    Transaction createTransaction(User user, LocalDate date, String description, BigDecimal amount, 
+        boolean isIncome, Set<Long> tagIds);
+    
     void deleteTransaction(Long id);
+
+    List<Transaction> findAllForUser(User user);
     
     List<Transaction> findAll();
+    
+    List<Transaction> findTransactions(User user, String searchTerm, LocalDate startDate, LocalDate endDate, Tag category, boolean includeSubcategories);
     
     Transaction findById(Long id);
     
@@ -57,4 +65,15 @@ public interface TransactionService {
     BigDecimal calculateNetWorth(LocalDate asOfDate);
 
     List<Transaction> findTransactionsInPeriod(LocalDate startDate, LocalDate endDate, int limit);
+
+    // User-aware versions for multi-user support
+    List<Transaction> findTransactionsInPeriodForUser(User user, LocalDate startDate, LocalDate endDate, int limit);
+    
+    BigDecimal calculateBalanceForUser(User user, LocalDate start, LocalDate end);
+    
+    BigDecimal calculateIncomeForPeriodForUser(User user, LocalDate startDate, LocalDate endDate);
+    
+    BigDecimal calculateExpensesForPeriodForUser(User user, LocalDate startDate, LocalDate endDate);
+    
+    List<Transaction> findByDateRangeForUser(User user, LocalDate start, LocalDate end);
 }

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="600.0" prefWidth="800.0" styleClass="anchor-pane" stylesheets="@../css/user_management.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unicam.cs.mpgc.jbudget120002.controller.UserManagementController">
+    <VBox spacing="10" AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.bottomAnchor="10.0">
+        <HBox spacing="10">
+            <!-- Group Management -->
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Groups" styleClass="header-label"/>
+                <TreeView fx:id="groupTreeView" prefHeight="200"/>
+                <GridPane hgap="10" vgap="5">
+                    <TextField fx:id="groupNameField" promptText="Group name" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="parentGroupComboBox" promptText="Parent group" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                    <TextArea fx:id="groupDescriptionArea" promptText="Group description" prefHeight="40" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+                </GridPane>
+                <HBox spacing="5">
+                    <Button text="Add Group" onAction="#handleAddGroup"/>
+                    <Button text="Delete Group" onAction="#handleDeleteGroup"/>
+                </HBox>
+            </VBox>
+
+            <!-- User Management -->
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Users" styleClass="header-label"/>
+                <ListView fx:id="userListView" prefHeight="200"/>
+                <HBox spacing="5">
+                    <TextField fx:id="userNameField" promptText="User name"/>
+                    <TextField fx:id="userSurnameField" promptText="User surname"/>
+                    <Button text="Add User" onAction="#handleAddUser"/>
+                    <Button text="Delete User" onAction="#handleDeleteUser"/>
+                </HBox>
+            </VBox>
+        </HBox>
+
+        <!-- User Details -->
+        <VBox spacing="5" styleClass="details-box">
+            <Label text="User Details" styleClass="header-label"/>
+            <GridPane hgap="10" vgap="5">
+                <Label text="Name:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <Label fx:id="selectedUserNameLabel" text="" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                <Label text="Surname:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label fx:id="selectedUserSurnameLabel" text="" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                <Label text="Group:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="groupAssignmentComboBox" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                <Label text="Roles:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <HBox spacing="5" GridPane.rowIndex="3" GridPane.columnIndex="1">
+                    <CheckBox fx:id="adminRoleCheckBox" text="Admin"/>
+                    <CheckBox fx:id="memberRoleCheckBox" text="Member"/>
+                </HBox>
+                <Button text="Update User" onAction="#handleUpdateUser" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+            </GridPane>
+        </VBox>
+    </VBox>
+</AnchorPane> 
