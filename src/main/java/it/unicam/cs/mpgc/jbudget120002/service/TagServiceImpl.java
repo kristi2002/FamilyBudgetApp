@@ -6,19 +6,71 @@ import jakarta.persistence.TypedQuery;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of the TagService interface for managing categorization tags.
+ * 
+ * <p>This class provides comprehensive tag management functionality including
+ * CRUD operations, hierarchical organization, and search capabilities. It ensures
+ * data integrity by preventing circular references and maintaining proper tag
+ * relationships.</p>
+ * 
+ * <p>Key responsibilities:</p>
+ * <ul>
+ *   <li>Create, read, update, and delete tags</li>
+ *   <li>Manage hierarchical tag relationships</li>
+ *   <li>Prevent circular references in tag hierarchies</li>
+ *   <li>Search and filter tags by various criteria</li>
+ *   <li>Handle tag dependencies and cascading operations</li>
+ *   <li>Support tag-based categorization of transactions and budgets</li>
+ *   <li>Maintain tag integrity and relationships</li>
+ * </ul>
+ * 
+ * <p>Usage examples:</p>
+ * <pre>{@code
+ * // Create a root tag
+ * Tag food = tagService.createTag("Food", null);
+ * 
+ * // Create a child tag
+ * Tag groceries = tagService.createTag("Groceries", food.getId());
+ * 
+ * // Find all root tags
+ * List<Tag> rootTags = tagService.findRootTags();
+ * 
+ * // Search for tags
+ * List<Tag> results = tagService.searchTags("food");
+ * 
+ * // Get all descendants of a tag
+ * Set<Tag> descendants = tagService.getAllDescendants(food.getId());
+ * }</pre>
+ * 
+ * @author FamilyBudgetApp Team
+ * @version 1.0
+ * @since 1.0
+ */
 public class TagServiceImpl extends BaseService implements TagService {
     
+    // ==================== CONSTRUCTORS ====================
+
+    /**
+     * Creates a new TagServiceImpl with the required EntityManager.
+     * 
+     * @param entityManager the EntityManager for database operations
+     * @throws IllegalArgumentException if entityManager is null
+     */
     public TagServiceImpl(EntityManager entityManager) {
         super(entityManager);
+        if (entityManager == null) {
+            throw new IllegalArgumentException("EntityManager cannot be null");
+        }
     }
+
+    // ==================== CRUD OPERATIONS ====================
 
     @Override
     public Tag createTag(String name, Long parentId) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Tag name cannot be empty");
-        }
-
-        em.getTransaction().begin();
+        validateCreateTagParams(name);
+        
+        beginTransaction();
         try {
             Tag tag = new Tag(name.trim());
             
@@ -29,10 +81,10 @@ public class TagServiceImpl extends BaseService implements TagService {
             }
             
             em.persist(tag);
-            em.getTransaction().commit();
+            commitTransaction();
             return tag;
         } catch (Exception e) {
-            em.getTransaction().rollback();
+            rollbackTransaction();
             throw new IllegalArgumentException("Failed to create tag: " + e.getMessage());
         }
     }
@@ -55,7 +107,7 @@ public class TagServiceImpl extends BaseService implements TagService {
     @Override
     public List<Tag> findChildTags(Long parentId) {
         if (parentId == null) {
-            return Collections.emptyList();
+            throw new IllegalArgumentException("Parent ID cannot be null");
         }
         
         TypedQuery<Tag> query = em.createQuery(
@@ -66,14 +118,9 @@ public class TagServiceImpl extends BaseService implements TagService {
 
     @Override
     public void updateTag(Long id, String newName, Long newParentId) {
-        if (id == null) {
-            throw new IllegalArgumentException("Tag ID cannot be null");
-        }
-        if (newName == null || newName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Tag name cannot be empty");
-        }
-
-        em.getTransaction().begin();
+        validateUpdateTagParams(id, newName);
+        
+        beginTransaction();
         try {
             Tag tag = findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag not found"));
@@ -83,15 +130,7 @@ public class TagServiceImpl extends BaseService implements TagService {
                 Tag newParent = findById(newParentId)
                     .orElseThrow(() -> new IllegalArgumentException("Parent tag not found"));
                 
-                // Check for circular reference
-                Tag current = newParent;
-                while (current != null) {
-                    if (current.getId().equals(id)) {
-                        throw new IllegalArgumentException("Cannot create circular reference in tag hierarchy");
-                    }
-                    current = current.getParent();
-                }
-                
+                validateNoCircularReference(id, newParent);
                 tag.setParent(newParent);
             } else {
                 tag.setParent(null);
@@ -99,9 +138,9 @@ public class TagServiceImpl extends BaseService implements TagService {
             
             tag.setName(newName.trim());
             em.merge(tag);
-            em.getTransaction().commit();
+            commitTransaction();
         } catch (Exception e) {
-            em.getTransaction().rollback();
+            rollbackTransaction();
             throw new IllegalArgumentException("Failed to update tag: " + e.getMessage());
         }
     }
@@ -112,7 +151,7 @@ public class TagServiceImpl extends BaseService implements TagService {
             throw new IllegalArgumentException("Tag ID cannot be null");
         }
 
-        em.getTransaction().begin();
+        beginTransaction();
         try {
             Tag tag = findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag not found"));
@@ -124,9 +163,9 @@ public class TagServiceImpl extends BaseService implements TagService {
             tag.getChildren().forEach(child -> child.setParent(null));
             
             em.remove(tag);
-            em.getTransaction().commit();
+            commitTransaction();
         } catch (Exception e) {
-            em.getTransaction().rollback();
+            rollbackTransaction();
             throw new IllegalArgumentException("Failed to delete tag: " + e.getMessage());
         }
     }
@@ -134,7 +173,7 @@ public class TagServiceImpl extends BaseService implements TagService {
     @Override
     public Set<Tag> getAllDescendants(Long tagId) {
         if (tagId == null) {
-            return Collections.emptySet();
+            throw new IllegalArgumentException("Tag ID cannot be null");
         }
         
         Tag tag = findById(tagId)
@@ -145,17 +184,10 @@ public class TagServiceImpl extends BaseService implements TagService {
         return descendants;
     }
 
-    private void collectDescendants(Tag tag, Set<Tag> descendants) {
-        for (Tag child : tag.getChildren()) {
-            descendants.add(child);
-            collectDescendants(child, descendants);
-        }
-    }
-
     @Override
     public List<Tag> searchTags(String query) {
         if (query == null || query.trim().isEmpty()) {
-            return Collections.emptyList();
+            throw new IllegalArgumentException("Search query cannot be null or empty");
         }
         
         TypedQuery<Tag> searchQuery = em.createQuery(
@@ -172,11 +204,11 @@ public class TagServiceImpl extends BaseService implements TagService {
 
     @Override
     public List<Tag> findTagAndDescendants(Tag parent) {
-        List<Tag> result = new ArrayList<>();
         if (parent == null) {
-            return result;
+            throw new IllegalArgumentException("Parent tag cannot be null");
         }
         
+        List<Tag> result = new ArrayList<>();
         result.add(parent);
         if (parent.getChildren() != null) {
             for (Tag child : parent.getChildren()) {
@@ -184,5 +216,65 @@ public class TagServiceImpl extends BaseService implements TagService {
             }
         }
         return result;
+    }
+
+    // ==================== PRIVATE HELPER METHODS ====================
+
+    /**
+     * Validates parameters for creating a tag.
+     * 
+     * @param name the tag name
+     * @throws IllegalArgumentException if name is invalid
+     */
+    private void validateCreateTagParams(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tag name cannot be null or empty");
+        }
+    }
+
+    /**
+     * Validates parameters for updating a tag.
+     * 
+     * @param id the tag ID
+     * @param newName the new tag name
+     * @throws IllegalArgumentException if parameters are invalid
+     */
+    private void validateUpdateTagParams(Long id, String newName) {
+        if (id == null) {
+            throw new IllegalArgumentException("Tag ID cannot be null");
+        }
+        if (newName == null || newName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tag name cannot be null or empty");
+        }
+    }
+
+    /**
+     * Validates that setting a new parent would not create a circular reference.
+     * 
+     * @param tagId the tag ID being updated
+     * @param newParent the new parent tag
+     * @throws IllegalArgumentException if circular reference would be created
+     */
+    private void validateNoCircularReference(Long tagId, Tag newParent) {
+        Tag current = newParent;
+        while (current != null) {
+            if (current.getId().equals(tagId)) {
+                throw new IllegalArgumentException("Cannot create circular reference in tag hierarchy");
+            }
+            current = current.getParent();
+        }
+    }
+
+    /**
+     * Recursively collects all descendant tags of a given tag.
+     * 
+     * @param tag the tag to collect descendants for
+     * @param descendants the set to add descendants to
+     */
+    private void collectDescendants(Tag tag, Set<Tag> descendants) {
+        for (Tag child : tag.getChildren()) {
+            descendants.add(child);
+            collectDescendants(child, descendants);
+        }
     }
 } 
