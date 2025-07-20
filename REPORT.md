@@ -1,240 +1,240 @@
-# Family Budget App – Project Report
+# Family Budget App – Relazione di Progetto
 
-## Introduction
-The Family Budget App is a Java-based application designed to help families efficiently manage their finances. In today’s fast-paced world, keeping track of expenses, planning for future projects, and ensuring financial stability are essential for every household. This application addresses these needs by providing a comprehensive platform for recording transactions, managing budgets, tracking upcoming deadlines, and analyzing financial statistics.
-A key goal of the project is to deliver a solution that is not only powerful and user-friendly but also highly extensible. The application is architected to support future enhancements, such as integration with mobile and web platforms, advanced analytics, and cloud-based synchronization. By leveraging modern development practices and tools—including JavaFX for the graphical interface, JPA/Hibernate for data persistence, and a modular, service-oriented architecture—the Family Budget App ensures maintainability, scalability, and ease of integration with new features.
-The app is intended for use on multiple devices and is designed to facilitate synchronization of financial data across desktops and, potentially, other platforms. This flexibility makes it a robust foundation for both current needs and future growth, empowering families to take control of their financial well-being.
+## Introduzione
+La Family Budget App è un'applicazione basata su Java progettata per aiutare le famiglie a gestire efficacemente le proprie finanze. Nel mondo frenetico di oggi, tenere traccia delle spese, pianificare progetti futuri e garantire la stabilità finanziaria sono essenziali per ogni famiglia. Questa applicazione affronta queste esigenze fornendo una piattaforma completa per registrare transazioni, gestire budget, tracciare scadenze imminenti e analizzare statistiche finanziarie.
+Un obiettivo chiave del progetto è fornire una soluzione che non sia solo potente e user-friendly, ma anche altamente estensibile. L'applicazione è architettata per supportare miglioramenti futuri, come l'integrazione con piattaforme mobili e web, analisi avanzate e sincronizzazione basata su cloud. Utilizzando pratiche e strumenti di sviluppo moderni—inclusi JavaFX per l'interfaccia grafica, JPA/Hibernate per la persistenza dei dati e un'architettura modulare orientata ai servizi—la Family Budget App garantisce manutenibilità, scalabilità e facilità di integrazione con nuove funzionalità.
+L'app è destinata all'uso su più dispositivi ed è progettata per facilitare la sincronizzazione dei dati finanziari tra desktop e, potenzialmente, altre piattaforme. Questa flessibilità la rende una base robusta sia per le esigenze attuali che per la crescita futura, permettendo alle famiglie di prendere il controllo del proprio benessere finanziario.
 ---
 
-## Implemented Functionalities
-The Family Budget App provides a comprehensive set of features to support effective family financial management. The following functionalities have been implemented in this version:
+## Funzionalità Implementate
+La Family Budget App fornisce un set completo di funzionalità per supportare una gestione finanziaria familiare efficace. Le seguenti funzionalità sono state implementate in questa versione:
 
-Transaction Management
-Users can add, view, and manage financial transactions.
-Each transaction can be associated with one or more tags (categories), which can be organized hierarchically (e.g., “Utilities > Electricity”).
-Support for scheduled and recurring transactions, allowing users to plan for regular expenses or incomes (such as subscriptions, salaries, or loan repayments).
-Loan amortization plans can be entered as a sequence of scheduled installments, with clear separation of repayment and interest portions.
+**Gestione delle Transazioni**
+Gli utenti possono aggiungere, visualizzare e gestire transazioni finanziarie.
+Ogni transazione può essere associata a uno o più tag (categorie), che possono essere organizzati gerarchicamente (es. "Utilità > Elettricità").
+Supporto per transazioni programmate e ricorrenti, permettendo agli utenti di pianificare spese o entrate regolari (come abbonamenti, stipendi o rimborsi di prestiti).
+I piani di ammortamento dei prestiti possono essere inseriti come una sequenza di rate programmate, con chiara separazione tra quota capitale e quota interessi.
 
-Budget Management
-Users can create and manage budgets for specific periods and categories.
-The application tracks expenses and income against each budget, providing real-time feedback on budget status (spent, remaining, over-budget).
-Budgets can be associated with tags/categories for detailed tracking.
+**Gestione del Budget**
+Gli utenti possono creare e gestire budget per periodi e categorie specifiche.
+L'applicazione traccia spese e entrate rispetto a ogni budget, fornendo feedback in tempo reale sullo stato del budget (speso, rimanente, oltre budget).
+I budget possono essere associati a tag/categorie per un tracciamento dettagliato.
 
-Calendar of Deadlines
-Future expenses and their due dates can be entered and tracked.
-The application provides a dedicated view for upcoming deadlines, helping users avoid missed payments and plan ahead.
+**Calendario delle Scadenze**
+Le spese future e le loro date di scadenza possono essere inserite e tracciate.
+L'applicazione fornisce una vista dedicata per le scadenze imminenti, aiutando gli utenti a evitare pagamenti mancati e pianificare in anticipo.
 
-Statistics and Comparisons
-The app processes transaction and budget data to generate insightful statistics.
-Users can monitor their financial performance over time, compare different periods, and analyze spending across categories.
-Visualizations such as tables and charts are provided for better understanding.
+**Statistiche e Confronti**
+L'app elabora i dati delle transazioni e del budget per generare statistiche informative.
+Gli utenti possono monitorare le loro performance finanziarie nel tempo, confrontare diversi periodi e analizzare le spese tra categorie.
+Vengono fornite visualizzazioni come tabelle e grafici per una migliore comprensione.
 
-Advanced Search and Filtering
-Transactions can be filtered by date range, tags (with AND/OR logic), and text search (description or amount).
-Users can quickly locate specific transactions or analyze spending patterns using flexible filters.
+**Ricerca e Filtri Avanzati**
+Le transazioni possono essere filtrate per intervallo di date, tag (con logica AND/OR) e ricerca testuale (descrizione o importo).
+Gli utenti possono localizzare rapidamente transazioni specifiche o analizzare pattern di spesa utilizzando filtri flessibili.
 
-Synchronization (File-Based)
-The application supports data synchronization across devices using a file-based sync mechanism.
-This ensures that users can access and update their financial data from multiple desktops, with future extensibility for cloud or mobile sync.
+**Sincronizzazione (Basata su File)**
+L'applicazione supporta la sincronizzazione dei dati tra dispositivi utilizzando un meccanismo di sincronizzazione basato su file.
+Questo garantisce che gli utenti possano accedere e aggiornare i loro dati finanziari da più desktop, con estensibilità futura per sincronizzazione cloud o mobile.
 
-User Interface Highlights
-The application features a modern, intuitive UI built with JavaFX.
-Scheduled/recurring transactions are visually marked in the main transactions table.
-Advanced filtering and search tools are easily accessible.
-The interface is designed for clarity, ease of use, and future extensibility.
+**Caratteristiche dell'Interfaccia Utente**
+L'applicazione presenta un'interfaccia moderna e intuitiva costruita con JavaFX.
+Le transazioni programmate/ricorrenti sono visivamente marcate nella tabella principale delle transazioni.
+Gli strumenti di filtro e ricerca avanzati sono facilmente accessibili.
+L'interfaccia è progettata per chiarezza, facilità d'uso ed estensibilità futura.
 
+## Responsabilità Identificate
+La Family Budget App è progettata con un'architettura modulare che separa le responsabilità e assegna responsabilità chiare a ogni componente principale. Questo approccio garantisce manutenibilità, scalabilità e facilità di estensione futura. Le principali responsabilità sono divise come segue:
 
-## Identified Responsibilities
-The Family Budget App is designed with a modular architecture that separates concerns and assigns clear responsibilities to each major component. This approach ensures maintainability, scalability, and ease of future extension. The main responsibilities are divided as follows:
+**Controller**
+Gestiscono l'interfaccia utente e gestiscono le interazioni dell'utente.
+Coordinano tra i componenti UI (viste JavaFX) e la logica di business sottostante.
+Esempi: TransactionsController, BudgetsController, ScheduledController, SettingsController.
 
-Controllers
-Manage the user interface and handle user interactions.
-Coordinate between the UI components (JavaFX views) and the underlying business logic.
-Examples: TransactionsController, BudgetsController, ScheduledController, SettingsController.
+**Servizi**
+Incapsulano la logica di business e le operazioni core dell'applicazione.
+Forniscono metodi per creare, aggiornare, eliminare e interrogare oggetti di dominio come transazioni, budget e tag.
+Gestiscono operazioni complesse come calcolo delle statistiche, valutazione dello stato del budget e sincronizzazione.
+Esempi: TransactionService, BudgetService, ScheduledTransactionService, SyncService.
 
-Services
-Encapsulate the business logic and core operations of the application.
-Provide methods for creating, updating, deleting, and querying domain objects such as transactions, budgets, and tags.
-Handle complex operations such as statistics calculation, budget status evaluation, and synchronization.
-Examples: TransactionService, BudgetService, ScheduledTransactionService, SyncService.
+**Modelli**
+Rappresentano le entità dati core dell'applicazione.
+Definiscono la struttura e le relazioni di oggetti dati come transazioni, budget, tag e transazioni programmate.
+Servono come ponte tra la logica dell'applicazione e il layer di persistenza dei dati.
+Esempi: Transaction, Budget, Tag, ScheduledTransaction, UserSettings.
 
-Models
-Represent the core data entities of the application.
-Define the structure and relationships of data objects such as transactions, budgets, tags, and scheduled transactions.
-Serve as the bridge between the application logic and data persistence layer.
-Examples: Transaction, Budget, Tag, ScheduledTransaction, UserSettings.
+**Repository**
+Gestiscono l'accesso ai dati e la persistenza.
+Interagiscono con il database utilizzando JPA/Hibernate per memorizzare e recuperare entità.
+Astragono i dettagli della memorizzazione dei dati dal resto dell'applicazione, permettendo facili cambiamenti al meccanismo di persistenza se necessario.
+Esempi: TransactionRepository, BudgetRepository, TagRepository.
 
-Repositories
-Manage data access and persistence.
-Interact with the database using JPA/Hibernate to store and retrieve entities.
-Abstract the details of data storage from the rest of the application, enabling easy changes to the persistence mechanism if needed.
-Examples: TransactionRepository, BudgetRepository, TagRepository.
+Questa chiara separazione delle responsabilità garantisce che ogni parte dell'applicazione sia focalizzata su un aspetto specifico, rendendo il codice più facile da comprendere, mantenere ed estendere.
 
-This clear separation of responsibilities ensures that each part of the application is focused on a specific aspect, making the codebase easier to understand, maintain, and extend.
-
-## Developed Classes and Interfaces
-The Family Budget App is organized into well-defined classes and interfaces, each with a clear responsibility. Below is a summary of the main components:
-| Class/Interface | Responsibility |
+## Classi e Interfacce Sviluppate
+La Family Budget App è organizzata in classi e interfacce ben definite, ognuna con una responsabilità chiara. Di seguito è riportato un riepilogo dei componenti principali:
+| Classe/Interfaccia | Responsabilità |
 |--------------------------------------|---------------------------------------------------------------------|
-| Transaction | Represents a financial transaction, including date, amount, tags, etc. |
-| ScheduledTransaction | Represents a recurring or future-dated transaction (e.g., loan installment, subscription). |
-| Budget | Represents a budget for a specific period and category. |
-| Tag | Represents a category or label for transactions and budgets; supports hierarchy. |
-| UserSettings | Stores user preferences such as currency, locale, and sync settings. |
-| TransactionService | Business logic for managing transactions (create, update, delete, query, calculate balances). |
-| ScheduledTransactionService | Business logic for managing scheduled/recurring transactions. |
-| BudgetService | Business logic for managing budgets, including status and alerts. |
-| TagService | Business logic for managing tags/categories. |
-| SyncService (interface) | Defines methods for synchronizing data across devices. |
-| FileSyncService (implements SyncService) | Provides file-based synchronization implementation. |
-| StatisticsService | Provides methods for generating statistics and reports. |
-| ServiceFactory | Centralized factory for creating and managing service instances. |
-| TransactionsController | Handles UI logic for transaction management. |
-| BudgetsController | Handles UI logic for budget management. |
-| ScheduledController | Handles UI logic for scheduled/recurring transactions. |
-| SettingsController | Handles UI logic for application settings and synchronization. |
-| BaseController | Abstract base class for shared controller logic. |
-| TransactionRepository | Data access for transactions (JPA/Hibernate). |
-| BudgetRepository | Data access for budgets (JPA/Hibernate). |
-| TagRepository | Data access for tags (JPA/Hibernate). |
+| Transaction | Rappresenta una transazione finanziaria, inclusi data, importo, tag, ecc. |
+| ScheduledTransaction | Rappresenta una transazione ricorrente o con data futura (es. rata di prestito, abbonamento). |
+| Budget | Rappresenta un budget per un periodo e categoria specifica. |
+| Tag | Rappresenta una categoria o etichetta per transazioni e budget; supporta la gerarchia. |
+| UserSettings | Memorizza le preferenze dell'utente come valuta, locale e impostazioni di sincronizzazione. |
+| TransactionService | Logica di business per gestire le transazioni (creare, aggiornare, eliminare, interrogare, calcolare saldi). |
+| ScheduledTransactionService | Logica di business per gestire transazioni programmate/ricorrenti. |
+| BudgetService | Logica di business per gestire i budget, inclusi stato e alert. |
+| TagService | Logica di business per gestire tag/categorie. |
+| SyncService (interfaccia) | Definisce metodi per sincronizzare dati tra dispositivi. |
+| FileSyncService (implementa SyncService) | Fornisce implementazione di sincronizzazione basata su file. |
+| StatisticsService | Fornisce metodi per generare statistiche e report. |
+| ServiceFactory | Factory centralizzata per creare e gestire istanze di servizi. |
+| TransactionsController | Gestisce la logica UI per la gestione delle transazioni. |
+| BudgetsController | Gestisce la logica UI per la gestione dei budget. |
+| ScheduledController | Gestisce la logica UI per transazioni programmate/ricorrenti. |
+| SettingsController | Gestisce la logica UI per impostazioni dell'applicazione e sincronizzazione. |
+| BaseController | Classe base astratta per logica condivisa dei controller. |
+| TransactionRepository | Accesso ai dati per le transazioni (JPA/Hibernate). |
+| BudgetRepository | Accesso ai dati per i budget (JPA/Hibernate). |
+| TagRepository | Accesso ai dati per i tag (JPA/Hibernate). |
 | ... | ... |
-> Note:
-> This table lists the most important classes and interfaces. Additional utility classes (e.g., for date/currency formatting, statistics models, etc.) are also present to support the main features.
-Each class and interface is designed with a single, clear responsibility, following best practices for maintainability and extensibility.
+> Nota:
+> Questa tabella elenca le classi e interfacce più importanti. Sono presenti anche classi di utilità aggiuntive (es. per formattazione date/valute, modelli di statistiche, ecc.) per supportare le funzionalità principali.
+Ogni classe e interfaccia è progettata con una singola, chiara responsabilità, seguendo le best practice per manutenibilità ed estensibilità.
 
-## Data Organization and Persistence
-The Family Budget App organizes and persists data using a robust, scalable approach based on Java Persistence API (JPA) and Hibernate. The main aspects of data organization and persistence are as follows:
+## Organizzazione dei Dati e Persistenza
+La Family Budget App organizza e persiste i dati utilizzando un approccio robusto e scalabile basato su Java Persistence API (JPA) e Hibernate. Gli aspetti principali dell'organizzazione e persistenza dei dati sono i seguenti:
 
-Data Structure and Relationships
-Entities: The core data entities include Transaction, ScheduledTransaction, Budget, Tag, and UserSettings.
+**Struttura dei Dati e Relazioni**
+Entità: Le entità dati core includono Transaction, ScheduledTransaction, Budget, Tag e UserSettings.
 
-Relationships:
-Transactions can be associated with one or more Tags (categories), allowing for flexible categorization and hierarchical organization.
-Budgets are linked to specific tags/categories and cover a defined time period.
-ScheduledTransactions represent recurring or future-dated transactions and can also be tagged for categorization.
-Tags can be organized hierarchically, supporting parent-child relationships for nested categories.
-UserSettings stores preferences such as currency, locale, and synchronization options.
+Relazioni:
+Le transazioni possono essere associate a uno o più Tag (categorie), permettendo categorizzazione flessibile e organizzazione gerarchica.
+I budget sono collegati a tag/categorie specifiche e coprono un periodo di tempo definito.
+Le ScheduledTransaction rappresentano transazioni ricorrenti o con data futura e possono anche essere taggate per categorizzazione.
+I tag possono essere organizzati gerarchicamente, supportando relazioni padre-figlio per categorie annidate.
+UserSettings memorizza preferenze come valuta, locale e opzioni di sincronizzazione.
 
-Persistence Mechanism
-JPA/Hibernate: All main entities are annotated for JPA, enabling object-relational mapping and seamless integration with relational databases.
-Repositories: Each entity has a corresponding repository (e.g., TransactionRepository, BudgetRepository) that handles data access and CRUD operations.
-Entity Relationships: Relationships such as one-to-many (e.g., a tag with multiple transactions) and many-to-many (e.g., transactions with multiple tags) are mapped using JPA annotations.
+**Meccanismo di Persistenza**
+JPA/Hibernate: Tutte le entità principali sono annotate per JPA, abilitando object-relational mapping e integrazione seamless con database relazionali.
+Repository: Ogni entità ha un repository corrispondente (es. TransactionRepository, BudgetRepository) che gestisce l'accesso ai dati e operazioni CRUD.
+Relazioni tra Entità: Relazioni come one-to-many (es. un tag con multiple transazioni) e many-to-many (es. transazioni con multiple tag) sono mappate utilizzando annotazioni JPA.
 
-Synchronization and Backup
-File-Based Synchronization: The application supports synchronization of data across devices using a file-based sync mechanism. This allows users to keep their financial data consistent on multiple desktops.
-Extensibility: The synchronization mechanism is designed to be extensible, allowing for future integration with cloud-based or mobile sync solutions.
-Backup: Data can be backed up by copying the underlying database or sync files, ensuring data safety and recovery.
+**Sincronizzazione e Backup**
+Sincronizzazione Basata su File: L'applicazione supporta la sincronizzazione dei dati tra dispositivi utilizzando un meccanismo di sincronizzazione basato su file. Questo permette agli utenti di mantenere i loro dati finanziari consistenti su più desktop.
+Estensibilità: Il meccanismo di sincronizzazione è progettato per essere estensibile, permettendo futura integrazione con soluzioni di sincronizzazione basate su cloud o mobile.
+Backup: I dati possono essere salvati copiando il database sottostante o i file di sincronizzazione, garantendo sicurezza dei dati e recupero.
 
-Data Integrity and Consistency
-Transactions: All changes to data (add, update, delete) are managed through service classes, ensuring business rules and data integrity are enforced.
-Atomic Operations: Database transactions are used to ensure that operations are atomic and consistent, reducing the risk of data corruption.
-This approach ensures that data is well-structured, persistent, and ready for future growth, while also providing mechanisms for backup and multi-device synchronization.
+**Integrità e Consistenza dei Dati**
+Transazioni: Tutti i cambiamenti ai dati (aggiungere, aggiornare, eliminare) sono gestiti attraverso classi di servizio, garantendo che le regole di business e l'integrità dei dati siano applicate.
+Operazioni Atomiche: Le transazioni del database sono utilizzate per garantire che le operazioni siano atomiche e consistenti, riducendo il rischio di corruzione dei dati.
+Questo approccio garantisce che i dati siano ben strutturati, persistenti e pronti per la crescita futura, fornendo anche meccanismi per backup e sincronizzazione multi-dispositivo.
 
-## Extensibility and Integration Mechanisms
-The Family Budget App is designed with extensibility and future integration in mind. The architecture and codebase employ several strategies to ensure that new features, device types, and integrations can be added with minimal effort:
+## Meccanismi di Estensibilità e Integrazione
+La Family Budget App è progettata pensando all'estensibilità e all'integrazione futura. L'architettura e il codice utilizzano diverse strategie per garantire che nuove funzionalità, tipi di dispositivi e integrazioni possano essere aggiunti con sforzo minimo:
 
-Use of Interfaces and Abstract Classes
-Core business logic is defined through interfaces (e.g., SyncService, BudgetService, TransactionService), allowing for multiple implementations.
-Abstract base classes (such as BaseController) provide shared functionality for UI controllers, enabling code reuse and consistent behavior.
+**Uso di Interfacce e Classi Astratte**
+La logica di business core è definita attraverso interfacce (es. SyncService, BudgetService, TransactionService), permettendo multiple implementazioni.
+Classi base astratte (come BaseController) forniscono funzionalità condivise per i controller UI, abilitando riuso del codice e comportamento consistente.
 
-Factory and Service Patterns
-The ServiceFactory class centralizes the creation and management of service instances. This makes it easy to swap or extend service implementations (e.g., replacing FileSyncService with a cloud-based sync service).
-Services are injected into controllers, decoupling UI logic from business logic and making it easier to test and extend.
+**Pattern Factory e Service**
+La classe ServiceFactory centralizza la creazione e gestione di istanze di servizi. Questo rende facile scambiare o estendere implementazioni di servizi (es. sostituire FileSyncService con un servizio di sincronizzazione basato su cloud).
+I servizi sono iniettati nei controller, disaccoppiando la logica UI dalla logica di business e rendendo più facile testare ed estendere.
 
-Modular and Layered Architecture
-The application is organized into clear layers: UI (controllers), business logic (services), data (models/entities), and persistence (repositories).
-Each layer interacts with others through well-defined interfaces, making it straightforward to add new features or replace existing components.
+**Architettura Modulare e a Livelli**
+L'applicazione è organizzata in livelli chiari: UI (controller), logica di business (servizi), dati (modelli/entità) e persistenza (repository).
+Ogni livello interagisce con gli altri attraverso interfacce ben definite, rendendo semplice aggiungere nuove funzionalità o sostituire componenti esistenti.
 
-Adding New Features or Integrations
-Example: Adding Cloud Synchronization
-Implement a new class (e.g., CloudSyncService) that implements the SyncService interface.
-Register the new service in the ServiceFactory.
-The rest of the application can use the new sync method without any changes to the UI or business logic.
-Example: Adding Mobile or Web Support
-The modular design allows for the development of new front-ends (e.g., mobile app, web app) that can interact with the same service and data layers.
+**Aggiunta di Nuove Funzionalità o Integrazioni**
+Esempio: Aggiungere Sincronizzazione Cloud
+Implementare una nuova classe (es. CloudSyncService) che implementa l'interfaccia SyncService.
+Registrare il nuovo servizio nel ServiceFactory.
+Il resto dell'applicazione può utilizzare il nuovo metodo di sincronizzazione senza alcun cambiamento alla UI o logica di business.
+Esempio: Aggiungere Supporto Mobile o Web
+Il design modulare permette lo sviluppo di nuovi front-end (es. app mobile, app web) che possono interagire con gli stessi layer di servizi e dati.
 
-Plugin-Friendly Design
-The use of interfaces and factories makes it possible to add plugins or extensions (e.g., new analytics modules, import/export tools) without modifying the core codebase.
+**Design Compatibile con Plugin**
+L'uso di interfacce e factory rende possibile aggiungere plugin o estensioni (es. nuovi moduli di analisi, strumenti di import/export) senza modificare il codice core.
 
-Configuration and Settings
-User preferences and application settings are managed through the UserSettings entity, making it easy to add new configurable options in the future.
-This extensible design ensures that the Family Budget App can evolve to meet new requirements, integrate with other systems, and support additional platforms with minimal refactoring.
+**Configurazione e Impostazioni**
+Le preferenze dell'utente e le impostazioni dell'applicazione sono gestite attraverso l'entità UserSettings, rendendo facile aggiungere nuove opzioni configurabili in futuro.
+Questo design estensibile garantisce che la Family Budget App possa evolversi per soddisfare nuovi requisiti, integrarsi con altri sistemi e supportare piattaforme aggiuntive con refactoring minimo.
 
-## SOLID Principles and Code Quality
-The Family Budget App is developed with a strong emphasis on code quality and adherence to the SOLID principles, ensuring maintainability, scalability, and ease of future development.
+## Principi SOLID e Qualità del Codice
+La Family Budget App è sviluppata con una forte enfasi sulla qualità del codice e l'aderenza ai principi SOLID, garantendo manutenibilità, scalabilità e facilità di sviluppo futuro.
 
-Single Responsibility Principle (SRP)
-Each class and method in the application is designed to have a single, well-defined responsibility.
-For example, controllers manage UI logic, services handle business operations, and models represent data entities.
+**Principio di Responsabilità Singola (SRP)**
+Ogni classe e metodo nell'applicazione è progettato per avere una singola, ben definita responsabilità.
+Per esempio, i controller gestiscono la logica UI, i servizi gestiscono le operazioni di business e i modelli rappresentano entità dati.
 
-Open/Closed Principle (OCP)
-The system is open for extension but closed for modification.
-New features (such as additional synchronization methods or analytics modules) can be added by implementing interfaces without altering existing code.
+**Principio Aperto/Chiuso (OCP)**
+Il sistema è aperto per l'estensione ma chiuso per la modifica.
+Nuove funzionalità (come metodi di sincronizzazione aggiuntivi o moduli di analisi) possono essere aggiunte implementando interfacce senza alterare il codice esistente.
 
-Liskov Substitution Principle (LSP)
-Interfaces and abstract classes are used so that new implementations can be substituted without affecting the correctness of the application.
-For example, any class implementing SyncService can be used interchangeably in the application.
+**Principio di Sostituzione di Liskov (LSP)**
+Interfacce e classi astratte sono utilizzate così che nuove implementazioni possano essere sostituite senza influenzare la correttezza dell'applicazione.
+Per esempio, qualsiasi classe che implementa SyncService può essere utilizzata intercambiabilmente nell'applicazione.
 
-Interface Segregation Principle (ISP)
-Interfaces are designed to be specific to the needs of the clients, avoiding large, monolithic interfaces.
-Services such as TransactionService, BudgetService, and SyncService each define focused sets of operations.
+**Principio di Segregazione delle Interfacce (ISP)**
+Le interfacce sono progettate per essere specifiche alle esigenze dei client, evitando interfacce grandi e monolitiche.
+Servizi come TransactionService, BudgetService e SyncService definiscono ciascuno set focalizzati di operazioni.
 
-Dependency Inversion Principle (DIP)
-High-level modules do not depend on low-level modules; both depend on abstractions.
-Controllers depend on service interfaces rather than concrete implementations, allowing for easy testing and extension.
+**Principio di Inversione delle Dipendenze (DIP)**
+I moduli di alto livello non dipendono dai moduli di basso livello; entrambi dipendono da astrazioni.
+I controller dipendono da interfacce di servizio piuttosto che da implementazioni concrete, permettendo facile testing ed estensione.
 
-Code Style and Modularity
-The codebase follows consistent naming conventions and formatting for readability.
-The project is organized into logical packages and layers (controllers, services, models, repositories).
-Utility classes are used for common tasks (e.g., date and currency formatting), reducing code duplication.
+**Stile del Codice e Modularità**
+Il codice segue convenzioni di naming e formattazione consistenti per la leggibilità.
+Il progetto è organizzato in package e livelli logici (controller, servizi, modelli, repository).
+Classi di utilità sono utilizzate per task comuni (es. formattazione date e valute), riducendo la duplicazione del codice.
 
-Efficiency and Maintainability
-Efficient data access and processing are ensured through the use of JPA/Hibernate and optimized queries.
+**Efficienza e Manutenibilità**
+L'accesso ai dati e l'elaborazione efficienti sono garantiti attraverso l'uso di JPA/Hibernate e query ottimizzate.
+Il design modulare e la chiara separazione delle responsabilità rendono il codice facile da mantenere ed estendere.
+Questo impegno per i principi SOLID e la qualità del codice garantisce che la Family Budget App sia robusta, adattabile e pronta per la crescita futura.
 
-The modular design and clear separation of concerns make the codebase easy to maintain and extend.
-This commitment to SOLID principles and code quality ensures that the Family Budget App is robust, adaptable, and ready for future growth.
+## Strumenti e Metodologie
+Lo sviluppo della Family Budget App sfrutta una gamma di strumenti moderni e metodologie di ingegneria del software per garantire un'applicazione robusta, manutenibile e user-friendly. I principali strumenti e metodologie utilizzati includono:
 
-## Tools and Methodologies
-The development of the Family Budget App leverages a range of modern tools and software engineering methodologies to ensure a robust, maintainable, and user-friendly application. The main tools and methodologies used include:
+**Linguaggio di Programmazione e Framework**
+Java: Il linguaggio di programmazione primario per tutta la logica dell'applicazione.
+JavaFX: Utilizzato per costruire l'interfaccia grafica utente, fornendo un'esperienza utente moderna e reattiva.
 
-Programming Language and Frameworks
-Java: The primary programming language for all application logic.
-JavaFX: Used for building the graphical user interface, providing a modern and responsive user experience.
-Build and Dependency Management
-Gradle: Utilized as the build automation tool, managing dependencies, compiling code, and packaging the application for distribution.
+**Build e Gestione delle Dipendenze**
+Gradle: Utilizzato come strumento di automazione del build, gestendo dipendenze, compilando codice e impacchettando l'applicazione per la distribuzione.
 
-Persistence and Data Management
-JPA (Java Persistence API): Used for object-relational mapping and database interactions.
-Hibernate: The JPA implementation chosen for efficient and reliable data persistence.
+**Persistenza e Gestione dei Dati**
+JPA (Java Persistence API): Utilizzato per object-relational mapping e interazioni con il database.
+Hibernate: L'implementazione JPA scelta per persistenza dei dati efficiente e affidabile.
 
-Architecture and Design Patterns
-MVC (Model-View-Controller): The application follows the MVC pattern, separating concerns between data (models), business logic (services), and user interface (controllers/views).
-Service and Factory Patterns: Services encapsulate business logic, and the factory pattern is used for service instantiation and management.
+**Architettura e Pattern di Design**
+MVC (Model-View-Controller): L'applicazione segue il pattern MVC, separando le responsabilità tra dati (modelli), logica di business (servizi) e interfaccia utente (controller/viste).
+Pattern Service e Factory: I servizi incapsulano la logica di business e il pattern factory è utilizzato per l'istanziazione e gestione dei servizi.
 
-Version Control
-Git: Used for source code management, enabling collaborative development and version tracking.
-Other Utilities
-Utility Classes: Custom utility classes are used for tasks such as date formatting, currency formatting, and statistics calculations.
+**Controllo Versione**
+Git: Utilizzato per la gestione del codice sorgente, abilitando sviluppo collaborativo e tracking delle versioni.
 
-Development Methodologies
-Modular Design: The codebase is organized into logical modules and packages for clarity and maintainability.
-SOLID Principles: The code adheres to SOLID principles to ensure extensibility and code quality.
-Iterative Development: Features are developed and tested incrementally, allowing for continuous improvement and integration of feedback.
+**Altre Utility**
+Classi di Utilità: Classi di utilità personalizzate sono utilizzate per task come formattazione date, formattazione valute e calcoli statistici.
 
-These tools and methodologies collectively contribute to the reliability, maintainability, and extensibility of the Family Budget App.
+**Metodologie di Sviluppo**
+Design Modulare: Il codice è organizzato in moduli e package logici per chiarezza e manutenibilità.
+Principi SOLID: Il codice aderisce ai principi SOLID per garantire estensibilità e qualità del codice.
+Sviluppo Iterativo: Le funzionalità sono sviluppate e testate incrementalmente, permettendo miglioramento continuo e integrazione del feedback.
 
-## Conclusion
-The Family Budget App successfully delivers a comprehensive solution for managing household finances, combining robust functionality with a user-friendly interface. Through features such as transaction and budget management, scheduled and recurring transactions, deadline tracking, advanced statistics, and flexible search and filtering, the application empowers users to gain control over their financial planning and daily spending.
+Questi strumenti e metodologie contribuiscono collettivamente all'affidabilità, manutenibilità ed estensibilità della Family Budget App.
 
-The project’s architecture is designed for extensibility and maintainability, following SOLID principles and leveraging modern development tools and patterns. The use of JavaFX for the UI, JPA/Hibernate for persistence, and a modular service-oriented structure ensures that the application is both reliable and ready for future enhancements.
+## Conclusione
+La Family Budget App fornisce con successo una soluzione completa per la gestione delle finanze domestiche, combinando funzionalità robuste con un'interfaccia user-friendly. Attraverso funzionalità come gestione delle transazioni e del budget, transazioni programmate e ricorrenti, tracciamento delle scadenze, statistiche avanzate e ricerca e filtri flessibili, l'applicazione permette agli utenti di prendere il controllo della loro pianificazione finanziaria e spese quotidiane.
 
-While the current version provides all core functionalities required for effective family budget management, the design allows for seamless integration of new features, such as cloud synchronization, mobile or web interfaces, and advanced analytics. The file-based synchronization mechanism already lays the groundwork for multi-device support, and the clear separation of concerns makes it easy to extend or adapt the application as user needs evolve.
-In summary, the Family Budget App is a solid foundation for ongoing development and real-world use, offering both immediate value and long-term flexibility for families seeking to improve their financial well-being.
+L'architettura del progetto è progettata per estensibilità e manutenibilità, seguendo i principi SOLID e sfruttando strumenti e pattern di sviluppo moderni. L'uso di JavaFX per l'UI, JPA/Hibernate per la persistenza e una struttura modulare orientata ai servizi garantisce che l'applicazione sia sia affidabile che pronta per miglioramenti futuri.
 
-## Screenshots (Optional but Recommended)
-Include screenshots of the main UI screens to illustrate features.
+Mentre la versione attuale fornisce tutte le funzionalità core richieste per una gestione efficace del budget familiare, il design permette l'integrazione seamless di nuove funzionalità, come sincronizzazione cloud, interfacce mobili o web e analisi avanzate. Il meccanismo di sincronizzazione basato su file già pone le basi per il supporto multi-dispositivo, e la chiara separazione delle responsabilità rende facile estendere o adattare l'applicazione mentre le esigenze degli utenti evolvono.
+In sintesi, la Family Budget App è una base solida per lo sviluppo continuo e l'uso nel mondo reale, offrendo sia valore immediato che flessibilità a lungo termine per le famiglie che cercano di migliorare il proprio benessere finanziario.
+
+## Screenshot (Opzionale ma Raccomandato)
+Includere screenshot delle principali schermate UI per illustrare le funzionalità.
 
 ---
 
-## Appendix (Optional)
-- Any additional notes, diagrams, or references. 
+## Appendice (Opzionale)
+- Note aggiuntive, diagrammi o riferimenti. 
