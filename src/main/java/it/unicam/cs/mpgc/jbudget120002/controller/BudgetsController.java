@@ -145,16 +145,19 @@ public class BudgetsController extends BaseController {
             })
             .collect(Collectors.toList()));
     }
+    
+    public void refreshTags() {
+        if (tagService != null) {
+            // Refresh the tags combobox
+            cbTags.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+        }
+    }
 
     @FXML
     private void handleAddBudget() {
         try {
             if (selectedTags.isEmpty()) {
                 showError("Error", "Please select at least one category");
-                return;
-            }
-            if (getMainController().getLoggedInUser().getGroups().isEmpty()) {
-                showError("Error", "You must be a member of a group to create a budget.");
                 return;
             }
 
@@ -165,8 +168,11 @@ public class BudgetsController extends BaseController {
                 dpEndDate.getValue()
             );
             newBudget.setTags(new HashSet<>(selectedTags));
-            // Associate with the user's first group
-            newBudget.setGroup(getMainController().getLoggedInUser().getGroups().iterator().next());
+            
+            // Set group if user has one, otherwise leave it null (no group requirement)
+            if (!currentUser.getGroups().isEmpty()) {
+                newBudget.setGroup(currentUser.getGroups().iterator().next());
+            }
             
             budgetService.save(newBudget);
             refreshData();

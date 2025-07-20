@@ -85,17 +85,29 @@ public class DeadlinesController extends BaseController {
                 .filter(d -> !d.getDueDate().isBefore(start) && !d.getDueDate().isAfter(end))
                 .toList();
             deadlines.setAll(monthlyDeadlines);
-            List<String> categories = new ArrayList<>(monthlyDeadlines.stream()
-                .map(Deadline::getCategory)
-                .filter(c -> c != null && !c.isEmpty())
-                .distinct()
-                .toList());
-            categories.add(0, "All Categories");
+            
+            // Get all available categories from Tag service
+            List<Tag> allTags = tagService.findAll();
+            List<String> categories = new ArrayList<>();
+            categories.add("All Categories");
+            categories.addAll(allTags.stream().map(Tag::getName).toList());
             cbCategoryFilter.getItems().setAll(categories);
             cbCategoryFilter.setValue("All Categories");
         }
         updateTotalDue();
         updateNotifications();
+    }
+    
+    public void refreshTags() {
+        // Refresh category filter with latest tags
+        List<Tag> allTags = tagService.findAll();
+        List<String> categories = new ArrayList<>();
+        categories.add("All Categories");
+        categories.addAll(allTags.stream().map(Tag::getName).toList());
+        cbCategoryFilter.getItems().setAll(categories);
+        if (cbCategoryFilter.getValue() == null || cbCategoryFilter.getValue().isEmpty()) {
+            cbCategoryFilter.setValue("All Categories");
+        }
     }
 
     private void updateTotalDue() {
@@ -234,8 +246,9 @@ public class DeadlinesController extends BaseController {
             grid.add(new Label("Category:"), 0, 4);
             grid.add(cbCategory, 1, 4);
             getDialogPane().setContent(grid);
-            // Populate categories
-            cbCategory.setItems(FXCollections.observableArrayList(tagService.findAll()));
+            // Populate categories with all available tags
+            List<Tag> allTags = tagService.findAll();
+            cbCategory.setItems(FXCollections.observableArrayList(allTags));
             cbCategory.setConverter(new javafx.util.StringConverter<Tag>() {
                 @Override
                 public String toString(Tag tag) { return tag != null ? tag.getName() : ""; }

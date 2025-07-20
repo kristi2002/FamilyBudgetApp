@@ -153,13 +153,20 @@ public class LoginController extends BaseController {
             return;
         }
 
-        User userToLogin = userService.findUserByName(username);
+        try {
+            User userToLogin = userService.findUserByName(username);
+            System.out.println("Login attempt for user: " + username + ", found: " + (userToLogin != null));
 
-        if (userToLogin != null && userToLogin.getPassword().equals(password)) {
-            hideError();
-            mainApp.showMainView(userToLogin);
-        } else {
-            showError("Invalid username or password.");
+            if (userToLogin != null && userToLogin.getPassword().equals(password)) {
+                hideError();
+                mainApp.showMainView(userToLogin);
+            } else {
+                showError("Invalid username or password.");
+            }
+        } catch (Exception e) {
+            System.err.println("Login error: " + e.getMessage());
+            e.printStackTrace();
+            showError("Login failed: " + e.getMessage());
         }
     }
 
@@ -206,6 +213,7 @@ public class LoginController extends BaseController {
 
         try {
             userService.saveUser(newUser);
+            System.out.println("User saved successfully: " + newUser.getUsername());
             showSuccess("Registration successful! You can now login.");
             // Switch back to login mode after a short delay
             new Thread(() -> {
@@ -221,6 +229,8 @@ public class LoginController extends BaseController {
                 }
             }).start();
         } catch (Exception e) {
+            System.err.println("Registration failed: " + e.getMessage());
+            e.printStackTrace();
             showError("Registration failed: " + e.getMessage());
         }
     }

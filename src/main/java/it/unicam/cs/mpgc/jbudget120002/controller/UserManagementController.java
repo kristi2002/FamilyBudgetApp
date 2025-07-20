@@ -100,6 +100,19 @@ public class UserManagementController extends BaseController {
 
         groupTreeView.setRoot(rootItem);
         groupTreeView.setShowRoot(false);
+        
+        // Set custom cell factory to display only group names
+        groupTreeView.setCellFactory(param -> new TreeCell<Group>() {
+            @Override
+            protected void updateItem(Group item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getName());
+                }
+            }
+        });
     }
 
     private void setupUserListView() {
@@ -170,23 +183,26 @@ public class UserManagementController extends BaseController {
         String groupName = groupNameField.getText();
         if (groupName != null && !groupName.trim().isEmpty()) {
             // Check if group with this name already exists
-            List<Group> existingGroups = groupService.findAll();
-            boolean groupExists = existingGroups.stream()
-                    .anyMatch(g -> g.getName().equalsIgnoreCase(groupName.trim()));
+            Group existingGroup = groupService.findGroupByName(groupName.trim());
             
-            if (groupExists) {
-                // Show error message (you can implement a proper alert dialog)
-                System.err.println("Group with name '" + groupName + "' already exists!");
+            if (existingGroup != null) {
+                showError("Group Creation Error", "A group with the name '" + groupName + "' already exists!");
                 return;
             }
             
-            Group newGroup = new Group(groupName.trim());
-            newGroup.setDescription(groupDescriptionArea.getText());
-            newGroup.setParent(parentGroupComboBox.getValue());
-            newGroup.setCreationDate(new Date()); // Explicitly set creation date
-            groupService.save(newGroup);
-            loadData();
-            clearGroupDetails();
+            try {
+                Group newGroup = new Group(groupName.trim());
+                newGroup.setDescription(groupDescriptionArea.getText());
+                newGroup.setParent(parentGroupComboBox.getValue());
+                groupService.save(newGroup);
+                loadData();
+                clearGroupDetails();
+                showInfo("Success", "Group '" + groupName + "' created successfully!");
+            } catch (Exception e) {
+                showError("Group Creation Error", "Failed to create group: " + e.getMessage());
+            }
+        } else {
+            showError("Invalid Input", "Please enter a group name.");
         }
     }
 

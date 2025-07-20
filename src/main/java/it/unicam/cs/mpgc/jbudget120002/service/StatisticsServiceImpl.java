@@ -77,21 +77,36 @@ public class StatisticsServiceImpl extends BaseService implements StatisticsServ
     ) {
         List<CategoryStatistic> stats = new ArrayList<>();
         
-        // Get all relevant categories
-        List<Tag> categories = includeSubcategories ? 
-            tagService.findTagAndDescendants(category) :
-            Collections.singletonList(category);
-        
-        // Calculate statistics for each category
-        for (Tag tag : categories) {
-            if (tag == null) continue;
-            BigDecimal currentAmount = transactionService.calculateAmountForTagInPeriod(tag, startDate, endDate);
-            BigDecimal previousAmount = transactionService.calculateAmountForTagInPeriod(
-                tag,
-                startDate.minusMonths(1),
-                endDate.minusMonths(1)
-            );
-            stats.add(new CategoryStatistic(tag, currentAmount, previousAmount));
+        // If category is null, get statistics for all categories
+        if (category == null) {
+            List<Tag> allTags = tagService.findAll();
+            for (Tag tag : allTags) {
+                if (tag == null) continue;
+                BigDecimal currentAmount = transactionService.calculateAmountForTagInPeriod(tag, startDate, endDate);
+                BigDecimal previousAmount = transactionService.calculateAmountForTagInPeriod(
+                    tag,
+                    startDate.minusMonths(1),
+                    endDate.minusMonths(1)
+                );
+                stats.add(new CategoryStatistic(tag, currentAmount, previousAmount));
+            }
+        } else {
+            // Get all relevant categories for the specific category
+            List<Tag> categories = includeSubcategories ? 
+                tagService.findTagAndDescendants(category) :
+                Collections.singletonList(category);
+            
+            // Calculate statistics for each category
+            for (Tag tag : categories) {
+                if (tag == null) continue;
+                BigDecimal currentAmount = transactionService.calculateAmountForTagInPeriod(tag, startDate, endDate);
+                BigDecimal previousAmount = transactionService.calculateAmountForTagInPeriod(
+                    tag,
+                    startDate.minusMonths(1),
+                    endDate.minusMonths(1)
+                );
+                stats.add(new CategoryStatistic(tag, currentAmount, previousAmount));
+            }
         }
         
         // Sort by absolute percentage change
@@ -738,7 +753,11 @@ public class StatisticsServiceImpl extends BaseService implements StatisticsServ
                 .collect(Collectors.toList());
         } else {
             categoryTransactions = transactions.stream()
-                .filter(t -> !t.isIncome() && getPrimaryTag(t) != null && getPrimaryTag(t).equals(category))
+                .filter(t -> {
+                    if (t.isIncome()) return false;
+                    Tag primaryTag = getPrimaryTag(t);
+                    return primaryTag != null && primaryTag.equals(category);
+                })
                 .collect(Collectors.toList());
         }
         if (categoryTransactions.size() < 1) {
@@ -799,7 +818,13 @@ public class StatisticsServiceImpl extends BaseService implements StatisticsServ
     public List<CategoryTrend> getCategoryTrends(LocalDate startDate, LocalDate endDate, Tag category, String interval) {
         List<Transaction> transactions = transactionService.findByDateRange(startDate, endDate);
         List<Transaction> categoryTransactions = transactions.stream()
-            .filter(t -> category == null || getPrimaryTag(t).equals(category))
+            .filter(t -> {
+                if (category == null) {
+                    return true; // Include all transactions for "All Categories"
+                }
+                Tag primaryTag = getPrimaryTag(t);
+                return primaryTag != null && primaryTag.equals(category);
+            })
             .collect(Collectors.toList());
         
         if (categoryTransactions.isEmpty()) {

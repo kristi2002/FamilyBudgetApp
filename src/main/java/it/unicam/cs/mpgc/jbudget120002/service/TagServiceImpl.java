@@ -70,8 +70,7 @@ public class TagServiceImpl extends BaseService implements TagService {
     public Tag createTag(String name, Long parentId) {
         validateCreateTagParams(name);
         
-        beginTransaction();
-        try {
+        return executeInTransaction(() -> {
             Tag tag = new Tag(name.trim());
             
             if (parentId != null) {
@@ -81,12 +80,9 @@ public class TagServiceImpl extends BaseService implements TagService {
             }
             
             em.persist(tag);
-            commitTransaction();
+            em.flush(); // Ensure the data is written to the database
             return tag;
-        } catch (Exception e) {
-            rollbackTransaction();
-            throw new IllegalArgumentException("Failed to create tag: " + e.getMessage());
-        }
+        });
     }
 
     @Override
@@ -120,8 +116,7 @@ public class TagServiceImpl extends BaseService implements TagService {
     public void updateTag(Long id, String newName, Long newParentId) {
         validateUpdateTagParams(id, newName);
         
-        beginTransaction();
-        try {
+        executeInTransaction(() -> {
             Tag tag = findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag not found"));
             
@@ -138,11 +133,8 @@ public class TagServiceImpl extends BaseService implements TagService {
             
             tag.setName(newName.trim());
             em.merge(tag);
-            commitTransaction();
-        } catch (Exception e) {
-            rollbackTransaction();
-            throw new IllegalArgumentException("Failed to update tag: " + e.getMessage());
-        }
+            em.flush(); // Ensure the data is written to the database
+        });
     }
 
     @Override
@@ -151,8 +143,7 @@ public class TagServiceImpl extends BaseService implements TagService {
             throw new IllegalArgumentException("Tag ID cannot be null");
         }
 
-        beginTransaction();
-        try {
+        executeInTransaction(() -> {
             Tag tag = findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag not found"));
             
@@ -163,11 +154,8 @@ public class TagServiceImpl extends BaseService implements TagService {
             tag.getChildren().forEach(child -> child.setParent(null));
             
             em.remove(tag);
-            commitTransaction();
-        } catch (Exception e) {
-            rollbackTransaction();
-            throw new IllegalArgumentException("Failed to delete tag: " + e.getMessage());
-        }
+            em.flush(); // Ensure the data is written to the database
+        });
     }
 
     @Override

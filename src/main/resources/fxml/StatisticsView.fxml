@@ -90,6 +90,21 @@
     <StackPane VBox.vgrow="ALWAYS">
         <!-- Analysis Tabs -->
         <TabPane fx:id="analysisTabs">
+            <Tab text="Overview" closable="false">
+                <VBox spacing="10">
+                    <BarChart fx:id="overviewChart" VBox.vgrow="ALWAYS">
+                        <xAxis><CategoryAxis label="Category"/></xAxis>
+                        <yAxis><NumberAxis label="Amount"/></yAxis>
+                    </BarChart>
+                </VBox>
+            </Tab>
+            
+            <Tab text="Distribution" closable="false">
+                <VBox spacing="10">
+                    <PieChart fx:id="distributionChart" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </Tab>
+            
             <Tab fx:id="tabTrends" text="Trends" closable="false">
                 <VBox spacing="10">
                     <HBox spacing="10" alignment="CENTER_LEFT">
@@ -114,11 +129,5 @@
         </TabPane>
     </StackPane>
     
-    <!-- Export Options -->
-    <HBox spacing="10" alignment="CENTER_RIGHT">
-        <Button fx:id="btnExportPDF" text="Export PDF" onAction="#handleExportPDF"
-                style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 5 10;"/>
-        <Button fx:id="btnExportExcel" text="Export Excel" onAction="#handleExportExcel"
-                style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 5 10;"/>
-    </HBox>
+
 </VBox>

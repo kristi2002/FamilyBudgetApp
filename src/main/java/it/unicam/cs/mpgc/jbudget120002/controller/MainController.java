@@ -205,8 +205,18 @@ public class MainController extends BaseController {
         }
     }
     private void onStatisticsTabSelected() { if (statisticsViewController != null) statisticsViewController.refreshData(); }
-    private void onScheduledTabSelected() { if (scheduledViewController != null) scheduledViewController.refreshData(); }
-    private void onBudgetsTabSelected() { if (budgetsViewController != null) budgetsViewController.refreshData(); }
+    private void onScheduledTabSelected() { 
+        if (scheduledViewController != null) {
+            scheduledViewController.refreshData();
+            scheduledViewController.refreshTags();
+        }
+    }
+    private void onBudgetsTabSelected() { 
+        if (budgetsViewController != null) {
+            budgetsViewController.refreshData();
+            budgetsViewController.refreshTags();
+        }
+    }
     private void onTagsTabSelected() { if (tagsViewController != null) tagsViewController.refreshData(); }
     private void onSettingsTabSelected() { if (settingsViewController != null) settingsViewController.refreshData(); }
     private void onDeadlinesTabSelected() { if (deadlinesViewController != null) deadlinesViewController.refreshData(); }
@@ -218,13 +228,25 @@ public class MainController extends BaseController {
     }
 
     public void refreshAllViews() {
-        if (transactionsViewController != null) transactionsViewController.refreshData();
+        if (transactionsViewController != null) {
+            transactionsViewController.refreshData();
+            transactionsViewController.refreshTags();
+        }
         if (statisticsViewController != null) statisticsViewController.refreshData();
-        if (scheduledViewController != null) scheduledViewController.refreshData();
-        if (budgetsViewController != null) budgetsViewController.refreshData();
+        if (scheduledViewController != null) {
+            scheduledViewController.refreshData();
+            scheduledViewController.refreshTags();
+        }
+        if (budgetsViewController != null) {
+            budgetsViewController.refreshData();
+            budgetsViewController.refreshTags();
+        }
         if (tagsViewController != null) tagsViewController.refreshData();
         if (settingsViewController != null) settingsViewController.refreshData();
-        if (deadlinesViewController != null) deadlinesViewController.refreshData();
+        if (deadlinesViewController != null) {
+            deadlinesViewController.refreshData();
+            deadlinesViewController.refreshTags();
+        }
         if (loanAmortizationViewController != null) loanAmortizationViewController.refreshData();
         if (dashboardViewController != null) dashboardViewController.refreshData();
         if (userManagementViewController != null) userManagementViewController.refreshData();

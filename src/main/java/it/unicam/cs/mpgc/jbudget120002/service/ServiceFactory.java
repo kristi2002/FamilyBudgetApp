@@ -36,7 +36,7 @@ public class ServiceFactory {
 
     public DeadlineService getDeadlineService(boolean newInstance) {
         if (deadlineService == null || newInstance) {
-            deadlineService = new DeadlineServiceImpl(new DeadlineRepositoryJpa(entityManager));
+            deadlineService = new DeadlineServiceImpl(new DeadlineRepositoryJpa(entityManager), entityManager);
         }
         return deadlineService;
     }

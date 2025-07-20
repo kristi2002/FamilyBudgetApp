@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Controller class managing the statistics and analytics view in the Family Budget App.
@@ -46,11 +47,23 @@ public class StatisticsController extends BaseController {
     @FXML private ComboBox<Tag> cbMainCategory;
     @FXML private CheckBox chkIncludeSubcategories;
     
-    // Summary Labels
+    // Summary Labels - Current Period
     @FXML private Label lblCurrentIncome;
     @FXML private Label lblCurrentExpenses;
     @FXML private Label lblCurrentBalance;
     @FXML private Label lblCurrentSavings;
+    
+    // Summary Labels - Comparison Period
+    @FXML private Label lblCompIncome;
+    @FXML private Label lblCompExpenses;
+    @FXML private Label lblCompBalance;
+    @FXML private Label lblCompSavings;
+    
+    // Summary Labels - Difference
+    @FXML private Label lblDiffIncome;
+    @FXML private Label lblDiffExpenses;
+    @FXML private Label lblDiffBalance;
+    @FXML private Label lblDiffSavings;
     
     // Charts
     @FXML private VBox chartContainer;
@@ -105,7 +118,7 @@ public class StatisticsController extends BaseController {
         setupAnalysisControls();
         setupCharts();
 
-        // --- ADDED: Set default date range and categories based on available data ---
+        // Set default date range and categories based on available data
         List<Transaction> allTransactions = transactionService.findAll();
         if (!allTransactions.isEmpty()) {
             LocalDate minDate = allTransactions.stream().map(Transaction::getDate).min(LocalDate::compareTo).orElse(LocalDate.now());
@@ -113,8 +126,6 @@ public class StatisticsController extends BaseController {
             dpStartDate.setValue(minDate);
             dpEndDate.setValue(maxDate);
         }
-        // Removed code that overwrites cbMainCategory items
-        // --- END ADDED ---
     }
 
     private void setupPeriodControls() {
@@ -146,14 +157,45 @@ public class StatisticsController extends BaseController {
     }
 
     private void setupCategoryControls() {
-        List<Tag> allTags = tagService.findAll();
+        updateCategoryFilter();
+        cbMainCategory.setOnAction(e -> refreshData());
+        chkIncludeSubcategories.setOnAction(e -> updateCategoryFilter());
+    }
+    
+    private void updateCategoryFilter() {
+        boolean includeSubcategories = chkIncludeSubcategories.isSelected();
+        List<Tag> availableTags;
+        
+        if (includeSubcategories) {
+            // Include all tags (root and subcategories)
+            availableTags = tagService.findAll();
+        } else {
+            // Only include root tags
+            availableTags = tagService.findRootTags();
+        }
+        
         Tag allOption = new Tag("All Categories");
         allOption.setId(null);
         List<Tag> comboTags = new ArrayList<>();
         comboTags.add(allOption);
-        comboTags.addAll(allTags);
+        comboTags.addAll(availableTags);
+        
+        Tag currentSelection = cbMainCategory.getValue();
         cbMainCategory.setItems(FXCollections.observableArrayList(comboTags));
-        cbMainCategory.setValue(allOption);
+        
+        // Try to maintain the current selection if it's still available
+        if (currentSelection != null) {
+            if ("All Categories".equals(currentSelection.getName())) {
+                cbMainCategory.setValue(allOption);
+            } else if (availableTags.contains(currentSelection)) {
+                cbMainCategory.setValue(currentSelection);
+            } else {
+                cbMainCategory.setValue(allOption);
+            }
+        } else {
+            cbMainCategory.setValue(allOption);
+        }
+        
         cbMainCategory.setConverter(new StringConverter<Tag>() {
             @Override
             public String toString(Tag tag) {
@@ -164,8 +206,6 @@ public class StatisticsController extends BaseController {
                 return null; // Not needed for ComboBox
             }
         });
-        cbMainCategory.setOnAction(e -> refreshData());
-        chkIncludeSubcategories.setOnAction(e -> refreshData());
     }
 
     private void setupAnalysisControls() {
@@ -197,6 +237,14 @@ public class StatisticsController extends BaseController {
         patternChart.setTitle("Spending Patterns");
         patternChart.getXAxis().setLabel("Category");
         patternChart.getYAxis().setLabel("Amount");
+        
+        // Overview Chart
+        overviewChart.setTitle("Category Overview");
+        overviewChart.getXAxis().setLabel("Category");
+        overviewChart.getYAxis().setLabel("Amount");
+        
+        // Distribution Chart
+        distributionChart.setTitle("Spending Distribution");
     }
 
     @Override
@@ -217,16 +265,16 @@ public class StatisticsController extends BaseController {
                 dpEndDate.setValue(now);
                 break;
             case "Last Month":
-                LocalDate firstOfThisMonth = now.withDayOfMonth(1);
-                LocalDate lastMonth = firstOfThisMonth.minusMonths(1);
-                dpStartDate.setValue(lastMonth);
-                dpEndDate.setValue(lastMonth.withDayOfMonth(lastMonth.lengthOfMonth()));
+                dpStartDate.setValue(now.minusMonths(1).withDayOfMonth(1));
+                dpEndDate.setValue(now.withDayOfMonth(1).minusDays(1));
                 break;
             case "This Quarter":
                 int currentQuarter = (now.getMonthValue() - 1) / 3;
-                LocalDate quarterStart = now.withMonth(currentQuarter * 3 + 1).withDayOfMonth(1);
+                int quarterMonth = currentQuarter * 3 + 1;
+                LocalDate quarterStart = now.withMonth(quarterMonth).withDayOfMonth(1);
+                LocalDate quarterEnd = quarterStart.plusMonths(2).withDayOfMonth(quarterStart.plusMonths(2).lengthOfMonth());
                 dpStartDate.setValue(quarterStart);
-                dpEndDate.setValue(now);
+                dpEndDate.setValue(quarterEnd);
                 break;
             case "Last Quarter":
                 int lastQuarter = ((now.getMonthValue() - 1) / 3) - 1;
@@ -263,36 +311,107 @@ public class StatisticsController extends BaseController {
     private void updateSummary() {
         LocalDate start = dpStartDate.getValue();
         LocalDate end = dpEndDate.getValue();
+        
+        if (start == null || end == null) return;
+        
+        // Calculate current period statistics
         BigDecimal currentIncome = transactionService.calculateIncomeForPeriodForUser(currentUser, start, end);
         BigDecimal currentExpenses = transactionService.calculateExpensesForPeriodForUser(currentUser, start, end);
         BigDecimal currentBalance = currentIncome.subtract(currentExpenses);
         double currentSavingsRate = currentIncome.doubleValue() == 0 ? 0 :
             (currentBalance.doubleValue() / currentIncome.doubleValue()) * 100;
+        
+        // Calculate comparison period (previous period of same length)
+        long daysBetween = ChronoUnit.DAYS.between(start, end) + 1;
+        LocalDate compStart = start.minusDays(daysBetween);
+        LocalDate compEnd = start.minusDays(1);
+        
+        BigDecimal compIncome = transactionService.calculateIncomeForPeriodForUser(currentUser, compStart, compEnd);
+        BigDecimal compExpenses = transactionService.calculateExpensesForPeriodForUser(currentUser, compStart, compEnd);
+        BigDecimal compBalance = compIncome.subtract(compExpenses);
+        double compSavingsRate = compIncome.doubleValue() == 0 ? 0 :
+            (compBalance.doubleValue() / compIncome.doubleValue()) * 100;
+        
+        // Calculate differences
+        BigDecimal diffIncome = currentIncome.subtract(compIncome);
+        BigDecimal diffExpenses = currentExpenses.subtract(compExpenses);
+        BigDecimal diffBalance = currentBalance.subtract(compBalance);
+        double diffSavingsRate = currentSavingsRate - compSavingsRate;
+        
+        // Update current period labels
         lblCurrentIncome.setText("Income: " + String.format("€%.2f", currentIncome));
         lblCurrentExpenses.setText("Expenses: " + String.format("€%.2f", currentExpenses));
         lblCurrentBalance.setText("Balance: " + String.format("€%.2f", currentBalance));
         lblCurrentSavings.setText(String.format("Savings Rate: %.1f%%", currentSavingsRate));
+        
+        // Update comparison period labels
+        lblCompIncome.setText("Income: " + String.format("€%.2f", compIncome));
+        lblCompExpenses.setText("Expenses: " + String.format("€%.2f", compExpenses));
+        lblCompBalance.setText("Balance: " + String.format("€%.2f", compBalance));
+        lblCompSavings.setText(String.format("Savings Rate: %.1f%%", compSavingsRate));
+        
+        // Update difference labels with color coding
+        String diffIncomeText = String.format("Income: %s€%.2f", diffIncome.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "", diffIncome);
+        String diffExpensesText = String.format("Expenses: %s€%.2f", diffExpenses.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "", diffExpenses);
+        String diffBalanceText = String.format("Balance: %s€%.2f", diffBalance.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "", diffBalance);
+        String diffSavingsText = String.format("Savings Rate: %s%.1f%%", diffSavingsRate >= 0 ? "+" : "", diffSavingsRate);
+        
+        lblDiffIncome.setText(diffIncomeText);
+        lblDiffExpenses.setText(diffExpensesText);
+        lblDiffBalance.setText(diffBalanceText);
+        lblDiffSavings.setText(diffSavingsText);
+        
+        // Apply color styling for differences
+        applyDifferenceStyling(lblDiffIncome, diffIncome);
+        applyDifferenceStyling(lblDiffExpenses, diffExpenses);
+        applyDifferenceStyling(lblDiffBalance, diffBalance);
+        applyDifferenceStyling(lblDiffSavings, BigDecimal.valueOf(diffSavingsRate));
+    }
+    
+    private void applyDifferenceStyling(Label label, BigDecimal value) {
+        if (value.compareTo(BigDecimal.ZERO) > 0) {
+            label.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;"); // Green for positive
+        } else if (value.compareTo(BigDecimal.ZERO) < 0) {
+            label.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;"); // Red for negative
+        } else {
+            label.setStyle("-fx-text-fill: #7f8c8d;"); // Gray for zero
+        }
     }
 
     private void updateTables() {
         if (currentUser == null) return;
+        
         // Update monthly summary
         List<MonthlyStatistic> monthlyData = statisticsService.getMonthlyStatistics(
             dpStartDate.getValue(), 
             dpEndDate.getValue()
         );
         monthlyStats.setAll(monthlyData);
-        // Update category analysis
+        
+        // Update category analysis - handle "All Categories" properly
         Tag selectedCategory = cbMainCategory.getValue();
-        List<CategoryStatistic> categoryData = statisticsService.getCategoryStatistics(
-            dpStartDate.getValue(),
-            dpEndDate.getValue(),
-            selectedCategory,
-            chkIncludeSubcategories.isSelected()
-        );
+        List<CategoryStatistic> categoryData;
+        
+        if (selectedCategory != null && "All Categories".equals(selectedCategory.getName())) {
+            // For "All Categories", get statistics for all categories
+            categoryData = statisticsService.getCategoryStatistics(
+                dpStartDate.getValue(),
+                dpEndDate.getValue(),
+                null, // null means all categories
+                chkIncludeSubcategories.isSelected()
+            );
+        } else {
+            categoryData = statisticsService.getCategoryStatistics(
+                dpStartDate.getValue(),
+                dpEndDate.getValue(),
+                selectedCategory,
+                chkIncludeSubcategories.isSelected()
+            );
+        }
         categoryStats.setAll(categoryData);
-        // Update budget tracking - only if a category is selected
-        if (selectedCategory != null) {
+        
+        // Update budget tracking - only if a specific category is selected (not "All Categories")
+        if (selectedCategory != null && !"All Categories".equals(selectedCategory.getName())) {
             List<BudgetStatistic> budgetData = statisticsService.getBudgetStatistics(
                 dpStartDate.getValue(),
                 dpEndDate.getValue(),
@@ -309,15 +428,19 @@ public class StatisticsController extends BaseController {
         if (selectedCategory != null && "All Categories".equals(selectedCategory.getName())) {
             selectedCategory = null;
         }
+        
         // Trend Chart
         trendChart.getData().clear();
         String interval = cbAnalysisInterval.getValue();
         if (interval == null) interval = "MONTHLY";
+        
         List<CategoryTrend> trends = statisticsService.getCategoryTrends(
             dpStartDate.getValue(), dpEndDate.getValue(), selectedCategory, interval
         );
+        
         XYChart.Series<String, Number> balanceSeries = new XYChart.Series<>();
         balanceSeries.setName("Balance");
+        
         if (trends.isEmpty()) {
             balanceSeries.getData().add(new XYChart.Data<>("No Data", 0));
         } else {
@@ -327,9 +450,11 @@ public class StatisticsController extends BaseController {
             }
         }
         trendChart.getData().add(balanceSeries);
+        
         // Pattern Chart
         patternChart.getData().clear();
         SpendingPattern pattern = statisticsService.getSpendingPatterns(dpStartDate.getValue(), dpEndDate.getValue(), selectedCategory);
+        
         if (pattern == null) {
             XYChart.Series<String, Number> dummySeries = new XYChart.Series<>();
             dummySeries.setName("No data available");
@@ -337,31 +462,111 @@ public class StatisticsController extends BaseController {
             patternChart.getData().add(dummySeries);
             return;
         }
+        
         XYChart.Series<String, Number> averageSeries = new XYChart.Series<>();
         averageSeries.setName("Average Amount");
         XYChart.Series<String, Number> maxSeries = new XYChart.Series<>();
         maxSeries.setName("Maximum Amount");
         XYChart.Series<String, Number> minSeries = new XYChart.Series<>();
         minSeries.setName("Minimum Amount");
+        
         String categoryName = selectedCategory != null ? selectedCategory.getName() : "All Categories";
         averageSeries.getData().add(new XYChart.Data<>(categoryName, pattern.averageAmount().doubleValue()));
         maxSeries.getData().add(new XYChart.Data<>(categoryName, pattern.maxAmount().doubleValue()));
         minSeries.getData().add(new XYChart.Data<>(categoryName, pattern.minAmount().doubleValue()));
+        
         patternChart.getData().addAll(averageSeries, maxSeries, minSeries);
         patternChart.layout();
+        
+        // Update Overview Chart
+        updateOverviewChart();
+        
+        // Update Distribution Chart
+        updateDistributionChart();
+    }
+    
+    private void updateOverviewChart() {
+        overviewChart.getData().clear();
+        
+        Tag selectedCategory = cbMainCategory.getValue();
+        if (selectedCategory != null && "All Categories".equals(selectedCategory.getName())) {
+            selectedCategory = null;
+        }
+        
+        // Get category statistics for overview
+        List<CategoryStatistic> categoryData = statisticsService.getCategoryStatistics(
+            dpStartDate.getValue(),
+            dpEndDate.getValue(),
+            selectedCategory,
+            chkIncludeSubcategories.isSelected()
+        );
+        
+        if (categoryData.isEmpty()) {
+            XYChart.Series<String, Number> dummySeries = new XYChart.Series<>();
+            dummySeries.setName("No data available");
+            dummySeries.getData().add(new XYChart.Data<>("No Data", 0));
+            overviewChart.getData().add(dummySeries);
+            return;
+        }
+        
+        XYChart.Series<String, Number> currentSeries = new XYChart.Series<>();
+        currentSeries.setName("Current Period");
+        
+        for (CategoryStatistic stat : categoryData) {
+            currentSeries.getData().add(new XYChart.Data<>(
+                stat.getCategory().getName(), 
+                stat.getCurrentAmount().doubleValue()
+            ));
+        }
+        
+        overviewChart.getData().add(currentSeries);
+        overviewChart.layout();
+    }
+    
+    private void updateDistributionChart() {
+        distributionChart.getData().clear();
+        
+        Tag selectedCategory = cbMainCategory.getValue();
+        if (selectedCategory != null && "All Categories".equals(selectedCategory.getName())) {
+            selectedCategory = null;
+        }
+        
+        // Get category percentages for distribution
+        Map<Tag, Double> percentages = statisticsService.getCategoryPercentages(
+            dpStartDate.getValue(),
+            dpEndDate.getValue()
+        );
+        
+        if (percentages.isEmpty()) {
+            PieChart.Data dummyData = new PieChart.Data("No Data", 100);
+            distributionChart.getData().add(dummyData);
+            return;
+        }
+        
+        // Filter by selected category if specified
+        final Tag finalSelectedCategory = selectedCategory;
+        if (finalSelectedCategory != null) {
+            percentages = percentages.entrySet().stream()
+                .filter(entry -> entry.getKey().equals(finalSelectedCategory))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+        
+        // Calculate total for percentage calculation
+        double total = percentages.values().stream().mapToDouble(Double::doubleValue).sum();
+        
+        for (Map.Entry<Tag, Double> entry : percentages.entrySet()) {
+            if (entry.getValue() > 0) {
+                double percentage = total > 0 ? (entry.getValue() / total) * 100 : 0;
+                String label = String.format("%s (%.1f%%)", entry.getKey().getName(), percentage);
+                PieChart.Data data = new PieChart.Data(label, entry.getValue());
+                distributionChart.getData().add(data);
+            }
+        }
+        
+        distributionChart.layout();
     }
 
-    @FXML
-    private void handleExportPDF() {
-        // TODO: Implement PDF export
-        showInfo("Export", "PDF export will be implemented in a future update.");
-    }
 
-    @FXML
-    private void handleExportExcel() {
-        // TODO: Implement Excel export
-        showInfo("Export", "Excel export will be implemented in a future update.");
-    }
 
     private void updateTrendAnalysis(LocalDate start, LocalDate end, Tag category, String interval) {
         // If 'All Categories' is selected, pass null as the category

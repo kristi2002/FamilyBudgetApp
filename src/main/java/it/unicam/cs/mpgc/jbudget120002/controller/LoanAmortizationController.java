@@ -40,6 +40,7 @@ public class LoanAmortizationController extends BaseController {
 
     @Override
     protected void initializeServices() {
+        this.loanService = new LoanService();
         this.scheduledTransactionService = serviceFactory.getScheduledTransactionService(false);
     }
 
@@ -95,16 +96,50 @@ public class LoanAmortizationController extends BaseController {
 
     private void generateSchedule() {
         try {
+            // Validate inputs
+            if (tfAmount.getText() == null || tfAmount.getText().trim().isEmpty()) {
+                showError("Invalid Input", "Please enter a loan amount.");
+                return;
+            }
+            if (tfInterestRate.getText() == null || tfInterestRate.getText().trim().isEmpty()) {
+                showError("Invalid Input", "Please enter an interest rate.");
+                return;
+            }
+            if (tfTerm.getText() == null || tfTerm.getText().trim().isEmpty()) {
+                showError("Invalid Input", "Please enter a loan term.");
+                return;
+            }
+            if (dpStartDate.getValue() == null) {
+                showError("Invalid Input", "Please select a start date.");
+                return;
+            }
+            
             String loanName = tfLoanName.getText();
             if (loanName == null || loanName.trim().isEmpty()) loanName = "Loan";
             BigDecimal amount = new BigDecimal(tfAmount.getText());
             double rate = Double.parseDouble(tfInterestRate.getText());
             int term = Integer.parseInt(tfTerm.getText());
             LocalDate start = dpStartDate.getValue();
+            
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                showError("Invalid Input", "Loan amount must be greater than zero.");
+                return;
+            }
+            if (rate <= 0) {
+                showError("Invalid Input", "Interest rate must be greater than zero.");
+                return;
+            }
+            if (term <= 0) {
+                showError("Invalid Input", "Loan term must be greater than zero.");
+                return;
+            }
+            
             List<Installment> result = loanService.generateAmortizationSchedule(amount, rate, term, start);
             schedule.setAll(result);
+        } catch (NumberFormatException ex) {
+            showError("Invalid Input", "Please enter valid numbers for amount, interest rate, and term.");
         } catch (Exception ex) {
-            showError("Invalid Input", "Please check your values.");
+            showError("Error", "An error occurred: " + ex.getMessage());
         }
     }
 

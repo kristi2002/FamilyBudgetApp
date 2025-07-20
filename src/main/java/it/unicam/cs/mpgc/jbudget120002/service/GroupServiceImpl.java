@@ -32,12 +32,18 @@ public class GroupServiceImpl extends BaseService implements GroupService {
 
     @Override
     public void save(Group group) {
-        groupRepository.save(group);
+        executeInTransaction(() -> {
+            groupRepository.save(group);
+            em.flush(); // Ensure the data is written to the database
+        });
     }
 
     @Override
     public void delete(Group group) {
-        groupRepository.delete(group);
+        executeInTransaction(() -> {
+            groupRepository.delete(group);
+            em.flush(); // Ensure the data is written to the database
+        });
     }
 
     @Override
@@ -47,22 +53,28 @@ public class GroupServiceImpl extends BaseService implements GroupService {
 
     @Override
     public void addUserToGroup(Long groupId, Long userId) {
-        Group group = findById(groupId);
-        User user = userRepository.findById(userId).orElse(null);
-        if (group != null && user != null) {
-            group.addUser(user);
-            save(group);
-        }
+        executeInTransaction(() -> {
+            Group group = findById(groupId);
+            User user = userRepository.findById(userId).orElse(null);
+            if (group != null && user != null) {
+                group.addUser(user);
+                groupRepository.save(group);
+                em.flush();
+            }
+        });
     }
 
     @Override
     public void removeUserFromGroup(Long groupId, Long userId) {
-        Group group = findById(groupId);
-        User user = userRepository.findById(userId).orElse(null);
-        if (group != null && user != null) {
-            group.removeUser(user);
-            save(group);
-        }
+        executeInTransaction(() -> {
+            Group group = findById(groupId);
+            User user = userRepository.findById(userId).orElse(null);
+            if (group != null && user != null) {
+                group.removeUser(user);
+                groupRepository.save(group);
+                em.flush();
+            }
+        });
     }
 
     @Override

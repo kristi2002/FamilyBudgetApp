@@ -30,7 +30,10 @@ public class UserServiceImpl extends BaseService implements UserService {
 
     @Override
     public void save(User user) {
-        repository.save(user);
+        executeInTransaction(() -> {
+            repository.save(user);
+            em.flush(); // Ensure the data is written to the database
+        });
     }
 
     @Override
@@ -40,7 +43,10 @@ public class UserServiceImpl extends BaseService implements UserService {
 
     @Override
     public void delete(User user) {
-        repository.delete(user);
+        executeInTransaction(() -> {
+            repository.delete(user);
+            em.flush();
+        });
     }
 
     @Override
@@ -55,20 +61,26 @@ public class UserServiceImpl extends BaseService implements UserService {
 
     @Override
     public void assignRoleToUser(Long userId, Role role) {
-        User user = findById(userId);
-        if (user != null) {
-            user.getRoles().add(role);
-            save(user);
-        }
+        executeInTransaction(() -> {
+            User user = findById(userId);
+            if (user != null) {
+                user.getRoles().add(role);
+                repository.save(user);
+                em.flush();
+            }
+        });
     }
 
     @Override
     public void revokeRoleFromUser(Long userId, Role role) {
-        User user = findById(userId);
-        if (user != null) {
-            user.getRoles().remove(role);
-            save(user);
-        }
+        executeInTransaction(() -> {
+            User user = findById(userId);
+            if (user != null) {
+                user.getRoles().remove(role);
+                repository.save(user);
+                em.flush();
+            }
+        });
     }
 
     @Override

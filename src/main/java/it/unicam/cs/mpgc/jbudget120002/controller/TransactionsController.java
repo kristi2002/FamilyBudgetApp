@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import javafx.util.StringConverter;
 
 /**
  * Controller class managing the transactions view in the Family Budget App.
@@ -224,9 +226,55 @@ public class TransactionsController extends BaseController {
     }
 
     private void setupCategoryFilter() {
-        cbCategory.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+        updateCategoryFilter();
         cbCategory.setOnAction(e -> refreshData());
-        cbIncludeSubcategories.selectedProperty().addListener((obs, oldVal, newVal) -> refreshData());
+        cbIncludeSubcategories.selectedProperty().addListener((obs, oldVal, newVal) -> updateCategoryFilter());
+    }
+    
+    private void updateCategoryFilter() {
+        boolean includeSubcategories = cbIncludeSubcategories.isSelected();
+        List<Tag> availableTags;
+        
+        if (includeSubcategories) {
+            // Include all tags (root and subcategories)
+            availableTags = tagService.findAll();
+        } else {
+            // Only include root tags
+            availableTags = tagService.findRootTags();
+        }
+        
+        Tag allOption = new Tag("All Categories");
+        allOption.setId(null);
+        List<Tag> comboTags = new ArrayList<>();
+        comboTags.add(allOption);
+        comboTags.addAll(availableTags);
+        
+        Tag currentSelection = cbCategory.getValue();
+        cbCategory.setItems(FXCollections.observableArrayList(comboTags));
+        
+        // Try to maintain the current selection if it's still available
+        if (currentSelection != null) {
+            if ("All Categories".equals(currentSelection.getName())) {
+                cbCategory.setValue(allOption);
+            } else if (availableTags.contains(currentSelection)) {
+                cbCategory.setValue(currentSelection);
+            } else {
+                cbCategory.setValue(allOption);
+            }
+        } else {
+            cbCategory.setValue(allOption);
+        }
+        
+        cbCategory.setConverter(new StringConverter<Tag>() {
+            @Override
+            public String toString(Tag tag) {
+                return tag != null ? tag.getName() : "";
+            }
+            @Override
+            public Tag fromString(String string) {
+                return null; // Not needed for ComboBox
+            }
+        });
     }
 
     private void setupFilters() {
@@ -296,16 +344,14 @@ public class TransactionsController extends BaseController {
             // Preserve selection
             List<Tag> allTags = tagService.findAll();
             Tag selectedInCb = cbTags.getValue();
-            Tag selectedInCategory = cbCategory.getValue();
 
             cbTags.setItems(FXCollections.observableArrayList(allTags));
-            cbCategory.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+            
+            // Update category filter using the new method
+            updateCategoryFilter();
 
             if (selectedInCb != null && allTags.contains(selectedInCb)) {
                 cbTags.setValue(selectedInCb);
-            }
-            if (selectedInCategory != null && tagService.findRootTags().contains(selectedInCategory)) {
-                cbCategory.setValue(selectedInCategory);
             }
         }
     }
@@ -316,6 +362,11 @@ public class TransactionsController extends BaseController {
         LocalDate endDate = dpEndDate.getValue();
         Tag category = cbCategory.getValue();
         boolean includeSubcategories = cbIncludeSubcategories.isSelected();
+
+        // Handle "All Categories" option
+        if (category != null && "All Categories".equals(category.getName())) {
+            category = null;
+        }
 
         List<Transaction> filteredTransactions = transactionService.findTransactions(
             currentUser, searchTerm, startDate, endDate, category, includeSubcategories);
@@ -402,6 +453,11 @@ public class TransactionsController extends BaseController {
                 transactionService.deleteTransaction(selected.getId());
                 transactions.remove(selected);
                 refreshData();
+                
+                // Refresh all views including dashboard
+                if (mainController != null) {
+                    mainController.refreshAllViews();
+                }
             } catch (Exception e) {
                 showError("Error", "Failed to delete transaction: " + e.getMessage());
             }
@@ -413,7 +469,11 @@ public class TransactionsController extends BaseController {
         dpStartDate.setValue(null);
         dpEndDate.setValue(null);
         tfSearch.clear();
-        cbCategory.setValue(null);
+        
+        // Reset to "All Categories"
+        Tag allOption = new Tag("All Categories");
+        allOption.setId(null);
+        cbCategory.setValue(allOption);
         cbIncludeSubcategories.setSelected(true);
         refreshData();
     }

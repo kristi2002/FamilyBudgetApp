@@ -122,8 +122,9 @@ public class BudgetServiceImpl extends BaseService implements BudgetService {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null");
         }
+        // Return budgets for user's groups, or all budgets if user has no groups
         if (user.getGroups().isEmpty()) {
-            return Collections.emptyList();
+            return repository.findAll(); // Return all budgets if user has no groups
         }
         return repository.findByGroups(user.getGroups());
     }

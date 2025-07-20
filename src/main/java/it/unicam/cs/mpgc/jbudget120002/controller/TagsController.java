@@ -201,9 +201,18 @@ public class TagsController extends BaseController {
 
     private void refreshTransactionTags() {
         if (mainController != null) {
+            // Refresh TransactionsController
             TransactionsController transactionsController = mainController.getTransactionsViewController();
             if (transactionsController != null) {
                 transactionsController.refreshTags();
+            }
+            
+            // Force refresh of all controllers that use category filters
+            // This ensures tags appear immediately in all category dropdowns
+            try {
+                mainController.refreshAllViews();
+            } catch (Exception e) {
+                System.err.println("Error refreshing controllers: " + e.getMessage());
             }
         }
     }

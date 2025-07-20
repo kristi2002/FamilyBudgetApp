@@ -44,15 +44,12 @@ public abstract class JpaRepository<T, ID> implements Repository<T, ID> {
 
     @Override
     public void save(T entity) {
-        EntityTransaction tx = em.getTransaction();
-        boolean isNew = !tx.isActive();
-        if (isNew) tx.begin();
+        // Don't manage transactions here - let the service layer handle it
         if (em.contains(entity) || getEntityId(entity) != null) {
             em.merge(entity);
         } else {
             em.persist(entity);
         }
-        if (isNew) tx.commit();
     }
 
     // Helper method to get the ID of the entity using reflection
@@ -66,11 +63,8 @@ public abstract class JpaRepository<T, ID> implements Repository<T, ID> {
 
     @Override
     public void delete(T entity) {
-        EntityTransaction tx = em.getTransaction();
-        boolean isNew = !tx.isActive();
-        if (isNew) tx.begin();
+        // Don't manage transactions here - let the service layer handle it
         em.remove(em.contains(entity) ? entity : em.merge(entity));
-        if (isNew) tx.commit();
     }
 
     @Override

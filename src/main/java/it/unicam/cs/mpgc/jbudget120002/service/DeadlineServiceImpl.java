@@ -2,22 +2,27 @@ package it.unicam.cs.mpgc.jbudget120002.service;
 
 import it.unicam.cs.mpgc.jbudget120002.model.Deadline;
 import it.unicam.cs.mpgc.jbudget120002.repository.DeadlineRepository;
+import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public class DeadlineServiceImpl implements DeadlineService {
+public class DeadlineServiceImpl extends BaseService implements DeadlineService {
 
     private final DeadlineRepository repo;
 
-    public DeadlineServiceImpl(DeadlineRepository repo) {
+    public DeadlineServiceImpl(DeadlineRepository repo, EntityManager em) {
+        super(em);
         this.repo = repo;
     }
 
     @Override
     public Deadline create(Deadline d) {
-        repo.save(d);
-        return d;
+        return executeInTransaction(() -> {
+            repo.save(d);
+            em.flush(); // Ensure the entity is persisted immediately
+            return d;
+        });
     }
 
     @Override
@@ -37,12 +42,18 @@ public class DeadlineServiceImpl implements DeadlineService {
 
     @Override
     public Deadline update(Deadline d) {
-        repo.save(d);
-        return d;
+        return executeInTransaction(() -> {
+            repo.save(d);
+            em.flush(); // Ensure the entity is persisted immediately
+            return d;
+        });
     }
 
     @Override
     public void delete(Long id) {
-        repo.findById(id).ifPresent(repo::delete);
+        executeInTransaction(() -> {
+            repo.findById(id).ifPresent(repo::delete);
+            em.flush(); // Ensure the entity is deleted immediately
+        });
     }
 }

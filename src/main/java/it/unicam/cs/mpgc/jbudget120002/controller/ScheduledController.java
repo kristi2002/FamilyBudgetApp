@@ -27,6 +27,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.List;
+import java.util.ArrayList;
+import javafx.util.StringConverter;
 
 /**
  * Controller class managing scheduled and recurring transactions in the Family Budget App.
@@ -214,9 +216,55 @@ public class ScheduledController extends BaseController {
     }
 
     private void setupCategoryFilter() {
-        cbCategory.setItems(FXCollections.observableArrayList(tagService.findRootTags()));
+        updateCategoryFilter();
         cbCategory.setOnAction(e -> refreshData());
-        cbIncludeSubcategories.selectedProperty().addListener((obs, oldVal, newVal) -> refreshData());
+        cbIncludeSubcategories.selectedProperty().addListener((obs, oldVal, newVal) -> updateCategoryFilter());
+    }
+    
+    private void updateCategoryFilter() {
+        boolean includeSubcategories = cbIncludeSubcategories.isSelected();
+        List<Tag> availableTags;
+        
+        if (includeSubcategories) {
+            // Include all tags (root and subcategories)
+            availableTags = tagService.findAll();
+        } else {
+            // Only include root tags
+            availableTags = tagService.findRootTags();
+        }
+        
+        Tag allOption = new Tag("All Categories");
+        allOption.setId(null);
+        List<Tag> comboTags = new ArrayList<>();
+        comboTags.add(allOption);
+        comboTags.addAll(availableTags);
+        
+        Tag currentSelection = cbCategory.getValue();
+        cbCategory.setItems(FXCollections.observableArrayList(comboTags));
+        
+        // Try to maintain the current selection if it's still available
+        if (currentSelection != null) {
+            if ("All Categories".equals(currentSelection.getName())) {
+                cbCategory.setValue(allOption);
+            } else if (availableTags.contains(currentSelection)) {
+                cbCategory.setValue(currentSelection);
+            } else {
+                cbCategory.setValue(allOption);
+            }
+        } else {
+            cbCategory.setValue(allOption);
+        }
+        
+        cbCategory.setConverter(new StringConverter<Tag>() {
+            @Override
+            public String toString(Tag tag) {
+                return tag != null ? tag.getName() : "";
+            }
+            @Override
+            public Tag fromString(String string) {
+                return null; // Not needed for ComboBox
+            }
+        });
     }
 
     private void setupFilters() {
@@ -282,6 +330,12 @@ public class ScheduledController extends BaseController {
         Tag selectedCategory = cbCategory.getValue();
         boolean includeSubcategories = cbIncludeSubcategories.isSelected();
         List<ScheduledTransaction> filteredTransactions;
+        
+        // Handle "All Categories" option
+        if (selectedCategory != null && "All Categories".equals(selectedCategory.getName())) {
+            selectedCategory = null;
+        }
+        
         if (selectedCategory != null) {
             filteredTransactions = scheduledService.findByTag(selectedCategory, includeSubcategories);
         } else {
@@ -295,6 +349,17 @@ public class ScheduledController extends BaseController {
             .collect(Collectors.toList());
         transactions.setAll(filteredTransactions);
         updateStatistics();
+    }
+    
+    public void refreshTags() {
+        if (tagService != null) {
+            // Refresh the tags combobox
+            List<Tag> allTags = tagService.findAll();
+            cbTags.setItems(FXCollections.observableArrayList(allTags));
+            
+            // Update category filter
+            updateCategoryFilter();
+        }
     }
 
     private void updateStatistics() {
@@ -427,7 +492,11 @@ public class ScheduledController extends BaseController {
         dpFilterStartDate.setValue(null);
         dpFilterEndDate.setValue(null);
         tfSearch.clear();
-        cbCategory.setValue(null);
+        
+        // Reset to "All Categories"
+        Tag allOption = new Tag("All Categories");
+        allOption.setId(null);
+        cbCategory.setValue(allOption);
         cbIncludeSubcategories.setSelected(true);
         refreshData();
     }

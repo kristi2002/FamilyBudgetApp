@@ -222,4 +222,11 @@ public class DashboardController extends BaseController {
         cbPeriod.setValue("This Month");
         updatePeriodDates();
     }
+    
+    public void refreshData() {
+        if (currentUser != null) {
+            updateBalanceLabel();
+            loadData();
+        }
+    }
 } 
