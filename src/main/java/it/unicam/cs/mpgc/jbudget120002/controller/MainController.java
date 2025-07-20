@@ -95,6 +95,8 @@ public class MainController extends BaseController {
             transactionsViewController.setMainController(this);
             if (currentUser != null) transactionsViewController.setCurrentUser(currentUser);
             LOGGER.info("Setting parent for TransactionsController");
+        } else {
+            LOGGER.warning("TransactionsController is null!");
         }
         if (statisticsViewController != null) {
             statisticsViewController.setMainController(this);
@@ -164,10 +166,42 @@ public class MainController extends BaseController {
 
     @FXML
     private void onTransactionsTabSelected() {
+        LOGGER.info("Transactions tab selected");
         if (transactionsViewController != null) {
+            LOGGER.info("TransactionsController found, refreshing data");
             transactionsViewController.setCurrentUser(currentUser);
             transactionsViewController.refreshData();
             transactionsViewController.refreshTags();
+        } else {
+            LOGGER.warning("TransactionsController is null! Trying to get it from the tab content...");
+            // Try to get the controller from the tab content
+            if (transactionsTab != null && transactionsTab.getContent() != null) {
+                try {
+                    // This is a workaround - try to get the controller from the scene
+                    javafx.scene.Node content = transactionsTab.getContent();
+                    if (content instanceof javafx.scene.Parent) {
+                        javafx.scene.Parent parent = (javafx.scene.Parent) content;
+                        // Try to find the controller in the scene
+                        for (javafx.scene.Node node : parent.lookupAll("*")) {
+                            if (node.getUserData() instanceof TransactionsController) {
+                                transactionsViewController = (TransactionsController) node.getUserData();
+                                LOGGER.info("Found TransactionsController from scene lookup");
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (transactionsViewController != null) {
+                        transactionsViewController.setCurrentUser(currentUser);
+                        transactionsViewController.refreshData();
+                        transactionsViewController.refreshTags();
+                    } else {
+                        LOGGER.severe("Could not find TransactionsController in the scene");
+                    }
+                } catch (Exception e) {
+                    LOGGER.severe("Error trying to get TransactionsController: " + e.getMessage());
+                }
+            }
         }
     }
     private void onStatisticsTabSelected() { if (statisticsViewController != null) statisticsViewController.refreshData(); }
